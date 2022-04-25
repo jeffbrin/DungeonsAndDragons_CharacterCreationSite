@@ -1,0 +1,180 @@
+@font-face {
+    font-family: cretino;
+    src: url("/fonts/cretino.ttf");
+}
+
+:root {
+    background-color: #333;
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #26413C;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+}
+
+body {
+    
+    background-color: var(--backgroundColor);
+    color: white;
+}
+
+
+h1 {
+    color: var(--textColor);
+    font-family: 'cretino';
+    margin-top: 4rem;
+    font-size: 5rem;
+}
+
+.listitem {
+    list-style: none;
+}
+
+.hyperlink {
+    text-decoration: none;
+    color: inherit;
+}
+
+.hyperlink:hover {
+    color: cornflowerblue;
+}
+
+.elevated {
+    background-color: var(--elevationColor);
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--popColor);
+    border: var(--popColor);
+}
+
+.btn-primary:hover {
+    background-color: var(--popColorHover);
+    color: var(--textColor);
+}
+
+#formMain {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+#divName {
+    margin: 0 !important;
+}
+
+.form-control {
+    background-color: var(--elevation2Color);
+    color: var(--textColor);
+}
+
+.form-control:focus {
+    border-color: var(--popColor);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 10px rgba(0, 204, 255, 0.6);
+    background-color: var(--elevation2Color);
+    color: var(--textColor);
+}
+
+.form-control::placeholder {
+    color: var(--textColor);
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    height: 10px;
+    width: 10px;
+    background: url("../images/pokemon_PNG14.png");
+}
+
+.myAlert {
+    margin-top: 2rem;
+}
+
+#addchardiv {
+    background-color: var(--elevationColor);
+    color: var(--textColor);
+    width: 50%;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-select {
+    background-color: var(--elevationColor);
+    color: var(--textColor);
+}
+
+#addmessageh2 {
+    margin-bottom: 1rem;
+}
+
+#carouselDiv {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+#submitBtn {
+    margin: auto;
+    width: 20%;
+}
+
+#selectRace {
+    margin: auto;
+}
+
+#selectClass {
+    margin: auto;
+    margin-top: 1rem;
+}
+
+#divHp {
+    margin-top: 1rem;
+}
+
+#tableCharacters {
+    width: 90%;
+    margin: auto;
+    margin-bottom: 2rem;
+}
+
+.bgimage {
+    width: 100%;
+    background: url('../images/hero/dnd&.jfif');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.bgimage h5 {
+    color: white;
+    text-shadow: 2px 2px #333;
+}
+
+.gradient {
+    height: 100%;
+    border: 1px solid black;
+    position: relative;
+}
+
+.gradient:before {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 0%;
+    width: 100%;
+    bottom: 0;
+    transition: height 0.5s ease-out;
+    background: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+.gradient:hover:before {
+    height: 100%;
+}
+#ulButtons{
+    width: 50% !important;
+    margin: 0 !important;
+}

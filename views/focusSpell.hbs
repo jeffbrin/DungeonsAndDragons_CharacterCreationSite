@@ -1,0 +1,57 @@
+{{#if (equals spell.level null)}}
+<div class="container d-flex flex-column align-items-center">
+    <h1 class="text-center">The spell you're looking for could not be found.</h1>
+    <p class="p-5">Why don't you head back to the spells page and add it yourself!</p>
+    <a class="btn btn-primary px-5 py-2" href="/spells">Back</a>
+</div>
+{{else}}
+<div id="container" class="container d-flex flex-column justify-content-center align-items-center">
+    <div class="d-flex align-items-end">
+        <img class="mb-3 pr-5" width="50px" src="/images/icons/spells/{{spell.school}}.png">
+        <h1 id="spellFocusName" class="p-3">{{spell.name}}</h1>
+        <img class="mb-3 pl-5" width="50px" src="/images/icons/spells/{{spell.school}}.png">
+    </div>
+
+    {{!-- Level and school --}}
+    <div class="d-flex">
+        <div class="p-5 text-center">
+            <h2>Level</h2>
+            {{#if (equals spell.level 0)}}
+            <p id="spellFocusLevel">Cantrip</p>
+            {{else}}
+            <p id="spellFocusLevel">{{spell.level}}</p>
+            {{/if}}
+        </div>
+        <div class="d-flex p-5 text-center">
+            <div>
+                <h2>School</h2>
+                <p id="spellFocusSchool">{{spell.school}}</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Description</h2>
+    <p id="spellFocusDescription">{{spell.description}}</p>
+
+    <a class="btn btn-primary mt-5 mb-2" href="/spells">All Spells</a>
+
+    {{!-- Attribution --}}
+    {{#if (equals spell.school "Conjuration")}}
+    <a style="color: black; margin-top:20px;" target="_blank" href="https://www.flaticon.com/free-icons/portal" title="portal icons">Portal icons created by Freepik - Flaticon</a>
+    {{/if}}
+    {{#if (equals spell.school "Abjuration")}}
+    <a style="color: black; margin-top:20px; margin-bottom:0px;" target="_blank" href="https://www.flaticon.com/free-icons/shield" title="shield icons">Shield icons created by Freepik - Flaticon</a>
+    {{/if}}
+    {{#if (equals spell.school "Transmutation")}}
+    <p style="color: black; margin-top:20px; margin-bottom:0px;">Werewolf by Icons Producer from NounProject.com</p>
+    {{/if}}
+    {{#if (equals spell.school "Enchantment")}}
+    <a style="color: black; margin-top:20px;" target="_blank" href="https://www.flaticon.com/free-icons/sparkle" title="sparkle icons">Sparkle icons created by Bartama Graphic - Flaticon</a>
+    {{/if}}
+    {{#if (equals spell.school "Illusion")}}
+    <a style="color: black; margin-top:20px;" target="_blank" href="https://www.flaticon.com/free-icons/mask" title="mask icons">Mask icons created by Freepik - Flaticon</a>
+    {{/if}}
+
+</div>
+{{/if}}
+{{!-- <a href="https://www.vecteezy.com/free-png/fire">Fire PNGs by Vecteezy</a> --}}
