@@ -2,6 +2,7 @@ const mysql = require('mysql2/promise');
 const valUtils = require('../validateUtils/validation');
 let connection;
 const tableName = 'playercharacter';
+const errors = require('./errorModel');
 
 /**
  * 
@@ -45,13 +46,13 @@ async function closeConnection() {
  */
 async function addCharacter(name, race, charClass, hitpoints) {
     if (! await valUtils.isCharValid(name, race, charClass, hitpoints)) {
-        throw new InvalidInputError("Invalid Character, cannot ADD in addCharacter()");
+        throw new errors.InvalidInputError("Invalid Character, cannot ADD in addCharacter()");
     }
 
     //ADD CHAR TO DB
     let query = `insert into ${tableName} (name, race, class, hitpoints) values ('${name.toLowerCase()}', '${race.toLowerCase()}', '${charClass.toLowerCase()}', '${hitpoints}');`;
 
-    await connection.execute(query).then(console.log("Insert command executed in addCharacter()")).catch((error) => { throw new DatabaseError(error); });
+    await connection.execute(query).then(console.log("Insert command executed in addCharacter()")).catch((error) => { throw new errors.DatabaseError(error); });
 
 }
 
@@ -68,17 +69,17 @@ async function addCharacter(name, race, charClass, hitpoints) {
  */
 async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
     if (! await valUtils.isCharValid(newName, newRace, newClass, newHitpoints)) {
-        throw new InvalidInputError("Invalid Character, cannot update character - updateCharacter()");
+        throw new errors.InvalidInputError("Invalid Character, cannot update character - updateCharacter()");
     }
     let selectQuery = `Select 1 from ${tableName} where id = ${id}`;
-    let [rows, column_definitions] = await connection.query(selectQuery).then(console.log("select Query before Update Executed - updateCharacter()")).catch((error) => { throw new Error(error); });
+    let [rows, column_definitions] = await connection.query(selectQuery).then(console.log("select Query before Update Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError(error); });
 
     //Check if there is an ID that matches in the database
     if (rows.length == 0) {
-        throw new InvalidInputError("Invalid Id, character DOES NOT EXIST!");
+        throw new errors.InvalidInputError("Invalid Id, character DOES NOT EXIST!");
     }
     let query = `Update ${tableName} SET name = '${newName.toLowerCase()}', race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
-    await connection.execute(query).then(console.log("Update Query Executed - updateCharacter()")).catch((error) => { throw new DatabaseError(error.message); });
+    await connection.execute(query).then(console.log("Update Query Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError(error.message); });
 }
 
 
@@ -96,10 +97,10 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
  */
 async function hitpointsModifier(id, hpValueChange) {
     let selectQ = `Select hitpoints from ${tableName} where id = ${id};`;
-    let [rows, column_definitions] = await connection.query(selectQ).then(console.log("select Query before HP change Executed - hitpointsModifier()")).catch((error) => { throw new Error(error); });
+    let [rows, column_definitions] = await connection.query(selectQ).then(console.log("select Query before HP change Executed - hitpointsModifier()")).catch((error) => { throw new errors.DatabaseError(error); });
 
     if (rows.length === 0) {
-        throw new InvalidInputError("Character not found with that id");
+        throw new errors.InvalidInputError("Character not found with that id");
     }
 
     let newHp = rows[0].hitpoints + hpValueChange;
@@ -109,7 +110,7 @@ async function hitpointsModifier(id, hpValueChange) {
     }
 
     let query = `Update ${tableName} SET hitpoints = ${newHp} where id = ${id};`;
-    await connection.execute(query).then(console.log("Update Hitpoints Query Executed - hitpointsModifier()")).catch((error) => { throw new DatabaseError(error); });
+    await connection.execute(query).then(console.log("Update Hitpoints Query Executed - hitpointsModifier()")).catch((error) => { throw new errors.DatabaseError(error); });
 }
 
 /**
@@ -121,9 +122,9 @@ async function hitpointsModifier(id, hpValueChange) {
 async function findIdWithNameAndRace(name, race) {
     //with name and race we want to find the id because the id is never really accessible to the user
     let query = `select id from ${tableName} where name = '${name.toLowerCase()}' and race = '${race.toLowerCase()}';`;
-    let [rows, column_definitions] = await connection.query(query).then(console.log("select Query before returning ID Executed")).catch((error) => { throw new Error(error); });
+    let [rows, column_definitions] = await connection.query(query).then(console.log("select Query before returning ID Executed")).catch((error) => { throw new errors.DatabaseError(error); });
     if (rows.length === 0) {
-        throw new InvalidInputError("Character not found with that name and race combo - findIdWithNameAndRace()");
+        throw new errors.InvalidInputError("Character not found with that name and race combo - findIdWithNameAndRace()");
     }
     return rows[0].id;
 }
@@ -136,9 +137,9 @@ async function findIdWithNameAndRace(name, race) {
  */
 async function getCharacter(id){
     let query = `select id, name, race, class, hitpoints from ${tableName} where id = ${id};`;
-    let [rows, column_definitions] = await connection.query(query).then(console.log("select Query before returning Character executed")).catch((error) => { throw new DatabaseError(error); });
+    let [rows, column_definitions] = await connection.query(query).then(console.log("select Query before returning Character executed")).catch((error) => { throw new errors.DatabaseError(error); });
     if (rows.length === 0) {
-        throw new InvalidInputError("Character not found with that name and race combo - findIdWithNameAndRace()");
+        throw new errors.InvalidInputError("Character not found with that name and race combo - findIdWithNameAndRace()");
     }
     return rows[0];
 }
@@ -158,9 +159,9 @@ async function deleteCharacter(id){
         let [rows, column_definitions] = await connection.query(checkingQ).then(console.log("Select query to check if Id exists has been executed"));
 
         if(rows.length === 0){
-            throw new InvalidInputError("Character not found with that ID");
+            throw new errors.InvalidInputError("Character not found with that ID");
         }
-        await connection.execute(query).then(console.log(`Delete Query Executed Character with id: ${id} was deleted`)).catch((error) => {throw new DatabaseError("Delete Query could not be completed");});
+        await connection.execute(query).then(console.log(`Delete Query Executed Character with id: ${id} was deleted`)).catch((error) => {throw new errors.DatabaseError("Delete Query could not be completed");});
         return true;
     }
     catch (error){
@@ -178,7 +179,7 @@ async function deleteCharacter(id){
  */
 async function printDb() {
     let query = "Select * from playercharacter";
-    let [rows, colum_definitions] = await connection.query(query).then(console.log("printDb() select method executed!")).catch((error) => { throw new DatabaseError(error); });
+    let [rows, colum_definitions] = await connection.query(query).then(console.log("printDb() select method executed!")).catch((error) => { throw new errors.DatabaseError(error); });
     return rows;
 }
 
@@ -190,12 +191,6 @@ function getConnection(){
     return this.connection;
 }
 
-
-//Errors
-class InvalidInputError extends Error { };
-class InvalidFileError extends Error { };
-class DatabaseError extends Error {};
-
 module.exports = { 
     initialize, 
     addCharacter, 
@@ -206,8 +201,5 @@ module.exports = {
     hitpointsModifier, 
     getCharacter,
     deleteCharacter,
-    getConnection,
-    InvalidInputError, 
-    InvalidFileError, 
-    DatabaseError 
+    getConnection
 };
