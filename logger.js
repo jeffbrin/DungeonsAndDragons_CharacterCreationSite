@@ -1,5 +1,12 @@
 const pino = require("pino");
-const logger = pino({level: 'info'}, pino.destination('logs/server-log'));
+const logger = pino({
+    level: 'info',
+    destination: 'pino-pretty',
+    options: {
+        colorize: true
+    }
+}, pino.destination('logs/server-log')
+);
 
 // Maybe used later for different loggers for testing and prod
 // /**
