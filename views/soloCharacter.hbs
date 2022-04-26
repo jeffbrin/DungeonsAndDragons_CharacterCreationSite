@@ -1,0 +1,69 @@
+<body>
+    <!-- Header - set the background image for the header in the line below-->
+    <header class="py-5 bg-image-full">
+        {{#with found}}
+        <h1 id="className" class="text-center capitalize">{{name}} the {{race}} {{class}}</h1>
+        <div class="text-center my-5" id="imgContainer">
+            <img class="img-fluid mb-2" id="soloCharImg" src="/images/other/{{race}}_{{class}}.png" alt="character Image" />
+        </div>
+    </header>
+    <!-- Content section-->
+    <!-- /. ROW  -->
+
+    <div class="row" id="rowStats">
+        <div class="col-md-3 col-sm-12 col-xs-12">
+            <div class="panel panel-primary text-center no-boder bg-color-green green">
+                <div class="panel-left pull-left green">
+                    <i class="fa fa-bar-chart-o fa-5x"></i>
+
+                </div>
+                <div class="panel-right pull-right">
+                    <h3>1</h3>
+                    <strong> Level</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-12 col-xs-12">
+            <div class="panel panel-primary text-center no-boder bg-color-blue blue">
+                <div class="panel-left pull-left blue">
+                    <i class="fa-solid fa-shield fa-5x"></i>
+
+                </div>
+
+                <div class="panel-right pull-right">
+                    <h3 class="capitalize">{{class}} </h3>
+                    <strong> Class</strong>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-12 col-xs-12">
+            <div class="panel panel-primary text-center no-boder bg-color-red red">
+                <div class="panel-left pull-left red">
+                    <i class="fa-solid fa-earth-americas fa-5x"></i>
+
+                </div>
+                <div class="panel-right pull-right">
+                    <h3 class="capitalize">{{race}} </h3>
+                    <strong> Race </strong>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-12 col-xs-12" id="heartDiv"> 
+            <div class="panel panel-primary text-center no-boder bg-color-brown brown">
+                <div class="panel-left pull-left brown">
+                    <i class="fa-solid fa-heart fa-5x"></i>
+
+                </div>
+                <div class="panel-right pull-right">
+                    <h3 class="capitalize">{{hitpoints}} </h3>
+                    <strong>Hitpoints</strong>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /. ROW  -->
+    {{/with}}
+</body>
