@@ -166,7 +166,6 @@ async function deleteCharacter(id){
     }
     catch (error){
         throw error;
-        
     }
     
 }
