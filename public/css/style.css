@@ -178,3 +178,10 @@ input[type="search"]::-webkit-search-cancel-button {
     width: 50% !important;
     margin: 0 !important;
 }
+#modalBody{
+    background-color: var(--backgroundColor);
+    padding-top: 1rem !important;
+}
+#modalHeader{
+    background-color: var(--elevationColor);
+}

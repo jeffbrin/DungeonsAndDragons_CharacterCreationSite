@@ -4,6 +4,37 @@
   <h1>Mind Flayer's Atheneum</h1>
 </div>
 
+{{!-- Modal from https://getbootstrap.com/docs/5.0/components/modal/ --}}
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSignin">
+  Launch demo modal
+</button>
+<div class="modal fade modal-signin" aria-labelledby="modalSigninLabel" tabindex="-1" role="dialog" id="modalSignin">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content rounded-5 shadow">
+      <div class="modal-header p-5 pb-4 border-bottom-0" id="modalHeader">
+        <!-- <h5 class="modal-title">Modal title</h5> -->
+        <h2 class="fw-bold mb-0">Sign up for free</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-5 pt-0" id="modalBody">
+        <form class="" id="signUpForm" action="/signup" method="post">
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control rounded-4" id="floatingEmail">
+            <label for="floatingEmail">Email address</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input type="password" class="form-control rounded-4" id="floatingPassword" placeholder="Password">
+            <label for="floatingPassword">Password</label>
+          </div>
+          <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Sign up</button>
+          <small class="text-muted">By clicking Sign up, you agree to the terms of use.</small>
+          <hr class="my-4">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container w-50" id="carouselDiv">
   <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
