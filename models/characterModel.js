@@ -2,6 +2,12 @@ const mysql = require('mysql2/promise');
 const valUtils = require('../validateUtils/validateCharacter');
 let connection;
 const tableName = 'playercharacter';
+const logger = require('../logger');
+const error = logger.error;
+const warn = logger.warn;
+const info = logger.info;
+const errors = require('./errorModel');
+
 
 /**
  * 
@@ -21,15 +27,15 @@ async function initialize(databaseNameTmp, reset) {
     if (reset) {
         //delete this query in the final version, this is here just for testing so you don't have to delete the entries after every time you run the code to debug.
         const deleteDbQuery = `Drop table if exists ${tableName};`;
-        await connection.execute(deleteDbQuery).then(console.log(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { console.error(error); });
+        await connection.execute(deleteDbQuery).then(info(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { console.error(error); });
     }
 
     const sqlQueryC = `Create table if not exists ${tableName}(id int AUTO_INCREMENT, name varchar(50), race VARCHAR(50), class VARCHAR(50), hitpoints int, primary key(id));`;
-    await connection.execute(sqlQueryC).then(console.log(`Table: ${tableName} Created/Exists - initialize()`)).catch((error) => { console.error(error); });
+    await connection.execute(sqlQueryC).then(info(`Table: ${tableName} Created/Exists - initialize()`)).catch((error) => { console.error(error); });
 }
 
 async function closeConnection() {
-    await connection.end().then(console.log(`Connection closed from closeConnection() in dndModel`)).catch((error) => {console.log(error);});
+    await connection.end().then(info(`Connection closed from closeConnection() in dndModel`)).catch((error) => {console.log(error);});
 }
 
 //Region Add/Update/Delete Methods
