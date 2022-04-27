@@ -1,0 +1,59 @@
+Each model should be initialized in the following order.
+The tables should be made in the order they are written.
+Table dependencies are indicated in brackets.
+
+# Original Design
+
+## SpellModel
+* Spell School
+* Spell (spell school)
+
+## BackgroundModel
+* Background
+* Background Feature (background)
+
+## ClassModel
+* Class
+* Class Feature (class)
+* Class Permitted Spell (class, spell)
+
+## RaceModel
+* Race
+* Racial Trait (race)
+
+## UserModel
+* User
+
+## CharacterModel
+* Ethics
+* Morality
+* Ability
+* Character (background, class, user, race, ethics, morality)
+* Skill (ability)
+* Known Spell (character, spell)
+* Saving Throw Proficiency (character, ability)
+* Skill Proficiency (character, skill)
+* Skill Expertise (character, skill)
+* Owned Item (character)
+* Saving Throw Bonus (character, ability)
+* Ability Score (character, ability)
+
+# Potential refactor
+
+Split Character Model into 
+
+## CharacterModel
+* Ethics
+* Morality
+* Character (background, class, user, race, ethics, morality)
+* Known Spell (character, spell)
+* Owned Item (character)
+
+## CharacterStatisticsModel
+* Ability
+* Skill (ability)
+* Saving Throw Proficiency (character, ability)
+* Skill Proficiency (character, skill)
+* Skill Expertise (character, skill)
+* Saving Throw Bonus (character, ability)
+* Ability Score (character, ability)
