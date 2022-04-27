@@ -1,37 +1,96 @@
 const validator = require('validator');
 const races = ["dragonborn", "dwarf", "elf", "gnome", "half-elf", "halfling", "half-orc", "human", "tiefling"];
 const classes = ["barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard"];
+const errors = require('./errorModel');
+const logger = require('../logger');
 
 /**
- * Checks to see if all the passed in data is valid
- * @param {String} name 
- * @param {String} race 
- * @param {String} charClass 
- * @param {Integer} hitpoints 
+ * 
+ * @param {String} name - The Name of the character
+ * @param {Integer} race - The Id of the Race chosen
+ * @param {Integer} charClass - The Id of the Class chosen
+ * @param {Integer} maxHitpoints  - The Number of Max Hitpoints chosen
+ * @param {*} background 
+ * @param {*} level 
+ * @param {*} abilityScores 
+ * @param {*} savingThrows 
+ * @param {*} id 
  * @returns 
  */
-async function isCharValid(name, race, charClass, hitpoints) {
+async function isCharValid(name, race, charClass, maxHitpoints, background, level, abilityScores, savingThrows, id) {
+    
+    let errorMessages = [];
+
+    try {
+        checkName(name);
+    } catch (error) {
+        errorMessages.push(error.message);
+    }
+
+    try {
+        checkRace(race);
+    } catch (error) {
+        errorMessages.push(error.message);
+    }
+
+    try {
+        checkClass(charClass);
+    } catch (error) {
+        errorMessages.push(error.message);
+    }
+    
+    try {
+        checkMaxHitPoints(maxHitpoints);
+    } catch (error) {
+        errorMessages.push(error.message);
+    }
+    
+    
+
+    return errorMessages;
+}
+
+function checkName(name){
     names = name.split(' ');
 
     for (let i = 0; i < names.length; i++) {
         if(!validator.isAlpha(names[i] || names[i] === "")){
-            console.error("Name must be Alphanumeric and cannot be empty. Your input: " + name);
-            return false;
+            logger.error("Name must be Alphanumeric and cannot be empty. Your input: " + name);
+            throw new errors.InvalidInputError();
         }    
     }
-    if (!races.includes(race.toLowerCase())) {
-        console.error("Race must be one of the Valid Races. Your input: " + race);
-        return false;
-    }
-    if (!classes.includes(charClass.toLowerCase())) {
-        console.error("Class must be one of the Valid Classes. Your input: " + charClass);
-        return false;
-    }
-    if (hitpoints < 0 || hitpoints > 10) {
-        console.error("Hit Points must be between 1 and 10. Your input: " + hitpoints);
-        return false;
-    }
-    return true;
 }
+function checkRace(race){
+    if (!races.includes(race.toLowerCase())) {
+        logger.error("Race must be one of the Valid Races. Input: " + race);
+        throw new errors.InvalidInputError();
+    }
+}
+function checkClass(charClass){
+    if (!classes.includes(charClass.toLowerCase())) {
+        logger.error("Class must be one of the Valid Classes. Input: " + charClass);
+        throw new errors.InvalidInputError();
+    }
+}
+function checkMaxHitPoints(hitpoints){
+    if (hitpoints < 0) {
+        logger.error("Hit Points must be greater than 0. Input: " + hitpoints);
+        throw new errors.InvalidInputError();
+    }
+}
+function checkBackgound(background){
 
+}
+function checkLevel(level){
+
+}
+function checkAbilityScores(abilityScores){
+
+}
+function checkSavingThrowProficiencies(savingThrows){
+
+}
+function chckUserID(id){
+
+}
 module.exports = { isCharValid }

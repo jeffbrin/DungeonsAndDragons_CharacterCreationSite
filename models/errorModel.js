@@ -10,3 +10,5 @@ class UserNotFoundError extends Error{
 class IncorrectPasswordError extends Error{
 
 };
+
+module.exports = { InvalidInputError, DatabaseError, UserNotFoundError, IncorrectPasswordError}

@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise');
-const valUtils = require('../validateUtils/validation');
+const valUtils = require('../validateUtils/validateCharacter');
 let connection;
 const tableName = 'playercharacter';
 
