@@ -1,7 +1,8 @@
 const express = require('express');
+const res = require('express/lib/response');
 const app = require('../app.js');
 const router = express.Router();
-const routeRoot = '/users';
+const routeRoot = '/sessions';
 model = require('../models/userModel');
 const logger = require('../logger');
 const errors = require('./errorController');
@@ -10,9 +11,6 @@ const warn = logger.warn;
 const info = logger.info;
 
 
-async function createrUser(){
-
-}
 
 module.exports = {
     router,
