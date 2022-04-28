@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Create the mysql container
+      run: docker run -p 10000:3306 --name dndDatabase -e MYSQL_ROOT_PASSWORD=pass -e MYSQL_DATABASE=dnd_db_testing -d mysql:5.7
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+    - name: Install Dependencies
+      run: npm i
+    - name: Run Tests
+      run: npm test
