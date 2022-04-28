@@ -2,12 +2,12 @@ const mysql = require('mysql2/promise');
 const valUtils = require('./validateCharacter');
 let connection;
 const tableName = 'PlayerCharacter';
-const errors = require('./errorModel');
 const logger = require('../logger');
 const error = logger.error;
 const warn = logger.warn;
 const info = logger.info;
 const errors = require('./errorModel');
+
 
 
 /**
