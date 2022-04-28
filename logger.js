@@ -5,7 +5,7 @@ const logger = pino({
     options: {
         colorize: true
     }
-}, pino.destination('logs/server-log')
+}, pino.destination('logs/server-log.log')
 );
 
 // Maybe used later for different loggers for testing and prod
