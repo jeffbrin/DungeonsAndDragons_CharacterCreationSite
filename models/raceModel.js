@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise')
-const validationModel = require('./validateSpellUtils')
+const validationModel = require('./validateRaceUtils')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
@@ -32,6 +32,7 @@ async function initialize(databaseName, reset) {
     await populateRaceAndRacialTraitTables();
 
     console.log(await getAllRaces());
+    console.log(await getRace(1));
 }
 
 /**
@@ -168,8 +169,8 @@ async function populateRaceAndRacialTraitTables() {
 }
 
 /**
- * Gets a list of all the races in the database. This will not include the racial traits of any of the races.
- * @returns Fullfils with a list of all the races in the database in with the following format {Id: #, Name: "", Description: ""}
+ * Gets an array of all the races in the database. This will not include the racial traits of any of the races.
+ * @returns Fullfils with an array of all the races in the database in with the following format {Id: #, Name: "", Description: ""}
  * @throws {DatabaseError} Thrown when there is an issue getting the races from the database due to a connection issue.
  */
 async function getAllRaces(){
@@ -179,7 +180,7 @@ async function getAllRaces(){
         [races, columnData] = await connection.query(getRacesQuery);
     }
     catch(error){
-        throw new DatabaseError('raceModel', 'getAllRaces', `Failed to get all the races in the database... Check the connection to the database: ${error}`);
+        throw new DatabaseError('raceModel', 'getAllRaces', `Failed to get all the races in the database: ${error}`);
     }
 
     return races;
@@ -190,11 +191,47 @@ async function getAllRaces(){
  * If the id is not a valid id, or if no race is found with the given id, an exception will be thrown.
  * A valid id is an integer which is greater than 0.
  * @param {Number} id The id of the race to get.
+ * @returns Fullfils with the race with the provided id. The object contains the race id, name, description and all the racial traits. It is returned in the following structure: {Id: #, Name: "", Description: "", Traits: [{Name: "", Description: ""}, ...]}
  * @throws {InvalidInputError} Thrown if the id is invalid or if it was not found.
  * @throws {DatabaseError} Thrown is there is an issue getting the race from the database due to a connection issue.
  */
 async function getRace(id){
 
+    try{
+        validationModel.validateRaceId(id);
+    }
+    catch(error){
+        throw new InvalidInputError('raceModel', 'getRace', `Invalid input: ${error.message}`);
+    }
+
+    // Get the race details
+    const getRaceQuery = `SELECT Id, Name, Description FROM Race WHERE Id = ${id};`;
+    let race;
+    try{
+        [race, columnData] = await connection.query(getRaceQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getRace', `Failed to get the race with id ${id} from the database: ${error}`);
+    }
+    
+    // Check to make sure a race was found
+    if (race.length == 0)
+        throw new InvalidInputError('raceModel', 'getRace', 'A race with the provided id could not be found.')
+    
+    // Get the racial traits
+    const getRacialTraitsQuery = `SELECT Name, Description FROM RacialTrait WHERE RaceId = ${id}`;
+    let traits;
+    try{
+        [traits, columnData] = await connection.query(getRacialTraitsQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getRace', `Failed to get the racial traits of the race with id ${id} from the database: ${error}`)
+    }
+
+    // Add the traits to the race object
+    race.Traits = traits;
+
+    return race;
 }
 
-module.exports = { initialize, getAllRaces,  }
+module.exports = { initialize, getAllRaces, getRace}
