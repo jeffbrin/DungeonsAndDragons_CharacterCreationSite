@@ -30,6 +30,8 @@ async function initialize(databaseName, reset) {
     await createRaceTable(connection, reset);
     await createRacialTraitTable();
     await populateRaceAndRacialTraitTables();
+
+    console.log(await getAllRaces());
 }
 
 /**
@@ -165,4 +167,34 @@ async function populateRaceAndRacialTraitTables() {
 
 }
 
-module.exports = { initialize }
+/**
+ * Gets a list of all the races in the database. This will not include the racial traits of any of the races.
+ * @returns Fullfils with a list of all the races in the database in with the following format {Id: #, Name: "", Description: ""}
+ * @throws {DatabaseError} Thrown when there is an issue getting the races from the database due to a connection issue.
+ */
+async function getAllRaces(){
+    const getRacesQuery = "SELECT Id, Name, Description FROM Race;"
+    let races;
+    try{
+        [races, columnData] = await connection.query(getRacesQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getAllRaces', `Failed to get all the races in the database... Check the connection to the database: ${error}`);
+    }
+
+    return races;
+}
+
+/**
+ * Gets all the details about a specific race. 
+ * If the id is not a valid id, or if no race is found with the given id, an exception will be thrown.
+ * A valid id is an integer which is greater than 0.
+ * @param {Number} id The id of the race to get.
+ * @throws {InvalidInputError} Thrown if the id is invalid or if it was not found.
+ * @throws {DatabaseError} Thrown is there is an issue getting the race from the database due to a connection issue.
+ */
+async function getRace(id){
+
+}
+
+module.exports = { initialize, getAllRaces,  }
