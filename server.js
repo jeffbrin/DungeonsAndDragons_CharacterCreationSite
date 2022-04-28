@@ -10,7 +10,7 @@ if (!dbName) {
 } 
 
 spellModel.initialize(dbName, false)
-.then(raceModel.initialize(dbName, true))
+.then(raceModel.initialize(dbName, false))
 .then(app.listen(port))
 .catch(error => {
     console.error(error.message);

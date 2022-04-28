@@ -29,8 +29,7 @@ async function initialize(databaseName, reset) {
     // Create the tables and populate them
     await createRaceTable(connection, reset);
     await createRacialTraitTable();
-    await populateRaceAndRacialTraitTable();
-    // .catch(error => {throw error});
+    await populateRaceAndRacialTraitTables();
 }
 
 /**
@@ -43,11 +42,11 @@ async function createRaceTable(reset) {
 
     // Reset if the reset flag is true
     if (reset) {
-        let dropQuery = `DROP TABLE IF EXISTS RacialTrait;`;
+        let dropCommand = `DROP TABLE IF EXISTS RacialTrait;`;
 
         // Drop the RacialTrait table first
         try {
-            await connection.execute(dropQuery)
+            await connection.execute(dropCommand);
             logger.info(`RacialTrait table dropped.`);
         }
         catch (error) {
@@ -56,7 +55,7 @@ async function createRaceTable(reset) {
 
         // Drop the PlayerCharacter table since it contains foreign keys in the Race table
         try {
-            await connection.execute(dropQuery)
+            await connection.execute(dropCommand);
             logger.info(`PlayerCharacter table dropped.`);
         }
         catch (error) {
@@ -64,9 +63,9 @@ async function createRaceTable(reset) {
         }
 
         // Drop the Race table
-        dropQuery = 'DROP TABLE IF EXISTS Race;'
+        dropCommand = 'DROP TABLE IF EXISTS Race;'
         try {
-            await connection.execute(dropQuery)
+            await connection.execute(dropCommand);
             logger.info(`Race table dropped.`);
         }
         catch (error) {
@@ -75,9 +74,10 @@ async function createRaceTable(reset) {
     }
 
     // Create the Race table
-    const createTableQuery = `CREATE TABLE IF NOT EXISTS Race(Id INT, Name TEXT, PRIMARY KEY(Id));`;
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS Race(Id INT, Name TEXT, Description TEXT, PRIMARY KEY(Id));`;
     try {
-        await connection.execute(createTableQuery).then(logger.info(`Race table created / already exists.`))
+        await connection.execute(createTableCommand);
+        logger.info(`Race table created / already exists.`);
     }
     catch (error) {
         throw new DatabaseError('raceModel', 'createRaceTable', `Failed to create the Race table... check your connection to the database: ${error.message}`)
@@ -90,40 +90,80 @@ async function createRaceTable(reset) {
  * Creates the RacialTrait table in the database. This should only be called if the Race table already exists.
  */
 async function createRacialTraitTable() {
-    const createTableQuery = `CREATE TABLE IF NOT EXISTS RacialTrait(RaceId INT, Name VARCHAR(200), Description TEXT, PRIMARY KEY(RaceId, Name), FOREIGN KEY (RaceId) REFERENCES Race(Id));`;
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS RacialTrait(RaceId INT, Name VARCHAR(200), Description TEXT, PRIMARY KEY(RaceId, Name), FOREIGN KEY (RaceId) REFERENCES Race(Id));`;
     try {
-        await connection.execute(createTableQuery).then(logger.info(`RacialTrait table created / already exists.`))
+        await connection.execute(createTableCommand);
+        logger.info(`RacialTrait table created / already exists.`);
     }
     catch (error) {
         throw new DatabaseError('raceModel', 'createRacialTraitTable', `Failed to create the RacialTrait table... check your connection to the database: ${error.message}`)
     }
 }
 
-async function populateRaceAndRacialTraitTable() {
+/**
+ * Populates the Race and RacialTrait tables with the data from the JSON file.
+ */
+async function populateRaceAndRacialTraitTables() {
     const dataFile = 'database-content-json/races.json';
 
     // Read the json file
     let racialTraitData;
-    try{
+    try {
         racialTraitData = JSON.parse(await fs.readFile(dataFile));
     }
-    catch(error){
-        throw new DatabaseError('raceModel', 'populateRacialTraitTable', `There was an issue reading the RacialTrait json file: ${error}`)
+    catch (error) {
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `There was an issue reading the RacialTrait json file: ${error}`)
     }
-  
-    try {
-        console.log(racialTraitData);
-        // Loop through each race in the file
-        for (race in racialTraitData.Races) {
-            
-            // Get the list of racial traits for this race
-            const racialTraits = racialTraitData.Races[race][`${race} Traits`].content;
 
+    // Check if the table already has data in it
+    let raceTableHasData = false;
+    try {
+        [rows, columnData] = await connection.query('SELECT * from Race;');
+        raceTableHasData = rows > 0
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
+    }
+
+    // Only add the data if the race table doesn't already have data in it
+    if (!raceTableHasData) {
+        try {
+
+            // Loop through each race in the file
+            let raceId = 1;
+            for (race in racialTraitData.Races) {
+
+                // Get the list of racial traits for this race
+                const racialTraits = racialTraitData.Races[race][`${race} Traits`].content;
+
+                // Add the race to the race table
+                const addRaceCommand = `INSERT INTO Race (Id, Name, Description) values(${raceId}, '${race}', '${racialTraits[0].replace(/'/g, "''")}');`;
+                await connection.execute(addRaceCommand);
+                logger.info(`Added ${race} to the Race table.`);
+
+                // Add all the racial traits
+                for (let i = 1; i < racialTraits.length; i++){
+
+                    // traits are formatted as '***NAME*** DESCRIPTION', so split on *** to get 'NAME*** DESCRIPTION', then on '*** ' to split the two
+                    const [name, description] = racialTraits[i].split(/^\*\*\*/)[1].split(/\*\*\* /);
+                    
+                    // Add the racial trait for the specific race
+                    addTraitCommand = `INSERT INTO RacialTrait (RaceId, Name, Description) values(${raceId}, '${name}', '${description.replace(/'/g, "''")}');`;
+                    await connection.execute(addTraitCommand);
+                    logger.info(`Added the racial trait ${name} for ${race}`);
+                }
+                raceId++;
+            }
+        } catch (error) {
+            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Rae table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
         }
-    }catch(error){
-        throw new DatabaseError('raceModel', 'populateRacialTraitTable', `Failed to add a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
+
+        logger.info('Successfully populated the Race and RacialTrait tables.')
     }
 
 }
+
+// TODO: Figure out a way of using dragonborn too
+
 
 module.exports = { initialize }

@@ -37,8 +37,7 @@
                     "***Darkvision.*** Accustomed to twilit forests and the night sky, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
                     "***Keen Senses.*** You have proficiency in the Perception skill.",
                     "***Fey Ancestry.*** You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
-                    "***Trance.*** Elves don't need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day. (The Common word for such meditation is “trance.”) While meditating, you can dream after a fashion; such dreams are actually mental exercises that have become reflexive through years of practice.",
-                    "After resting in this way, you gain the same benefit that a human does from 8 hours of sleep.",
+                    "***Trance.*** Elves don't need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day. (The Common word for such meditation is “trance.”) While meditating, you can dream after a fashion; such dreams are actually mental exercises that have become reflexive through years of practice.\nAfter resting in this way, you gain the same benefit that a human does from 8 hours of sleep.",
                     "***Languages.*** You can speak, read, and write Common and Elvish. Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires."
                 ],
                 "High Elf": {
@@ -86,65 +85,6 @@
                     "***Size.*** Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium.",
                     "***Speed.*** Your base walking speed is 30 feet.",
                     "***Languages.*** You can speak, read, and write Common and one extra language of your choice. Humans typically learn the languages of other peoples they deal with, including obscure dialects. They are fond of sprinkling their speech with words borrowed from other tongues: Orc curses, Elvish musical expressions, Dwarvish military phrases, and so on."
-                ]
-            }
-        },
-        "Dragonborn": {
-            "Dragonborn Traits": {
-                "content": [
-                    "Your draconic heritage manifests in a variety of traits you share with other dragonborn.",
-                    "***Ability Score Increase.*** Your Strength score increases by 2, and your Charisma score increases by 1.",
-                    "***Age.*** Young dragonborn grow quickly. They walk hours after hatching, attain the size and development of a 10-year-old human child by the age of 3, and reach adulthood by 15. They live to be around 80.",
-                    "***Alignment.*** Dragonborn tend to extremes, making a conscious choice for one side or the other in the cosmic war between good and evil. Most dragonborn are good, but those who side with evil can be terrible villains.",
-                    "***Size.*** Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
-                    "***Speed.*** Your base walking speed is 30 feet.",
-                    "***Draconic Ancestry.***",
-                    {
-                        "table": {
-                            "**Dragon**": [
-                                "Black",
-                                "Blue",
-                                "Brass",
-                                "Bronze",
-                                "Copper",
-                                "Gold",
-                                "Green",
-                                "Red",
-                                "Silver",
-                                "White"
-                            ],
-                            "**Damage Type**": [
-                                "Acid",
-                                "Lightning",
-                                "Fire",
-                                "Lightning",
-                                "Acid",
-                                "Fire",
-                                "Poison",
-                                "Fire",
-                                "Cold",
-                                "Cold"
-                            ],
-                            "**Breath Weapon**": [
-                                "5 by 30 ft. line (Dex. save)",
-                                "5 by 30 ft. line (Dex. save)",
-                                "5 by 30 ft. line (Dex. save)",
-                                "5 by 30 ft. line (Dex. save)",
-                                "5 by 30 ft. line (Dex. save)",
-                                "15 ft. cone (Dex. save)",
-                                "15 ft. cone (Con. save)",
-                                "15 ft. cone (Dex. save)",
-                                "15 ft. cone (Con. save)",
-                                "15 ft. cone (Con. save)"
-                            ]
-                        }
-                    },
-                    "***Draconic Ancestry.*** You have draconic ancestry. Choose one type of dragon from the Draconic Ancestry table. Your breath weapon and damage resistance are determined by the dragon type, as shown in the table.",
-                    "***Breath Weapon.*** You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation.",
-                    "When you use your breath weapon, each creature in the area of the exhalation must make a saving throw, the type of which is determined by your draconic ancestry. The DC for this saving throw equals 8 + your Constitution modifier + your proficiency bonus. A creature takes 2d6 damage on a failed save, and half as much damage on a successful one. The damage increases to 3d6 at 6th level, 4d6 at 11th level, and 5d6 at 16th level.",
-                    "After you use your breath weapon, you can't use it again until you complete a short or long rest.",
-                    "***Damage Resistance.*** You have resistance to the damage type associated with your draconic ancestry.",
-                    "***Languages.*** You can speak, read, and write Common and Draconic. Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants."
                 ]
             }
         },
@@ -223,6 +163,22 @@
                     "***Hellish Resistance.*** You have resistance to fire damage.",
                     "***Infernal Legacy.*** You know the *thaumaturgy* cantrip. When you reach 3rd level, you can cast the *hellish rebuke* spell as a 2nd-level spell once with this trait and regain the ability to do so when you finish a long rest. When you reach 5th level, you can cast the *darkness* spell once with this trait and regain the ability to do so when you finish a long rest. Charisma is your spellcasting ability for these spells.",
                     "***Languages.*** You can speak, read, and write Common and Infernal."
+                ]
+            }
+        },
+        "Dragonborn": {
+            "Dragonborn Traits": {
+                "content": [
+                    "Your draconic heritage manifests in a variety of traits you share with other dragonborn.",
+                    "***Ability Score Increase.*** Your Strength score increases by 2, and your Charisma score increases by 1.",
+                    "***Age.*** Young dragonborn grow quickly. They walk hours after hatching, attain the size and development of a 10-year-old human child by the age of 3, and reach adulthood by 15. They live to be around 80.",
+                    "***Alignment.*** Dragonborn tend to extremes, making a conscious choice for one side or the other in the cosmic war between good and evil. Most dragonborn are good, but those who side with evil can be terrible villains.",
+                    "***Size.*** Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
+                    "***Speed.*** Your base walking speed is 30 feet.",
+                    "***Draconic Ancestry.*** You have draconic ancestry. Choose one type of the following dragon types. Your breath weapon and damage resistance are determined by the dragon type, as shown in the list.\nBlack (Acid - 5 by 30 ft. line (Dex. save))\nBlue (Lightning - 5 by 30 ft. line (Dex. save))\nBrass (Fire - 5 by 30 ft. line (Dex. save))\nBronze (Lightning - 5 by 30 ft. line (Dex. save))\nCopper (Acid - 5 by 30 ft. line (Dex. save))\nGold (Fire - 15 ft. cone (Dex. save))\nGreen (Poison - 15 ft. cone (Con. save))\nRed (Fire - 15 ft. cone (Dex. save))\nSilver (Cold - 15 ft. cone (Con. save))\nWhite (Cold - 15 ft. cone (Con. save)).",
+                    "***Breath Weapon.*** You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation.\nWhen you use your breath weapon, each creature in the area of the exhalation must make a saving throw, the type of which is determined by your draconic ancestry. The DC for this saving throw equals 8 + your Constitution modifier + your proficiency bonus. A creature takes 2d6 damage on a failed save, and half as much damage on a successful one. The damage increases to 3d6 at 6th level, 4d6 at 11th level, and 5d6 at 16th level.\nAfter you use your breath weapon, you can't use it again until you complete a short or long rest.",
+                    "***Damage Resistance.*** You have resistance to the damage type associated with your draconic ancestry.",
+                    "***Languages.*** You can speak, read, and write Common and Draconic. Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants."
                 ]
             }
         }

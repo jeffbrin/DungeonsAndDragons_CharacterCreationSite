@@ -33,7 +33,7 @@ FOREIGN KEY (SpellId) REFERENCES Spell(Id), PRIMARY KEY (ClassId, SpellId));
 
 ## RaceModel
 * Race - 
-  * CREATE TABLE IF NOT EXISTS Race(Id INT, Name TEXT, PRIMARY KEY(Id));
+  * CREATE TABLE IF NOT EXISTS Race(Id INT, Name TEXT, Description TEXT, PRIMARY KEY(Id));
 * Racial Trait (race) - 
   * CREATE TABLE IF NOT EXISTS RacialTrait(RaceId INT, Name VARCHAR(200), Description TEXT, PRIMARY KEY(RaceId, Name), FOREIGN KEY (RaceId) REFERENCES Race(Id));
 
