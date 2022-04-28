@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
-const valUtils = require('../validateUtils/validateCharacter');
+const valUtils = require('./validateCharacter');
 let connection;
-const tableName = 'playercharacter';
+const tableName = 'characters';
 const logger = require('../logger');
 const error = logger.error;
 const warn = logger.warn;
@@ -212,8 +212,5 @@ module.exports = {
     hitpointsModifier, 
     getCharacter,
     deleteCharacter,
-    getConnection,
-    InvalidInputError, 
-    InvalidFileError, 
-    DatabaseError 
+    getConnection
 };
