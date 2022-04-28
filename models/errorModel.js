@@ -9,6 +9,7 @@ class InvalidInputError extends Error {
      * @param {string} message describing the error
      */
     constructor(module, method, message){
+        super()
         this.module = module;
         this.method = method;
         this.message = message;
@@ -33,6 +34,7 @@ class DatabaseError extends Error {
      * @param {string} message describing the error
      */
     constructor(module, method, message){
+        super()
         this.module = module;
         this.method = method;
         this.message = message;
@@ -56,6 +58,7 @@ class UserNotFoundError extends Error{
      * @param {string} message describing the error
      */
     constructor(module, method, message){
+        super()
         this.module = module;
         this.method = method;
         this.message = message;
