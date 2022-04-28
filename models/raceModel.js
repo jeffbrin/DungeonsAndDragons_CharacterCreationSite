@@ -163,7 +163,4 @@ async function populateRaceAndRacialTraitTables() {
 
 }
 
-// TODO: Figure out a way of using dragonborn too
-
-
 module.exports = { initialize }
