@@ -11,4 +11,4 @@ class IncorrectPasswordError extends Error{
 
 };
 
-module.exports = { InvalidInputError, DatabaseError, UserNotFoundError, IncorrectPasswordError}
+module.exports = { InvalidInputError, DatabaseError, UserNotFoundError, IncorrectPasswordError};

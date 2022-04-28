@@ -18,7 +18,6 @@ const port = 1339;
 app.use(express.json())
 const controllers = ['spellController', 'characterController', 'homeController', 'errorController'];
 
-
 // Tell the app to use handlebars templating engine.  
 // Configure the engine to use a simple .hbs extension to simplify file naming
 app.engine('hbs', engine({ extname: '.hbs'}));
@@ -34,10 +33,17 @@ app.use(express.static('public'))
 
 // Middleware
 app.use((request, response, next) => {
-    middleware(request, response, next);
+    alterMethodWhenIndicatedByChoice(request, response, next);
 })
 
-function middleware (request, response, next){
+/**
+ * Changes the method of an http request if the body contains a property called choice
+ * with the following format. choice: '{"method": "METHOD_VALUE"}'
+ * @param {Object} request An http request object.
+ * @param {Object} response An http request object.
+ * @param {Function} next The method called to end this method.
+ */
+function alterMethodWhenIndicatedByChoice (request, response, next){
     if(request.body.choice){
 
         try{
@@ -47,14 +53,14 @@ function middleware (request, response, next){
                 request.method = choice.method;
         }
         catch(error){
-            // console.log(`Error parching request.body.choice (likely from a button): ${error}`);
+            // Choice was not JSON
         }
         
     }
     next();
 }
 
-
+const controllers = ['spellController', 'homeController', 'errorController'];
 // Register routes from all controllers 
 // Assumes a flat directory structure and common ‘routeRoot’ / 'router’ exports
 controllers.forEach((controllerName) => {
