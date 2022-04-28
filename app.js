@@ -60,7 +60,6 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
     next();
 }
 
-const controllers = ['spellController', 'homeController', 'errorController'];
 // Register routes from all controllers 
 // Assumes a flat directory structure and common ‘routeRoot’ / 'router’ exports
 controllers.forEach((controllerName) => {
