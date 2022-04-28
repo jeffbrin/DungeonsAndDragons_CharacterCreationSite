@@ -1,24 +1,85 @@
 <header class="p-3 bg-dark text-white">
-    <div class="container">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-          <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>
-        </a>
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+      <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+        <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
+          <use xlink:href="#bootstrap"></use>
+        </svg>
+      </a>
 
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <li><a id="homeHeaderLink" href="/" class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
-          <li><a id="spellsHeaderLink" href="/spells" class="nav-link px-2 {{#if spellsActive}}text-secondary{{else}}text-white{{/if}}">Spells</a></li>
-          <li><a href="#" class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
-        </ul>
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+        <li><a id="homeHeaderLink" href="/"
+            class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
+        <li><a id="spellsHeaderLink" href="/spells"
+            class="nav-link px-2 {{#if spellsActive}}text-secondary{{else}}text-white{{/if}}">Spells</a></li>
+        <li><a href="/characters"
+            class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
+      </ul>
 
-        <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
-          <input type="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
-        </form>
-
-        <div class="text-end">
-          <button type="button" class="btn btn-outline-light me-2">Login</button>
-          <button type="button" class="btn btn-warning btn-primary">Sign-up</button>
+      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
+        <input type="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
+      </form>
+      <div class="text-end">
+        <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
+          data-bs-target="#modalLogin">Login</button>
+        <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
+          data-bs-target="#modalSignin">Sign-up</button>
+      </div>
+    </div>
+  </div>
+  {{!-- Modal from https://getbootstrap.com/docs/5.0/components/modal/ --}}
+  <div class="modal fade modal-signin" aria-labelledby="modalSigninLabel" tabindex="-1" role="dialog" id="modalSignin">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content rounded-5 shadow">
+        <div class="modal-header p-5 pb-4 border-bottom-0" id="modalHeader">
+          <!-- <h5 class="modal-title">Modal title</h5> -->
+          <h2 class="fw-bold mb-0">Sign up for free</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-5 pt-0" id="modalBody">
+          <form class="" id="signUpForm" action="/users" method="post">
+            <div class="form-floating mb-3">
+              <input type="email" class="form-control rounded-4" id="floatingEmail" placeholder="example@example.com">
+              <label for="floatingEmail">Email address</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control rounded-4" id="floatingPassword" placeholder="Password">
+              <label for="floatingPassword">Password</label>
+            </div>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Sign up</button>
+            <small class="text-muted">By clicking Sign up, you agree to allow the mindflayer to feast on your brain.</small>
+            <hr class="my-4">
+          </form>
         </div>
       </div>
     </div>
-  </header>
+  </div>
+
+  {{!-- Login Modal --}}
+  <div class="modal fade modal-signin" aria-labelledby="modalSigninLabel" tabindex="-1" role="dialog" id="modalLogin">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content rounded-5 shadow">
+        <div class="modal-header p-5 pb-4 border-bottom-0" id="modalHeaderLogin">
+          <!-- <h5 class="modal-title">Modal title</h5> -->
+          <h2 class="fw-bold mb-0">Login to your Account</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-5 pt-0" id="modalBody">
+          <form class="" id="signUpForm" action="/sessions" method="post">
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control rounded-4" id="usernameLogin" placeholder="username">
+              <label for="usernameLogin">Username</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control rounded-4" id="passwordLogin" placeholder="Password">
+              <label for="passwordLogin">Password</label>
+            </div>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Login</button>
+            <small class="text-muted">By logging in you agree to surrender your conscience to the mindflayer.</small>
+            <hr class="my-4">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
