@@ -88,6 +88,7 @@ async function createRaceTable(reset) {
 
 /**
  * Creates the RacialTrait table in the database. This should only be called if the Race table already exists.
+ * @throws {DatabaseError} Thrown when there is an issue creating the table in the database.
  */
 async function createRacialTraitTable() {
     const createTableCommand = `CREATE TABLE IF NOT EXISTS RacialTrait(RaceId INT, Name VARCHAR(200), Description TEXT, PRIMARY KEY(RaceId, Name), FOREIGN KEY (RaceId) REFERENCES Race(Id));`;
@@ -102,6 +103,7 @@ async function createRacialTraitTable() {
 
 /**
  * Populates the Race and RacialTrait tables with the data from the JSON file.
+ * @throws {DatabaseError} Thrown when there is an IO issue with the database.
  */
 async function populateRaceAndRacialTraitTables() {
     const dataFile = 'database-content-json/races.json';
