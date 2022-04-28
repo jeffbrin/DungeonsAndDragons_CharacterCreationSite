@@ -7,8 +7,6 @@ const logger = require('../logger');
 const info = logger.info;
 const error = logger.error;
 const warn = logger.warn;
-let connection = model.getConnection();
-
 class ValidationError extends errors.InvalidInputError {
     constructor(message) {
         this.message = message;
