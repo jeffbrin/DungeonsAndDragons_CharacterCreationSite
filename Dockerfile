@@ -1,4 +1,4 @@
-FROM alpine
-RUN apk add --no-cache jq
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+# Basic nginx dockerfile starting with Ubuntu 20.04
+FROM ubuntu:20.04
+RUN apt-get -y update
+RUN apt-get -y install nginx
