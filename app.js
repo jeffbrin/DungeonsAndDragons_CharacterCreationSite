@@ -16,7 +16,8 @@ app.use(httpLogger);
 const port = 1339;
 
 app.use(express.json())
-const controllers = ['spellController', 'characterController', 'homeController', 'errorController'];
+const controllers = ['spellController', 'characterController', 'userController', 'sessionController', 'homeController', 'errorController'];
+
 
 // Tell the app to use handlebars templating engine.  
 // Configure the engine to use a simple .hbs extension to simplify file naming

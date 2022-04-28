@@ -245,3 +245,4 @@ async function closeConnection(){
 }
 
 module.exports = { initialize, getAllRaces, getRace, closeConnection}
+

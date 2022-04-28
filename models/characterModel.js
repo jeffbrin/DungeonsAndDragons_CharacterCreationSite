@@ -3,10 +3,7 @@ const valUtils = require('./validateCharacter');
 let connection;
 const tableName = 'PlayerCharacter';
 const logger = require('../logger');
-const error = logger.error;
-const warn = logger.warn;
-const info = logger.info;
-const errors = require('./errorModel');
+const errors = require('../models/errorModel');
 
 /**
  * 
@@ -26,15 +23,15 @@ async function initialize(databaseNameTmp, reset) {
     if (reset) {
         //delete this query in the final version, this is here just for testing so you don't have to delete the entries after every time you run the code to debug.
         const deleteDbQuery = `Drop table if exists ${tableName};`;
-        await connection.execute(deleteDbQuery).then(info(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { console.error(error); });
+        await connection.execute(deleteDbQuery).then(logger.info(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { console.error(error); });
     }
 
     const sqlQueryC = `Create table if not exists ${tableName}(id int AUTO_INCREMENT, name varchar(50), race VARCHAR(50), class VARCHAR(50), hitpoints int, primary key(id));`;
-    await connection.execute(sqlQueryC).then(info(`Table: ${tableName} Created/Exists - initialize()`)).catch((error) => { console.error(error); });
+    await connection.execute(sqlQueryC).then(logger.info(`Table: ${tableName} Created/Exists - initialize()`)).catch((error) => { console.error(error); });
 }
 
 async function closeConnection() {
-    await connection.end().then(info(`Connection closed from closeConnection() in dndModel`)).catch((error) => {console.log(error);});
+    await connection.end().then(logger.info(`Connection closed from closeConnection() in dndModel`)).catch((error) => {console.log(error);});
 }
 
 //Region Add/Update/Delete Methods
@@ -181,7 +178,7 @@ async function deleteCharacter(id){
  * @throws {DatabaseError} If there was an error on the database's side
  */
 async function printDb() {
-    let query = "Select * from playercharacter";
+    let query = `Select * from ${tableName}`;
     let [rows, colum_definitions] = await connection.query(query).then(console.log("printDb() select method executed!")).catch((error) => { throw new errors.DatabaseError(error); });
     return rows;
 }
