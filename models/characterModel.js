@@ -1,13 +1,14 @@
 const mysql = require('mysql2/promise');
-const valUtils = require('../validateUtils/validateCharacter');
+const valUtils = require('./validateCharacter');
 let connection;
-const tableName = 'playercharacter';
+const tableName = 'characters';
 const logger = require('../logger');
 const error = logger.error;
 const warn = logger.warn;
 const info = logger.info;
 const errors = require('./errorModel');
-
+const DatabaseError = errors.DatabaseError;
+const InvalidInputError = errors.InvalidInputError;
 
 /**
  * 
@@ -27,7 +28,7 @@ async function initialize(databaseNameTmp, reset) {
     if (reset) {
         //delete this query in the final version, this is here just for testing so you don't have to delete the entries after every time you run the code to debug.
         const deleteDbQuery = `Drop table if exists ${tableName};`;
-        await connection.execute(deleteDbQuery).then(info(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { console.error(error); });
+        await connection.execute(deleteDbQuery).then(info(`Table: ${tableName} deleted if existed to reset the Db and reset increment in initialize()`)).catch((error) => { throw new DatabaseError() ; });
     }
 
     const sqlQueryC = `Create table if not exists ${tableName}(id int AUTO_INCREMENT, name varchar(50), race VARCHAR(50), class VARCHAR(50), hitpoints int, primary key(id));`;
@@ -51,7 +52,7 @@ async function closeConnection() {
  */
 async function addCharacter(name, race, charClass, hitpoints) {
     if (! await valUtils.isCharValid(name, race, charClass, hitpoints)) {
-        throw new InvalidInputError("Invalid Character, cannot ADD in addCharacter()");
+        throw new errors.InvalidInputError("Invalid Character, cannot ADD in addCharacter()");
     }
 
     //ADD CHAR TO DB
@@ -197,11 +198,6 @@ function getConnection(){
 }
 
 
-//Errors
-class InvalidInputError extends Error { };
-class InvalidFileError extends Error { };
-class DatabaseError extends Error {};
-
 module.exports = { 
     initialize, 
     addCharacter, 
@@ -212,8 +208,5 @@ module.exports = {
     hitpointsModifier, 
     getCharacter,
     deleteCharacter,
-    getConnection,
-    InvalidInputError, 
-    InvalidFileError, 
-    DatabaseError 
+    getConnection
 };
