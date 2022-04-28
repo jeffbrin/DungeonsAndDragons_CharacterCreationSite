@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise')
-const validationModel = require('./validateUtils')
+const validationModel = require('./validateSpellUtils')
 const logger = require('../logger');
 
 let connection;
