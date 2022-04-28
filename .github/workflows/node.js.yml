@@ -24,7 +24,9 @@
     config: # optional
     # Inline BuildKit config
     config-inline: # optional
-
+- run: echo Hello!
+- run: npm i
+    
 ---
 
 
