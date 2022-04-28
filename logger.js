@@ -1,11 +1,19 @@
 const pino = require("pino");
+const fs = require('fs')
+
+// Create the output folder if it doesn't exist
+const directory = 'logs';
+if(!fs.existsSync(directory))
+    fs.mkdirSync(directory);
+
+// Create the logger
 const logger = pino({
     level: 'info',
     destination: 'pino-pretty',
     options: {
         colorize: true
     }
-}, pino.destination('logs/server-log.log')
+}, pino.destination(`${directory}/server-log.log`)
 );
 
 // Maybe used later for different loggers for testing and prod
