@@ -5,7 +5,6 @@ const tableName = 'PlayerCharacter';
 const logger = require('../logger');
 const errors = require('../models/errorModel');
 
-
 /**
  * 
  * @param {String} databaseNameTmp - The name of the database to connect to.

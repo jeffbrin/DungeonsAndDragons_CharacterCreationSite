@@ -30,9 +30,6 @@ async function initialize(databaseName, reset) {
     await createRaceTable(connection, reset);
     await createRacialTraitTable();
     await populateRaceAndRacialTraitTables();
-
-    console.log(await getAllRaces());
-    console.log(await getRace(1));
 }
 
 /**
@@ -229,9 +226,23 @@ async function getRace(id){
     }
 
     // Add the traits to the race object
+    race = race[0]
     race.Traits = traits;
 
     return race;
 }
 
-module.exports = { initialize, getAllRaces, getRace}
+/**
+ * Closes the connection to the database.
+ */
+async function closeConnection(){
+    try{
+        connection.end()
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'closeConnection',`Failed to close the connection: ${error}`);
+    }
+}
+
+module.exports = { initialize, getAllRaces, getRace, closeConnection}
+
