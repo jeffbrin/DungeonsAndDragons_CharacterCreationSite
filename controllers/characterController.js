@@ -1,14 +1,17 @@
+
+const hbs = require('express-handlebars').create({});
 const express = require('express');
 const res = require('express/lib/response');
-const app = require('../app.js');
 const router = express.Router();
 const routeRoot = '/characters';
-model = require('../model/dndModel.js');
-const handlebars = require('handlebars')
+const model = require('../models/characterModel');
+
+const errors = require('../models/errorModel');
 
 
-handlebars.registerHelper('equals', function(arg1, arg2, options) {
-    return (arg1 == arg2);
+
+hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
+    return arg1 == arg2
 });
 
 
@@ -35,12 +38,12 @@ async function sendCharacter(request, response) {
             response.render('characters.hbs', { charactersActive: true, success: true, message: "Character Added", title: "Success!", character: character });
         }
     } catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             response.status(500);
             console.log("database error from sendCharacter in Character Controller");
             response.render('characters.hbs', { error: true, message: "Couldn't Add Character There was a Database Error" });
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             let character = await model.printDb();
             response.status(400).render('characters.hbs', { error: true, message: "Couldn't Add Character, Input was invalid", character: character });
             console.log('input error - from sendCharacter in characterController');
@@ -61,11 +64,11 @@ async function updateHitpoints(request, response) {
         response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated" });
     }
     catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
             console.log("Database Error - From updateHitpoints in characterController")
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${request.params.id}` });
             console.log('input error - from updateHitpoints in characterController');
         }
@@ -83,14 +86,14 @@ async function getCharacter(request, response) {
     try {
         let id = request.params.id;
         let found = await model.getCharacter(id);
-        response.status(201).render('soloCharacter.hbs', { charactersActive: true, found: found});
+        response.status(201).render('soloCharacter.hbs', { charactersActive: true, found: found });
     }
     catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't get Character with id: ${id}` });
             console.log("Database Error - From getCharacter in characterController")
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${id}` });
             console.log('input error - from getCharacter in characterController');
         }
@@ -107,16 +110,19 @@ async function getCharacter(request, response) {
 async function getAllCharacters(request, response) {
     try {
         let found = await model.printDb();
-        response.status(201).render('characters.hbs', { charactersActive: true, character: found});
+        response.status(201).render('characters.hbs', { charactersActive: true, character: found });
     }
     catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: "Database error, Couldn't get Characters" });
             console.log("Database Error - From getAllCharacters in characterController");
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: "Input Error, Couldn't get all Characters" });
             console.log('input error - from getAllCharacters in characterController');
+        }
+        else{
+            console.log(error.message);
         }
     }
 }
@@ -136,15 +142,15 @@ async function updateCharacter(request, response) {
         response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character has been Updated", character: found });
     }
     catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
             console.log("Database Error - From updateCharacter in characterController")
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't update Character with id: ${request.params.id}` });
             console.log('input error - from updateCharacter in characterController');
         }
-        else{
+        else {
             response.status(400).render('characters.hbs', { error: true, message: `${error.message}` });
         }
     }
@@ -162,15 +168,15 @@ async function deleteCharacter(request, response) {
     try {
         await model.deleteCharacter(request.params.id);
         let found = await model.printDb();
-        response.status(201).render('characters.hbs', { charactersActive: true, success:true, message: "Character has been deleted", character: found });
+        response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character has been deleted", character: found });
     }
     catch (error) {
-        if (error instanceof model.DatabaseError) {
+        if (error instanceof errors.DatabaseError) {
             let found = await model.printDb();
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't delete Character with id: ${request.params.id}`, character: found });
             console.log("Database Error - From deleteCharacter in characterController");
         }
-        else if (error instanceof model.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError) {
             let found = await model.printDb();
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't delete Character with id: ${request.params.id}`, character: found });
             console.log('input error - from deleteCharacter in characterController');
@@ -179,12 +185,12 @@ async function deleteCharacter(request, response) {
 }
 
 
-async function formRoute(request, response){
+async function formRoute(request, response) {
     requestJson = request.body;
-    switch(requestJson.choice){
-        case("editCharacter"):
+    switch (requestJson.choice) {
+        case ("editCharacter"):
             let character = await model.printDb();
-            response.status(201).render('characters.hbs', {  charactersActive: true, chosenId: requestJson.characterId, character: character});
+            response.status(201).render('characters.hbs', { charactersActive: true, chosenId: requestJson.characterId, character: character });
             break;
         default:
             break;

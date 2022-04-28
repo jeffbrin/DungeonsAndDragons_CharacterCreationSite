@@ -1,0 +1,5 @@
+docker run -p 10000:3306 --name dndDatabase -e MYSQL_ROOT_PASSWORD=pass -e MYSQL_DATABASE=dnd_db -d mysql:5.7
+docker container exec -it dndDatabase bash
+mysql -u root -p
+pass
+create database dnd_db_testing; 
