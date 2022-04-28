@@ -3,7 +3,7 @@ const res = require('express/lib/response');
 const app = require('../app.js');
 const router = express.Router();
 const routeRoot = '/characters';
-model = require('../model/dndModel.js');
+model = require('../models/characterModel');
 const handlebars = require('handlebars')
 
 
