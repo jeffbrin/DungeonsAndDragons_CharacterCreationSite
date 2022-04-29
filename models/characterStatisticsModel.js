@@ -341,7 +341,7 @@ async function getAllAbilities() {
  * Skills are returned in the following format - {Name: "", Id: #, Ability: {Id: #, Name: ""}} 
  * where AbilityId is the id linked with the skill
  * @returns An array containing all the skills in the database with their corresponding ability.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function getAllSkills(){
 
