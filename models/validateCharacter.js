@@ -105,12 +105,12 @@ async function getFromDatabase(connection) {
 /**
  * Validates a Character against a set of restrictions that are set in place.
  * If all the checks pass, then nothing is thrown.
- * if 1 more more cheks fail then an error message is built
+ * if 1 more more checks fail then an error message is built
  * @param {String} name - The Name of the character
  * @param {Integer} raceId - The Id of the Race chosen
  * @param {Integer} charClassId - The Id of the Class chosen
  * @param {Integer} maxHitpoints  - The Number of Max Hitpoints chosen
- * @param {Integer} backgroundId - The Integer Representation of the Characters Background in the Backgound Table
+ * @param {Integer} backgroundId - The Integer Representation of the Characters Background in the Background Table
  * @param {Integer} ethicsId - The Ethics of the Character - Foreign Key ID
  * @param {Integer} moralityId - The Morality of the Character
  * @param {Integer} level - The chosen Level of the Character
@@ -157,7 +157,7 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     }
 
     try {
-        checkBackgound(backgroundId);
+        checkBackground(backgroundId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
@@ -271,7 +271,7 @@ function checkMaxHitPoints(maxHitpoints) {
  * @param {Integer} backgroundId - The Background Id that needs to be validated.
  * @throws {ValidationError} If the backgroundId was not found in the database.
  */
-function checkBackgound(backgroundId) {
+function checkBackground(backgroundId) {
     if (!backgrounds.includes(backgroundId)) {
         logger.error(`Background with id ${backgroundId} was not found inside of validateCharacter module in checkBackground`);
         throw new ValidationError(`\nBackground  of id ${backgroundId}must be a valid background. There is no background that matches.`);
