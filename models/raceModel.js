@@ -27,7 +27,7 @@ async function initialize(databaseName, reset) {
     }
 
     // Create the tables and populate them
-    await createRaceTable(connection, reset);
+    await createRaceTable(reset);
     await createRacialTraitTable();
     await populateRaceAndRacialTraitTables();
 }
