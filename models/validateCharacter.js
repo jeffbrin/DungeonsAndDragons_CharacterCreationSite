@@ -362,4 +362,6 @@ function checkUserID(userId) {
     logger.info(`User with ID: ${userId} was validated inside of validateCharacter module in checkUserID`);
 }
 /* #endregion */
+
+
 module.exports = { isCharValid, checkSavingThrowProficiencies, checkAbilityScores };
