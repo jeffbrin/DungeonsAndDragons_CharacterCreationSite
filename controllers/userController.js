@@ -1,3 +1,4 @@
+///This controller is to add users to the database
 const express = require('express');
 const app = require('../app.js');
 const router = express.Router();

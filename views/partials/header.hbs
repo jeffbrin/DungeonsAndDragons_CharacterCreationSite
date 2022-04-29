@@ -39,11 +39,11 @@
         <div class="modal-body p-5 pt-0" id="modalBody">
           <form class="" id="signUpForm" action="/users" method="post">
             <div class="form-floating mb-3">
-              <input type="email" class="form-control rounded-4" id="floatingEmail" placeholder="example@example.com">
-              <label for="floatingEmail">Email address</label>
+              <input type="text" class="form-control rounded-4" name="username" id="usernameSignup" placeholder="username">
+              <label for="usernameSignup">Username</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-4" id="floatingPassword" placeholder="Password">
+              <input type="password" class="form-control rounded-4" name="password" id="floatingPassword" placeholder="Password">
               <label for="floatingPassword">Password</label>
             </div>
             <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Sign up</button>
@@ -67,11 +67,11 @@
         <div class="modal-body p-5 pt-0" id="modalBody">
           <form class="" id="signUpForm" action="/sessions" method="post">
             <div class="form-floating mb-3">
-              <input type="text" class="form-control rounded-4" id="usernameLogin" placeholder="username">
+              <input type="text" class="form-control rounded-4" name="username" id="usernameLogin" placeholder="username">
               <label for="usernameLogin">Username</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-4" id="passwordLogin" placeholder="Password">
+              <input type="password" class="form-control rounded-4" name="password" id="passwordLogin" placeholder="Password">
               <label for="passwordLogin">Password</label>
             </div>
             <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Login</button>
