@@ -29,75 +29,75 @@ class ValidationError extends errors.InvalidInputError {
  * Loads the required validation data from the database into the arrays
  * Sets the public constants to the data retrieved.
  */
-async function getFromDatabase(connection) {
+async function loadMostRecentValuesFromDatabase(connection) {
     const racesQuery = `SELECT Id FROM RACE;`;
     try {
         let [rows, column_definitions] = await connection.query(racesQuery);
-        logger.info("validateCharacter - select Query to retrieve races completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve races completed - loadMostRecentValuesFromDatabase");
         races = rows;
 
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the races select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the races select Query: ${error.message}`);
     }
 
 
     const classesQuery = 'SELECT Id FROM CLASS;';
     try {
         let [rows, column_definitions] = await connection.query(classesQuery);
-        logger.info("validateCharacter - select Query to retrieve classes completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve classes completed - loadMostRecentValuesFromDatabase");
         classes = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the classes select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the classes select Query: ${error.message}`);
     }
 
 
     const backgroundsQuery = 'SELECT Id FROM BACKGROUND;';
     try {
         let [rows, column_definitions] = await connection.query(backgroundsQuery);
-        logger.info("validateCharacter - select Query to retrieve backgrounds completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve backgrounds completed - loadMostRecentValuesFromDatabase");
         backgrounds = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
     }
 
 
     const ethicsQuery = 'SELECT Id FROM ETHICS;';
     try {
         let [rows, column_definitions] = await connection.query(ethicsQuery);
-        logger.info("validateCharacter - select Query to retrieve ethics completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve ethics completed - loadMostRecentValuesFromDatabase");
         ethics = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the ethics select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the ethics select Query: ${error.message}`);
     }
 
 
     const moralitiesQuery = 'SELECT Id FROM MORALITY;';
     try {
         let [rows, column_definitions] = await connection.query(moralitiesQuery);
-        logger.info("validateCharacter - select Query to retrieve moralities completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve moralities completed - loadMostRecentValuesFromDatabase");
         moralities = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the moralities select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the moralities select Query: ${error.message}`);
     }
 
 
     const savingThrowsQuery = 'SELECT Id FROM ABILITY;';
     try {
         let [rows, column_definitions] = await connection.query(savingThrowsQuery);
-        logger.info("validateCharacter - select Query to retrieve savingThrows completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve savingThrows completed - loadMostRecentValuesFromDatabase");
         savingThrows = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
     }
 
 
     const usersQuery = 'SELECT Id FROM USER;';
     try {
         let [rows, column_definitions] = await connection.query(usersQuery);
-        logger.info("validateCharacter - select Query to retrieve users completed - getFromDatabase");
+        logger.info("validateCharacter - select Query to retrieve users completed - loadMostRecentValuesFromDatabase");
         users = rows;
     } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'getFromDatabase', `Couldn\`t execute the users select Query: ${error.message}`);
+        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the users select Query: ${error.message}`);
     }
 }
 /* #endregion */
@@ -127,7 +127,7 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     let caught = false;
 
     //CALLS THE characterStatisticsModel to validate some things
-    await getFromDatabase(connection);
+    await loadMostRecentValuesFromDatabase(connection);
     try {
         checkName(name);
     } catch (error) {
@@ -361,5 +361,16 @@ function checkUserID(userId) {
     }
     logger.info(`User with ID: ${userId} was validated inside of validateCharacter module in checkUserID`);
 }
+
+/**
+ * Checks that the character id is numeric and exists in the PlayerCharacter table.
+ * @param {Integer} characterId The character id to be checked.
+ * @throws {InvalidInputError} Thrown when the character id is invalid or not found in the database.
+ * @throws {DatabaseError} Thrown when the connection is undefined.
+ */
+function checkCharacterId(characterId){
+
+}
+
 /* #endregion */
-module.exports = { isCharValid, checkSavingThrowProficiencies, checkAbilityScores };
+module.exports = { isCharValid, checkSavingThrowProficiencies, checkAbilityScores, loadMostRecentValuesFromDatabase, checkCharacterId };

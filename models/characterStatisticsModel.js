@@ -4,7 +4,7 @@
 */
 
 const mysql = require('mysql2/promise')
-const validationModel = require('./validateRaceUtils')
+const validationModel = require('./validateCharacter')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
@@ -262,12 +262,47 @@ async function createTables() {
 
 /**
  * Sets the ability scores for a character.
+ * CharacterId must be an integer which exists in the PlayerCharacter table.
+ * Ability Scores must be an array with 6 integers.
  * @param {Number} characterId The id of the character to set the ability scores for.
  * @param {Array} abilityScores The ability scores of the character.
  * @throws {DatabaseError} Thrown when the connection is undefined.
- * @throws {InvalidInputError} Thrown when the ability scores aren't 6 long or when the character id is invalid.
+ * @throws {InvalidInputError} Thrown when the ability scores array doesn't contain 6 integers or when the character id is invalid.
  */
 async function setAbilityScores(characterId, abilityScores) {
+    await validationModel.loadMostRecentValuesFromDatabase();
+
+    // Validate the ability scores
+    try{
+        await validationModel.checkAbilityScores(abilityScores);
+    }catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'setAbilityScores', error.message);
+    }
+
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'setAbilityScores', error.message);
+    }
+
+    // Delete existing ability scores
+    try{
+        await connection.execute(`DELETE FROM AbilityScore WHERE CharacterId = ${characterId};`);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to delete the existing ability scores from the database for the character with id ${characterId}: ${error}`);
+    }
+
+    // Add each ability score
+    try{
+        for (let i = 1; i < abilityScores.length; i++){
+            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]}}`);
+        }
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to add the ability scores for character ${characterId}: ${error}`);
+    }
 
 }
 
@@ -277,7 +312,7 @@ async function setAbilityScores(characterId, abilityScores) {
  * Skill id must be an integer which exists as an id in the Skill table.
  * @param {Number} characterId The id of a character.
  * @param {Number} skillId The id of the skill which the character is an expert in.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database. 
  */
 async function addSkillProficiency(characterId, skillId) {
@@ -290,7 +325,7 @@ async function addSkillProficiency(characterId, skillId) {
  * Skill id must be an integer which exists as an id in the Skill table.
  * @param {Number} characterId The id of a character.
  * @param {Number} skillId The id of the skill which the character is proficient in.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
  */
 async function addSkillExpertise(characterId, skillId) {
@@ -303,7 +338,7 @@ async function addSkillExpertise(characterId, skillId) {
  * Ability id must be an integer which exists as an id in the Ability table.
  * @param {Number} characterId The id of a character.
  * @param {Number} abilityId  The abilityId linked to the saving throw.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
  */
 async function addSavingThrowProficiency(characterId, abilityId) {
@@ -319,7 +354,7 @@ async function addSavingThrowProficiency(characterId, abilityId) {
  * @param {Number} characterId The id of a character.
  * @param {Number} abilityId The ability id linked to the saving throw.
  * @param {Number} bonus The bonus for this saving throw.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database, or when the bonus is not an integer. 
  */
 async function setSavingThrowBonus(characterId, abilityId, bonus) {
@@ -330,7 +365,7 @@ async function setSavingThrowBonus(characterId, abilityId, bonus) {
  * Gets a list of all the abilities in the database.
  * Abilities are returned in the following format - {Name: "", Id: #}
  * @returns An array of containing all the abilities in the database.
- * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function getAllAbilities() {
 
