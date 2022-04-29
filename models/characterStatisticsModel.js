@@ -4,20 +4,7 @@ const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
 
-* Ability - 
-  * CREATE TABLE IF NOT EXISTS Ability(Id INT, Name TEXT, PRIMARY KEY(Id));
-* Skill (ability) - 
-  * CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));
-* Saving Throw Proficiency (playercharacter, ability) - 
-  * CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));
-* Skill Proficiency (playercharacter, skill) -
-  * CREATE TABLE IF NOT EXISTS SkillProficiency(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));
-* Skill Expertise (playercharacter, skill) - 
-  * CREATE TABLE IF NOT EXISTS SkillExpertise(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));
-* Saving Throw Bonus (playercharacter, ability) -
-  * CREATE TABLE IF NOT EXISTS SavingThrowBonus(CharacterId INT, AbilityId INT, Bonus INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));
-* Ability Score (playercharacter, ability) -
-  * CREATE TABLE IF NOT EXISTS AbilityScore(CharacterId INT, AbilityId INT, Score INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));
+
 
 let connection;
 /**
@@ -37,45 +24,108 @@ async function initialize(databaseName) {
         });
     }
     catch (error) {
-        throw new DatabaseError('raceModel', 'initialize', `Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
+        throw new DatabaseError('characterStatisticsModel', 'initialize', `Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
     }
 
 }
 
+/**
+ * Creates and populates the ability table.
+ */
 async function createAbilityTable(){
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS Ability(Id INT, Name TEXT, PRIMARY KEY(Id));";
 
-
-
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createAbilityTable', `Failed to create the ability table, likely due to an undefined connection: ${error}`)
+    }
 }
 
-
+/**
+ * Creates and populates the skill table.
+ */
 async function createSkillTable(){
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));`;
 
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", "createSkillTable", `Failed to create the ability table, likely due to an undefined connection: ${error}`)
+    }
 }
 
+/**
+ * Creates the saving throw proficiency table.
+ */
 async function createSavingThrowProficiencyTable(){
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));";
 
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createSavingThrowProficiencyTable', `Failed to create the saving throw proficiency table, likely due to an undefined connection: ${error}`)
+    }
 }
 
+/**
+ * Creates the skill proficiency table.
+ */
 async function createSkillProficiencyTable(){
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillProficiency(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createSkillProficiencyTable', `Failed to create the skill proficiency table, likely due to an undefined connection: ${error}`)
+    }
 }
 
+/**
+ * Creates the skill expertise table.
+ */
 async function createSkillExpertiseTable(){
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillExpertise(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createSkillExpertiseTable', `Failed to create the skill expertise table, likely due to an undefined connection: ${error}`)
+    }
 }
 
+/**
+ * Creates the saving throw bonus table.
+ */
 async function createSavingThrowBonusTable(){
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowBonus(CharacterId INT, AbilityId INT, Bonus INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
 
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createSavingThrowBonusTable', `Failed to create the saving throw bonus table, likely due to an undefined connection: ${error}`)
+    }
 }
 
+/**
+ * Creates the ability score table.
+ */
 async function createAbilityScoreTable(){
-    const commands = [
-        "CREATE TABLE IF NOT EXISTS Ability(Id INT, Name TEXT, PRIMARY KEY(Id));",
-        "CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));" ,
-        "CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));",
-        
-    ]
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS AbilityScore(CharacterId INT, AbilityId INT, Score INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
+
+    try{
+        await connection.execute(createTableCommand);
+    }
+    catch(error){
+        throw new DatabaseError("characterStatisticsModel", 'createAbilityScoreTable', `Failed to create the ability score table, likely due to an undefined connection: ${error}`)
+    }
+
 }
 
 /**
@@ -84,13 +134,7 @@ async function createAbilityScoreTable(){
  * @throws {DatabaseError} Thrown usually when the connection is closed or invalid.
  */
 async function dropTables(){
-    const dropCommand = "DROP TABLE IF EXISTS AbilityScore" +
-    "DROP TABLE IF EXISTS SavingThrowBonus" +
-    "DROP TABLE IF EXISTS SkillExpertise" +
-    "DROP TABLE IF EXISTS SkillProficiency" +
-    "DROP TABLE IF EXISTS SavingThrowProficiency" +
-    "DROP TABLE IF EXISTS Skill;" + 
-    "DROP TABLE IF EXISTS Ability;"
+    const dropCommand = "DROP TABLE IF EXISTS AbilityScore; "
 
     try{
         await connection.execute(dropCommand);
