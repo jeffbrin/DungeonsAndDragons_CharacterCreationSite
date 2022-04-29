@@ -33,8 +33,6 @@ afterEach(async () => {
     await spellModel.closeConnection();
 });
 
-
-
 // Not many test cases are necessary for addSpell since it is uses addSpellFromValues for most of the logic
 test('addSpell - Success', async() => {
 
