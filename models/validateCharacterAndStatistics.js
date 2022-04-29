@@ -28,6 +28,7 @@ class ValidationError extends errors.InvalidInputError {
 /**
  * Loads the required validation data from the database into the arrays
  * Sets the public constants to the data retrieved.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function loadMostRecentValuesFromDatabase(connection) {
     const racesQuery = `SELECT Id FROM RACE;`;
@@ -372,5 +373,33 @@ function checkCharacterId(characterId){
 
 }
 
+/**
+ * Checks that the skill id is numeric and exists in the Skill table.
+ * @param {Integer} skillId The skill id to be checked.
+ * @throws {InvalidInputError} Thrown when the skill id is invalid or not found in the database.
+ * @throws {DatabaseError} Thrown when the connection is undefined.
+ */
+ function checkSkillId(skillId){
+
+}
+
+/**
+ * Checks that the ability id is numeric and exists in the Ability table.
+ * @param {Integer} abilityId The ability id to be checked.
+ * @throws {InvalidInputError} Thrown when the ability id is invalid or not found in the database.
+ * @throws {DatabaseError} Thrown when the connection is undefined.
+ */
+ function checkAbility(abilityId){
+
+}
+
 /* #endregion */
-module.exports = { isCharValid, checkSavingThrowProficiencies, checkAbilityScores, loadMostRecentValuesFromDatabase, checkCharacterId };
+module.exports = { 
+    isCharValid, 
+    checkSavingThrowProficiencies, 
+    checkAbilityScores, 
+    loadMostRecentValuesFromDatabase, 
+    checkCharacterId, 
+    checkSkillId, 
+    checkAbility 
+};

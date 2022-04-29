@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise');
-const valUtils = require('./validateCharacter');
+const valUtils = require('./validateCharacterAndStatistics');
 let connection;
 const tableName = 'PlayerCharacter';
 const logger = require('../logger');
@@ -232,7 +232,7 @@ function getConnection() {
  */
 async function createEthicsTable() {
     const sqlQuery = "CREATE TABLE IF NOT EXISTS Ethics(Id INT, Name TEXT, PRIMARY KEY(Id));";
-    await connection.execute(sqlQueryC).then(logger.info(`Table: Ethics Created/Exists - initialize()`))
+    await connection.execute(sqlQuery).then(logger.info(`Table: Ethics Created/Exists - initialize()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`); });
 }
 
