@@ -13,7 +13,6 @@ const errors = require('./errorModel');
 // * Known Spell (playercharacter, spell)
 // * Owned Item (playercharacter)
 
-
 /**
  * Initializes the connection to the database. 
  * It also creates the tables needed and drops the tables if reset is true.

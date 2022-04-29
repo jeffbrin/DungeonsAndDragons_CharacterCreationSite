@@ -1,3 +1,7 @@
+/*
+ * This model was written by Chase.
+ */
+
 /**
  * Class that extends error class for customized Invalid Input error
  */
@@ -5,8 +9,8 @@ class InvalidInputError extends Error {
     /**
      * Constructor to create an error with the following fields
      * @param {string} module module in which the error ocurred
-     * @param {string} method in which the error ocurred
-     * @param {string} message describing the error
+     * @param {string} method method in which the error ocurred
+     * @param {string} message message describing the error
      */
     constructor(module, method, message){
         super()
