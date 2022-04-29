@@ -1,4 +1,8 @@
 /**
+ * This class was written by Chase.
+ */
+
+/**
  * Class that extends error class for customized Invalid Input error
  */
 class InvalidInputError extends Error {

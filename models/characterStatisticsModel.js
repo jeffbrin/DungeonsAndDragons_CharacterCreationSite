@@ -30,6 +30,45 @@ async function initialize(databaseName) {
 }
 
 /**
+ * Checks whether a table contains any content.
+ * @param {String} tableName The name of the table to check.
+ * @returns True if the table contains any records, false if it's empty.
+ * @throws {DatabaseError} Thrown if the connection is invalid or if the table name does not exist.
+ */
+async function doesTableHaveContent(tableName){
+    try{
+        [rows, columnData] = await connection.query(`SELECT * FROM ${tableName}`);
+        return rows.length > 0;
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'doesTableHaveContent', `Failed to query rows from the ${tableName} table: ${error}`);
+    }
+}
+
+/**
+ * Gets the id of a given ability from the database. 
+ * The name should have a capitalized first letter.
+ * @param {String} name The name of the ability to get the id of.
+ * @returns The id of the given race.
+ * @throws {DatabaseError} Thrown when the query failed. Common cause is an ability name not in the table or an undefined connection.
+ */
+async function getAbilityIdFromName(name){
+    try{
+        [rows, columns] = await connection.query(`SELECT Id FROM Ability WHERE Name = '${name}'`);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the requested ability from the database. Likely caused by an undefined connection: ${error}`)
+    }
+
+    // If the name wasn't found
+    if (rows.length == 0){
+        throw new InvalidInputError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the ${name} ability because it was not found in the database.`);
+    }
+
+    return rows[0].Id;
+}
+
+/**
  * Creates and populates the ability table.
  */
 async function createAbilityTable(){
@@ -41,6 +80,28 @@ async function createAbilityTable(){
     catch(error){
         throw new DatabaseError("characterStatisticsModel", 'createAbilityTable', `Failed to create the ability table, likely due to an undefined connection: ${error}`)
     }
+
+    // Add the values if none are present
+    if(!await(doesTableHaveContent('Ability'))){
+
+        // Read the abilities from the json
+        let abilities;
+        try{
+            abilities = JSON.parse(await fs.readFile('database-content-json/abilities.json'));
+        }
+        catch(error){
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to read from the abilities json file: ${error}`);
+        }
+
+        try{
+            // Add each ability to the table
+            for(let i = 1; i <= abilities.length; i++){
+                await connection.execute(`INSERT INTO Ability (Id, Name) values (${i}, '${abilities[i-1]}');`);
+            }
+        }catch(error){
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
+        }
+    }
 }
 
 /**
@@ -50,10 +111,33 @@ async function createSkillTable(){
     const createTableCommand = `CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));`;
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
         throw new DatabaseError("characterStatisticsModel", "createSkillTable", `Failed to create the ability table, likely due to an undefined connection: ${error}`)
+    }
+
+    // Add the values if none are present
+    if(!await(doesTableHaveContent('Skill'))){
+
+        // Read the abilities from the json
+        let skills;
+        try{
+            skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
+        }
+        catch(error){
+            throw new DatabaseError('characterStatisticsModel', 'createSkillTable', `Failed to read from the skills json file: ${error}`);
+        }
+
+        try{
+            // Add each ability to the table
+            for(let i = 1; i <= skills.length; i++){
+                await connection.execute(`INSERT INTO Skill (Id, AbilityId, Name) values (${i}, ${await getAbilityIdFromName(skills[i-1].Ability)}, '${skills[i-1].Name}');`);
+            }
+        }catch(error){
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
+        }
     }
 }
 
@@ -64,6 +148,7 @@ async function createSavingThrowProficiencyTable(){
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));";
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
@@ -78,6 +163,7 @@ async function createSkillProficiencyTable(){
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillProficiency(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
@@ -92,6 +178,7 @@ async function createSkillExpertiseTable(){
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillExpertise(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
@@ -106,6 +193,7 @@ async function createSavingThrowBonusTable(){
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowBonus(CharacterId INT, AbilityId INT, Bonus INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
@@ -120,6 +208,7 @@ async function createAbilityScoreTable(){
     const createTableCommand = "CREATE TABLE IF NOT EXISTS AbilityScore(CharacterId INT, AbilityId INT, Score INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
 
     try{
+        // Create the table
         await connection.execute(createTableCommand);
     }
     catch(error){
@@ -145,6 +234,9 @@ async function dropTables(){
                          
 }
 
+/**
+ * Creates all the tables that have to do with player statistic and abilites.
+ */
 async function createTables(){
     await createAbilityTable();
     await createSkillTable();
