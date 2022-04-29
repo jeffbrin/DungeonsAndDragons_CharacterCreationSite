@@ -1,3 +1,7 @@
+/*
+* Model written by Jeffrey
+*/
+
 const mysql = require('mysql2/promise')
 const validationModel = require('./validateRaceUtils')
 const logger = require('../logger');
@@ -5,10 +9,10 @@ const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
 
 
-
 let connection;
 /**
- * Initializes the passed database by creating a connection.
+ * Initializes the passed database by creating a connection. 
+ * Doesn't create the tables since there are foreign keys that rely on the characterModel.
  * @param {String} databaseName the name of the database to write to.
  * @throws {DatabaseError} Thrown when the connection fails to be made.
  */
@@ -35,12 +39,12 @@ async function initialize(databaseName) {
  * @returns True if the table contains any records, false if it's empty.
  * @throws {DatabaseError} Thrown if the connection is invalid or if the table name does not exist.
  */
-async function doesTableHaveContent(tableName){
-    try{
+async function doesTableHaveContent(tableName) {
+    try {
         [rows, columnData] = await connection.query(`SELECT * FROM ${tableName}`);
         return rows.length > 0;
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'doesTableHaveContent', `Failed to query rows from the ${tableName} table: ${error}`);
     }
 }
@@ -52,16 +56,16 @@ async function doesTableHaveContent(tableName){
  * @returns The id of the given race.
  * @throws {DatabaseError} Thrown when the query failed. Common cause is an ability name not in the table or an undefined connection.
  */
-async function getAbilityIdFromName(name){
-    try{
+async function getAbilityIdFromName(name) {
+    try {
         [rows, columns] = await connection.query(`SELECT Id FROM Ability WHERE Name = '${name}'`);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the requested ability from the database. Likely caused by an undefined connection: ${error}`)
     }
 
     // If the name wasn't found
-    if (rows.length == 0){
+    if (rows.length == 0) {
         throw new InvalidInputError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the ${name} ability because it was not found in the database.`);
     }
 
@@ -70,35 +74,36 @@ async function getAbilityIdFromName(name){
 
 /**
  * Creates and populates the ability table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createAbilityTable(){
+async function createAbilityTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS Ability(Id INT, Name TEXT, PRIMARY KEY(Id));";
 
-    try{
+    try {
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createAbilityTable', `Failed to create the ability table, likely due to an undefined connection: ${error}`)
     }
 
     // Add the values if none are present
-    if(!await(doesTableHaveContent('Ability'))){
+    if (!await (doesTableHaveContent('Ability'))) {
 
         // Read the abilities from the json
         let abilities;
-        try{
+        try {
             abilities = JSON.parse(await fs.readFile('database-content-json/abilities.json'));
         }
-        catch(error){
+        catch (error) {
             throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to read from the abilities json file: ${error}`);
         }
 
-        try{
+        try {
             // Add each ability to the table
-            for(let i = 1; i <= abilities.length; i++){
-                await connection.execute(`INSERT INTO Ability (Id, Name) values (${i}, '${abilities[i-1]}');`);
+            for (let i = 1; i <= abilities.length; i++) {
+                await connection.execute(`INSERT INTO Ability (Id, Name) values (${i}, '${abilities[i - 1]}');`);
             }
-        }catch(error){
+        } catch (error) {
             throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
         }
     }
@@ -106,36 +111,37 @@ async function createAbilityTable(){
 
 /**
  * Creates and populates the skill table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createSkillTable(){
+async function createSkillTable() {
     const createTableCommand = `CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));`;
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", "createSkillTable", `Failed to create the ability table, likely due to an undefined connection: ${error}`)
     }
 
     // Add the values if none are present
-    if(!await(doesTableHaveContent('Skill'))){
+    if (!await (doesTableHaveContent('Skill'))) {
 
         // Read the abilities from the json
         let skills;
-        try{
+        try {
             skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
         }
-        catch(error){
+        catch (error) {
             throw new DatabaseError('characterStatisticsModel', 'createSkillTable', `Failed to read from the skills json file: ${error}`);
         }
 
-        try{
+        try {
             // Add each ability to the table
-            for(let i = 1; i <= skills.length; i++){
-                await connection.execute(`INSERT INTO Skill (Id, AbilityId, Name) values (${i}, ${await getAbilityIdFromName(skills[i-1].Ability)}, '${skills[i-1].Name}');`);
+            for (let i = 1; i <= skills.length; i++) {
+                await connection.execute(`INSERT INTO Skill (Id, AbilityId, Name) values (${i}, ${await getAbilityIdFromName(skills[i - 1].Ability)}, '${skills[i - 1].Name}');`);
             }
-        }catch(error){
+        } catch (error) {
             throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
         }
     }
@@ -143,75 +149,80 @@ async function createSkillTable(){
 
 /**
  * Creates the saving throw proficiency table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createSavingThrowProficiencyTable(){
+async function createSavingThrowProficiencyTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));";
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createSavingThrowProficiencyTable', `Failed to create the saving throw proficiency table, likely due to an undefined connection: ${error}`)
     }
 }
 
 /**
  * Creates the skill proficiency table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createSkillProficiencyTable(){
+async function createSkillProficiencyTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillProficiency(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createSkillProficiencyTable', `Failed to create the skill proficiency table, likely due to an undefined connection: ${error}`)
     }
 }
 
 /**
  * Creates the skill expertise table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createSkillExpertiseTable(){
+async function createSkillExpertiseTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillExpertise(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createSkillExpertiseTable', `Failed to create the skill expertise table, likely due to an undefined connection: ${error}`)
     }
 }
 
 /**
  * Creates the saving throw bonus table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createSavingThrowBonusTable(){
+async function createSavingThrowBonusTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowBonus(CharacterId INT, AbilityId INT, Bonus INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createSavingThrowBonusTable', `Failed to create the saving throw bonus table, likely due to an undefined connection: ${error}`)
     }
 }
 
 /**
  * Creates the ability score table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
  */
-async function createAbilityScoreTable(){
+async function createAbilityScoreTable() {
     const createTableCommand = "CREATE TABLE IF NOT EXISTS AbilityScore(CharacterId INT, AbilityId INT, Score INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
 
-    try{
+    try {
         // Create the table
         await connection.execute(createTableCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError("characterStatisticsModel", 'createAbilityScoreTable', `Failed to create the ability score table, likely due to an undefined connection: ${error}`)
     }
 
@@ -222,22 +233,23 @@ async function createAbilityScoreTable(){
  * @param {Object} connection A connection to the dnd database.
  * @throws {DatabaseError} Thrown usually when the connection is closed or invalid.
  */
-async function dropTables(){
+async function dropTables() {
     const dropCommand = "DROP TABLE IF EXISTS AbilityScore; "
 
-    try{
+    try {
         await connection.execute(dropCommand);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'dropTables', `Failed to drop the statistics table from the database: ${error}`);
     }
-                         
+
 }
 
 /**
- * Creates all the tables that have to do with player statistic and abilites.
+ * Creates all the tables that have to do with player statistics and abilities.
+ * @throws {DatabaseError} Thrown when a table failed to be made usually due to an undefined connection.
  */
-async function createTables(){
+async function createTables() {
     await createAbilityTable();
     await createSkillTable();
     await createSavingThrowProficiencyTable();
@@ -247,4 +259,102 @@ async function createTables(){
     await createAbilityScoreTable();
 }
 
-module.exports = {initialize, dropTables, createTables}
+/**
+ * Sets the ability scores for a character.
+ * @param {Number} characterId The id of the character to set the ability scores for.
+ * @param {Array} abilityScores The ability scores of the character.
+ * @throws {DatabaseError} Thrown when the connection is undefined.
+ * @throws {InvalidInputError} Thrown when the ability scores aren't 6 long or when the character id is invalid.
+ */
+async function setAbilityScores(characterId, abilityScores) {
+
+}
+
+/**
+ * Adds a skill proficiency for a specific character. If the character already has expertise in said skill, the expertise should be deleted.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Skill id must be an integer which exists as an id in the Skill table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} skillId The id of the skill which the character is an expert in.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database. 
+ */
+async function addSkillProficiency(characterId, skillId) {
+
+}
+
+/**
+ * Adds a skill expertise for a specific character. If the character is already proficient in said skill, the proficiency should be deleted.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Skill id must be an integer which exists as an id in the Skill table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} skillId The id of the skill which the character is proficient in.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
+ */
+async function addSkillExpertise(characterId, skillId) {
+
+}
+
+/**
+ * Adds a saving throw bonus for a specific character on a saving throw.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Ability id must be an integer which exists as an id in the Ability table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} abilityId  The abilityId linked to the saving throw.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
+ */
+async function addSavingThrowProficiency(characterId, abilityId) {
+
+}
+
+/**
+ * Sets a bonus for a character in a specific saving throw.
+ * Character id must be an integer which exists as an id in the PlayerCharacter table.
+ * Ability id must be an integer which exists in the Ability table.
+ * Bonus must be an integer.
+ * If Bonus is 0, this character's saving throw bonus is deleted since that is functionally the same as setting it to 0.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} abilityId The ability id linked to the saving throw.
+ * @param {Number} bonus The bonus for this saving throw.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database, or when the bonus is not an integer. 
+ */
+async function setSavingThrowBonus(characterId, abilityId, bonus) {
+
+}
+
+/**
+ * Gets a list of all the abilities in the database.
+ * Abilities are returned in the following format - {Name: "", Id: #}
+ * @returns An array of containing all the abilities in the database.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ */
+async function getAllAbilities() {
+
+}
+
+/**
+ * Gets a list of all the skills in the database.
+ * Skills are returned in the following format - {Name: "", Id: #, Ability: {Id: #, Name: ""}} 
+ * where AbilityId is the id linked with the skill
+ * @returns An array containing all the skills in the database with their corresponding ability.
+ * @throws {DatabaseError} Thrown when a no the database connection is undefined.
+ */
+async function getAllSkills(){
+
+}
+
+module.exports = { 
+    initialize, 
+    dropTables, 
+    createTables, 
+    setAbilityScores, 
+    addSkillProficiency, 
+    addSkillExpertise, 
+    addSavingThrowProficiency,
+    setSavingThrowBonus,
+    getAllAbilities,
+    getAllSkills
+}

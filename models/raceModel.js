@@ -1,9 +1,12 @@
+/*
+* Model written by Jeffrey
+*/
+
 const mysql = require('mysql2/promise')
 const validationModel = require('./validateRaceUtils')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
-
 
 let connection;
 /**

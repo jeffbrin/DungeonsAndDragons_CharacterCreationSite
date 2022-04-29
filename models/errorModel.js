@@ -1,5 +1,5 @@
-/**
- * This class was written by Chase.
+/*
+ * This model was written by Chase.
  */
 
 /**
