@@ -1,19 +1,33 @@
 ///This controller is to add users to the database
 const express = require('express');
-const app = require('../app.js');
 const router = express.Router();
 const routeRoot = '/users';
-model = require('../models/userModel');
+const userModel = require('../models/userModel');
 const logger = require('../logger');
 const errors = require('./errorController');
-const error = logger.error;
-const warn = logger.warn;
-const info = logger.info;
+const {InvalidPasswordError, InvalidUsernameError, DatabaseError, IncorrectPasswordError, UserNotFoundError, UserAlreadyExistsError} = require('../models/errorModel');
 
 
-async function createrUser(){
+async function createUser(request, response){
 
+    let username = request.body.username;
+    let password = request.body.password;
+
+    userModel.addUser(username, password)
+    .then(response.render('home.hbs', {homeActive: true}))
+    .catch(error => {
+        if (error instanceof UserAlreadyExistsError || error instanceof InvalidPasswordError || error instanceof InvalidUsernameError){
+            logger.error(error.toString());
+
+            response.status(400).render('home.hbs', {homeActive: true, error: error.message, status: 400});
+        }
+        else{
+            response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong.', status: 500});
+        }
+    })
 }
+router.post('/', createUser);
+
 
 module.exports = {
     router,

@@ -27,7 +27,7 @@ async function createSession(request, response) {
 
     await model.createSession();
 }
-router.post('/sessions', createSession);
+router.post('/', createSession);
 
 
 module.exports = {
