@@ -10,7 +10,7 @@ const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
 const { exit } = require('process');
 
-initialize("dnd_db_testing", true );
+// initialize("dnd_db_testing", true );
 
 
 let connection;
@@ -39,7 +39,7 @@ async function initialize(databaseName, reset) {
     await createBackgroundFeatureTable();
     await populateBackgroundAndFeaturesTable();
     // console.log(await getAllBackgrounds());
-    console.log(await getBackground(1));
+    // console.log(await getBackground(1));
     
     // .catch(error => {throw error});
 }

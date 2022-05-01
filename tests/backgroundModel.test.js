@@ -20,9 +20,9 @@ async function populateBackgroundsArrayFromJsonFile(){
         let backgroundObject = {Name: backgroundData[i].Name, Description: backgroundData[i].Description, Features: []}
         let features = backgroundData[i].Features;
          for (let j = 0; j < features.length; j++){
-            backgroundObject.Features.push(features[i])
+            backgroundObject.Features.push(features[j])
          }
-        //  backgroundObject.Features.sort(compareFeatures)
+         backgroundObject.Features.sort(compareFeatures)
          backgroundsArray.push(backgroundObject);
         }
 }
@@ -101,45 +101,45 @@ test('getAllBackgrounds - Success', async () =>{
     
 })
 
-// test('getAllBackgrounds - Fail - Closed Database Conneciton', async () =>{
+test('getAllBackgrounds - Fail - Closed Database Conneciton', async () =>{
 
-//     await backgroundModel.closeConnection();
-//     await expect(backgroundModel.getAllBackgrounds()).rejects.toThrow(errorModel.DatabaseError);
+    await backgroundModel.closeConnection();
+    await expect(backgroundModel.getAllBackgrounds()).rejects.toThrow(errorModel.DatabaseError);
     
-// })
+})
 
-// test('getRace - Success', async () =>{
+test('getBackground - Success', async () =>{
 
-//     const index = getRandomIndex();
-//     const randomRaceFromDB = await backgroundModel.getRace(index + 1);
-//     const randomRace = backgroundsArray[index]
+    const index = getRandomIndex();
+    const randomBackgroundFromDB = await backgroundModel.getBackground(index + 1);
+    const randomBackground = backgroundsArray[index]
 
-//     // Backgrounds should be the same, with the same features
-//     expect(backgroundsEqual(randomRace, randomRaceFromDB, true)).toBe(true);
+    // Backgrounds should be the same, with the same features
+    expect(backgroundsEqual(randomBackground, randomBackgroundFromDB, true)).toBe(true);
     
-// })
+})
 
-// test('getRace - Fail - Invalid ID (Not Positive)', async () =>{
+test('getBackground - Fail - Invalid ID (Not Positive)', async () =>{
 
-//     await expect(backgroundModel.getRace(0)).rejects.toThrow(errorModel.InvalidInputError);
+    await expect(backgroundModel.getBackground(0)).rejects.toThrow(errorModel.InvalidInputError);
     
-// })
+})
 
-// test('getRace - Fail - Invalid ID (Is String)', async () =>{
+test('getBackground - Fail - Invalid ID (Is String)', async () =>{
 
-//     await expect(backgroundModel.getRace("Hello")).rejects.toThrow(errorModel.InvalidInputError);
+    await expect(backgroundModel.getBackground("Hello")).rejects.toThrow(errorModel.InvalidInputError);
     
-// })
+})
 
-// test('getRace - Fail - Invalid ID (Decimal Value)', async () =>{
+test('getBackground - Fail - Invalid ID (Decimal Value)', async () =>{
 
-//     await expect(backgroundModel.getRace(10.4)).rejects.toThrow(errorModel.InvalidInputError);
+    await expect(backgroundModel.getBackground(10.4)).rejects.toThrow(errorModel.InvalidInputError);
     
-// })
+})
 
-// test('getRace - Fail - Closed Database Connection', async () =>{
+test('getBackground - Fail - Closed Database Connection', async () =>{
 
-//     await backgroundModel.closeConnection();
-//     await expect(backgroundModel.getRace(5)).rejects.toThrow(errorModel.DatabaseError);
+    await backgroundModel.closeConnection();
+    await expect(backgroundModel.getBackground(5)).rejects.toThrow(errorModel.DatabaseError);
     
-// })
+})
