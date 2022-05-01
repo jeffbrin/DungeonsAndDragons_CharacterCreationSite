@@ -14,9 +14,10 @@ async function createUser(request, response){
     let password = request.body.password;
 
     userModel.addUser(username, password)
-    .then(() => {
-        // Set the cookie
-        response.render('home.hbs', {homeActive: true})
+    .then( async (newSession) => {
+        // Set the cookie and render the home page
+        response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate }); 
+        response.render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
     })
     .catch(error => {
         if (error instanceof UserAlreadyExistsError || error instanceof InvalidPasswordError || error instanceof InvalidUsernameError || error instanceof DatabaseError){

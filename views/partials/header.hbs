@@ -20,10 +20,16 @@
         <input type="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
       </form>
       <div class="text-end">
-        <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
-          data-bs-target="#modalLogin">Login</button>
-        <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
-          data-bs-target="#modalSignin">Sign-up</button>
+        {{#if username}}
+          <h2>{{username}}</h2>
+          <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
+          data-bs-target="#modalSignin">Logout</button>
+        {{else}}
+          <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
+            data-bs-target="#modalLogin">Login</button>
+          <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
+            data-bs-target="#modalSignin">Sign-up</button>
+        {{/if}}
       </div>
     </div>
   </div>

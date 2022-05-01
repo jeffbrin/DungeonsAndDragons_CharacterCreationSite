@@ -20,7 +20,7 @@ startup()
 
 async function startup(){
     try{
-    await userModel.initialize(dbName, true)
+    await userModel.initialize(dbName, false)
     await spellModel.initialize(dbName, false)
     await raceModel.initialize(dbName, false)
     await characterModel.initialize(dbName, false)

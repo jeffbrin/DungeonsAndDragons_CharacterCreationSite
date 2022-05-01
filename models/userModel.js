@@ -98,7 +98,7 @@ async function dropReliantTables(){
  * @throws {UserAlreadyExistsError} Thrown when the a user already exists with the username provided.
  * @throws {InvalidUsernameError} Thrown when the username provided is invalid.
  * @throws {InvalidPasswordError} Thrown when the password provided is invalid.
- * @returns The new user's session id.
+ * @returns The user's new sessionId and expiry date {sessionId, expiryDate}.
  */
 async function addUser(username, password) {
 
@@ -157,10 +157,10 @@ async function addUser(username, password) {
  * Also deletes any expired sessions in the database.
  * @param {Integer} userId The id of the user to make the session for.
  * @param {Integer} numMinutes The quantity of time in minutes that the session should be valid for.
- * @returns The id of the new session.
+ * @returns The id of the new session and the expiry date {sessionId, expiryDate}.
  * @throws {DatabaseError} Thrown when there is an issue adding the new session to the database.
  */
-async function createSession(userId, numMinutes = 5) {
+async function createSession(userId, numMinutes = 15) {
 
     // Delete expired sessions
     await deleteExpiredSessions();
@@ -178,13 +178,7 @@ async function createSession(userId, numMinutes = 5) {
         throw new DatabaseError('userModel', 'createSession', `Failed to create add the session for user ${userId} to the database: ${error}`);
     }
 
-    // // Create a session object containing information about the user and expiry time
-    // const thisSession = new Session(userId, expiresAt);
-
-    // // Add the session information to the sessions map, using sessionId as the key
-    // sessions[sessionId] = thisSession;
-
-    return sessionId;
+    return {sessionId, expiryDate: expiresAt};
 }
 
 /**
@@ -192,7 +186,7 @@ async function createSession(userId, numMinutes = 5) {
  */
 async function deleteExpiredSessions(){
     try{
-        await connection.execute(`DELETE FROM Session WHERE ExpiresAt < '${dateTimeToMySqlFormat(new Date(Date.now()))}';`);
+        await connection.execute(`DELETE FROM Session WHERE ExpiryDate < '${dateTimeToMySqlFormat(new Date(Date.now()))}';`);
     }
     catch(error){
         throw new DatabaseError('userModel', 'deleteExpiredSessions', `Failed to delete expired sessions: ${error}`);
@@ -220,7 +214,7 @@ function dateTimeToMySqlFormat(datetimeValue){
  * @throws {DatabaseError} Thrown when there was an issue reading from the database.
  * @throws {InvalidUsernameError} Thrown when the username provided is invalid.
  * @throws {InvalidPasswordError} Thrown when the password provided is invalid.
- * @returns A session id for the user.
+ * @returns A new session id and expiry date for the user {sessionId, expiryDate}.
  */
 async function authenticateUser(username, password) {
 
@@ -245,12 +239,12 @@ async function authenticateUser(username, password) {
 
     // Check if the user exists
     if (rows.length > 0)
-        throw new UserAlreadyExistsError('userModel', 'authenticateUser', `No user with the username ${username} exists.`);
+        throw new UserNotFoundError('userModel', 'authenticateUser', `No user with the username ${username} exists.`);
 
     // Check the password
     const userInfo = rows[0];
     if(!bcrypt.compareSync(password, userInfo.password))
-        throw new InvalidPasswordError('userModel', 'authenticateUser', 'The provided password was incorrect.');
+        throw new IncorrectPasswordError('userModel', 'authenticateUser', 'The provided password was incorrect.');
 
     // Return a new session
     return await createSession(userInfo.Id);
@@ -269,11 +263,11 @@ function hashPassword(password){
 /**
  * Refreshes a user session. If the session is invalid or expired, an InvalidSessionError will be thrown.
  * @param {Integer} sessionId The id of a user session.
- * @returns The new sessionId to provide the user as a cookie.
+ * @returns The new session id and expiry date {sessionId, expiryDate} to provide the user as a cookie.
  * @throws {InvalidSessionError} Thrown when an invalid session was provided. (Expired, non-existant, null).
  * @throws {DatabaseError} Thrown when there is an issue removing an old session from the database or adding the new one.
  */
-function refreshSession(sessionId) {
+async function refreshSession(sessionId) {
 
     // Throw if the session is invalid
     const authenticatedSession = await authenticateSession(request);
@@ -282,7 +276,7 @@ function refreshSession(sessionId) {
     }
 
     // Create and store a new Session object that will expire in 15 minutes.
-    const newSessionId = await createSession(authenticatedSession.userSession.username, 15);
+    const newSession = await createSession(authenticatedSession.userSession.username, 15);
     // Delete the old entry in the database
     try{
         await connection.execute(`DELETE FROM Session WHERE Id = ${sessionId}`);
@@ -291,12 +285,7 @@ function refreshSession(sessionId) {
         throw new DatabaseError('userModel', 'refreshSession', `Failed to delete an old session from the database: ${error}`);
     }
 
-    // This should be moved to the controller
-    // // Set the session cookie to the new id we generated, with a
-    // // renewed expiration time
-    // response.cookie("sessionId", newSessionId, { expires: sessions[newSessionId].expiresAt })
-
-    return newSessionId;
+    return newSession;
 }
 
 /**
@@ -305,7 +294,7 @@ function refreshSession(sessionId) {
  * @param {Object} request An http request object.
  * @returns True if the user session id in the request is valid, false otherwise.
  */
-function authenticateSession(sessionId) {
+async function authenticateSession(sessionId) {
     // If the sessionId is null, it's invalid.
     if (!sessionId) {
         return false;
@@ -316,7 +305,7 @@ function authenticateSession(sessionId) {
 
     // Query the database to find the requested session id.
     try{
-        [rows, columns] = await connection.query(`SELECT Id FROM Session WHERE Id = ${sessionId};`)
+        [rows, columns] = await connection.query(`SELECT Id FROM Session WHERE Id = '${sessionId}';`)
         if(rows.length > 0)
             return true;
         else
@@ -346,7 +335,7 @@ function authenticateSession(sessionId) {
  * @param {String} sessionId A user session id.
  * @throws {DatabaseError} Thrown when there was an issue removing the session from the database.
  */
-function removeSession(sessionId){
+async function removeSession(sessionId){
     try{
         await connection.execute(`DELETE FROM Session WHERE Id = '${sessionId}';`);
     }
@@ -355,10 +344,39 @@ function removeSession(sessionId){
     }
 }
 
+/**
+ * Gets the the username that corresponds to the user with the session id passed.    
+ * @param {String} sessionId A session id.
+ * @returns The username associated with the session id.
+ * @throws {DatabaseError} Thrown when there was an issue querying the database.
+ * @throws {InvalidSessionError} Thrown when the session id passed was invalid.
+ */
+async function getUsernameFromSessionId(sessionId){
+
+    // Authenticate the session (Throws DatabaseError)
+    if(!await authenticateSession(sessionId))
+        throw new InvalidSessionError('userModel', 'getUsernameFromSessionId', 'The provided session id was invalid.');
+    
+
+    try{
+        // Find the username and return it
+        [rows, columns] = await connection.query(`SELECT Username FROM Session S, User U WHERE S.Id = '${sessionId}' AND U.Id = S.UserId;`);
+        if(rows.length == 0)
+            throw new InvalidSessionError('userModel', 'getUsernameFromSessionId', 'No username was found from the provided session id.');
+        else
+            return rows[0].Username;
+    }
+    catch(error){
+        throw new DatabaseError('userModel', 'getUsernameFromSessionId', `Failed to query the database to find the username associated with the given session id: ${error}`);
+    }
+
+}
+
 module.exports = {
     addUser,
     authenticateUser,
     refreshSession,
     initialize,
-    removeSession
+    removeSession,
+    getUsernameFromSessionId
 }
