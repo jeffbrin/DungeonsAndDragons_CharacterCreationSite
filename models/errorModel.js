@@ -172,5 +172,40 @@ class IncorrectPasswordError extends Error{
     }
 };
 
+/**
+ * Class that extends error class for customized invalid session error
+ */
+ class InvalidSessionError extends Error{
+    /**
+     * Constructor to create an error with the following fields
+     * @param {string} module module in which the error ocurred
+     * @param {string} method in which the error ocurred
+     * @param {string} message describing the error
+     */
+    constructor(module, method, message){
+        super()
+        this.module = module;
+        this.method = method;
+        this.message = message;
+    }
 
-module.exports = { InvalidInputError, DatabaseError, UserNotFoundError, IncorrectPasswordError, UserAlreadyExistsError, InvalidUsernameError, InvalidPasswordError};
+    /**
+     * Wil build a string to view the entire error and its details
+     * @returns a string containing error info
+     */
+    toString(){
+        return '('+this.module+') ' +  this.method + ': ' + this.message;
+    }
+};
+
+
+module.exports = { 
+    InvalidInputError, 
+    DatabaseError, 
+    UserNotFoundError, 
+    IncorrectPasswordError, 
+    UserAlreadyExistsError, 
+    InvalidUsernameError, 
+    InvalidPasswordError,
+    InvalidSessionError
+};

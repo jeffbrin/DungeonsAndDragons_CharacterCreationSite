@@ -19,9 +19,16 @@ startup()
 });
 
 async function startup(){
-    await userModel.initialize(dbName, false)
+    try{
+    await userModel.initialize(dbName, true)
     await spellModel.initialize(dbName, false)
     await raceModel.initialize(dbName, false)
     await characterModel.initialize(dbName, false)
-    app.listen(port)
+    }catch(error){
+        throw error;
+    }
+    // Always run the server even with failed initialization
+    finally{
+        app.listen(port)
+    }
 }
