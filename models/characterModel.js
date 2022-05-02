@@ -402,7 +402,7 @@ function getConnection() {
  */
 async function createEthicsTable() {
     const sqlQuery = "CREATE TABLE IF NOT EXISTS Ethics(Id INT, Name TEXT, PRIMARY KEY(Id));";
-    await connection.execute(sqlQuery).then(logger.info(`Table: Ethics Created/Exists - initialize()`))
+    await connection.execute(sqlQuery).then(logger.info(`Table: Ethics Created/Exists - createEthicsTable()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`); });
 }
 
@@ -412,7 +412,7 @@ async function createEthicsTable() {
  */
 async function createMoralityTable() {
     const sql = `CREATE TABLE IF NOT EXISTS Morality(Id INT, Name TEXT, PRIMARY KEY(Id));`;
-    await connection.execute(sql).then(logger.info(`Table: Morality Created/Exists - initialize()`))
+    await connection.execute(sql).then(logger.info(`Table: Morality Created/Exists - createMoralityTable()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Couldn't connect to the database: ${error.message}.`); });
 }
 /**
@@ -425,7 +425,7 @@ async function createPlayerCharacterTable() {
         Experience INT, PRIMARY KEY(Id), FOREIGN KEY (UserId) REFERENCES User(Id), FOREIGN KEY (ClassId) REFERENCES Class(Id), 
         FOREIGN KEY (RaceId) REFERENCES Race(Id), FOREIGN KEY (EthicsId) REFERENCES Ethics(Id), FOREIGN KEY (MoralityId) 
         REFERENCES Morality(Id), FOREIGN KEY (BackgroundId) REFERENCES Background(Id));`;
-    await connection.execute(sqlQueryC).then(logger.info(`Table: ${tableName} Created/Exists - initialize()`))
+    await connection.execute(sqlQueryC).then(logger.info(`Table: ${tableName} Created/Exists - createPlayerCharacterTable()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createPlayerCharacterTable', `Couldn't connect to the database: ${error.message}.`); });
 }
 /**
@@ -435,7 +435,7 @@ async function createPlayerCharacterTable() {
 async function createKnownSpellTable() {
     const sql = `CREATE TABLE IF NOT EXISTS KnownSpell(SpellId INT, CharacterId INT, FOREIGN KEY (SpellId) 
     REFERENCES Spell(Id), FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (SpellId, CharacterId));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - initialize()`))
+    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createKnownSpellTable()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createKnownSpellTable', `Couldn't connect to the database: ${error.message}.`); });
 
 }
@@ -447,7 +447,7 @@ async function createKnownSpellTable() {
 async function createOwnedItemTable() {
     const sql = `CREATE TABLE IF NOT EXISTS OwnedItem(CharacterId INT, Name VARCHAR(200), Count INT, 
     FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (CharacterId, Name));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - initialize()`))
+    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createOwnedItemTable()`))
         .catch((error) => { throw new errors.DatabaseError('characterModel', 'createOwnedItemTable', `Couldn't connect to the database: ${error.message}.`); });
 }
 /* #endregion */
