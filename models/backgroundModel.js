@@ -66,6 +66,7 @@ async function initialize(databaseName, reset) {
         }
 
         // Drop the PlayerCharacter table since it contains foreign keys in the background table
+        dropQuery = `DROP TABLE IF EXISTS PlayerCharacter;`;
         try {
             await connection.execute(dropQuery)
             logger.info(`PlayerCharacter table dropped.`);
