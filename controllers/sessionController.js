@@ -21,6 +21,7 @@ async function removeSession(request, response) {
             const cookies = request.cookies;
             response.clearCookie('sessionId');
             await userModel.removeSession(cookies.sessionId);
+            response.render('home.hbs', {homeActive: true})
         }
         catch(error){
             if (error instanceof DatabaseError){

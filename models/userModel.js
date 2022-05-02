@@ -1,5 +1,7 @@
 const mysql = require('mysql2/promise');
-const uuid = require('uuid');
+// const uuid = require('uuid');
+const crypto = require('crypto');
+const uuid = {v4: crypto.randomUUID};
 const bcrypt = require('bcrypt');
 const logger = require('../logger');
 const userValidation = require('./validateUserUtils');
@@ -402,6 +404,13 @@ async function getUsernameFromSessionId(sessionId){
 
 }
 
+/**
+ * Closes the connection to the database.
+ */
+async function closeConnection(){
+    await connection.end();
+}
+
 module.exports = {
     addUser,
     authenticateUser,
@@ -409,5 +418,6 @@ module.exports = {
     initialize,
     removeSession,
     getUsernameFromSessionId,
-    getUserIdFromSessionId
+    getUserIdFromSessionId,
+    closeConnection
 }
