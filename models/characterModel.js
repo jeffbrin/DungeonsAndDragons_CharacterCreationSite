@@ -382,7 +382,7 @@ async function updateInitiative(characterId, initiative){
 }
 
 async function setSkillProficiency(characterId, proficiencies){
-    
+    valUtils.checkAbilityScores(proficiencies);
 }
 
 /* #endregion */
