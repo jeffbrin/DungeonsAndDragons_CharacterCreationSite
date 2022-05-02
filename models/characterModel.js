@@ -381,6 +381,10 @@ async function updateInitiative(characterId, initiative){
     }
 }
 
+async function setSkillProficiency(characterId, proficiencies){
+    
+}
+
 /* #endregion */
 
 /**
