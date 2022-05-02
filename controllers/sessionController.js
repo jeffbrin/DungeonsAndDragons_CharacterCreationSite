@@ -4,30 +4,37 @@ const res = require('express/lib/response');
 const app = require('../app.js');
 const router = express.Router();
 const routeRoot = '/sessions';
-const uuid = require('uuid');
-const model = require('../models/userModel');
+const userModel = require('../models/userModel');
 const logger = require('../logger');
-const errors = require('./errorController');
-const SESSION_TIME = 15;
+const {DatabaseError} = require('../models/errorModel');
 
 
 
-
-async function createSession(request, response) {
-    try {
+/**
+ * 
+ * @param {Object} request An http request object.
+ * @param {Object} response An http response object.
+ */
+async function removeSession(request, response) {
         //validate
-        requestJson = request.body;
-        await model.authenticateUser(requestJson.username, requestJson.password);
-        //create session
-        let sessionID = await model.createSession(requestJson.username, SESSION_TIME);
-    } catch (error) {
-
-    }
+        try{
+            const cookies = request.cookies;
+            response.clearCookie('sessionId');
+            await userModel.removeSession(cookies.sessionId);
+        }
+        catch(error){
+            if (error instanceof DatabaseError){
+                response.status(500).render('home.hbs', {homeActive: true})
+            }
+            else{
+                response.status(500).render('home.hbs', {warning: 'Failed to log out, it may not have worked.', status: 500, homeActive: true})
+            }
+        }
 
 
     await model.createSession();
 }
-router.post('/', createSession);
+router.delete('/', createSession);
 
 
 module.exports = {
