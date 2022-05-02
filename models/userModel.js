@@ -270,16 +270,16 @@ function hashPassword(password){
 async function refreshSession(sessionId) {
 
     // Throw if the session is invalid
-    const authenticatedSession = await authenticateSession(request);
-    if (!authenticatedSession) {
+    const sessionIsAuthenticated = await authenticateSession(sessionId);
+    if (!sessionIsAuthenticated) {
         throw new InvalidSessionError('userModel', 'refreshSession', 'The session id provided was invalid.');
     }
 
     // Create and store a new Session object that will expire in 15 minutes.
-    const newSession = await createSession(authenticatedSession.userSession.username, 15);
+    const newSession = await createSession(await getUserIdFromSessionId(sessionId), 15);
     // Delete the old entry in the database
     try{
-        await connection.execute(`DELETE FROM Session WHERE Id = ${sessionId}`);
+        await connection.execute(`DELETE FROM Session WHERE Id = '${sessionId}'`);
     }
     catch(error){
         throw new DatabaseError('userModel', 'refreshSession', `Failed to delete an old session from the database: ${error}`);
@@ -344,6 +344,36 @@ async function removeSession(sessionId){
     }
 }
 
+
+/**
+ * Gets the the user id that corresponds to the user with the session id passed.    
+ * @param {String} sessionId A session id.
+ * @returns The user id associated with the session id.
+ * @throws {DatabaseError} Thrown when there was an issue querying the database.
+ * @throws {InvalidSessionError} Thrown when the session id passed was invalid.
+ */
+ async function getUserIdFromSessionId(sessionId){
+
+    // Authenticate the session (Throws DatabaseError)
+    if(!await authenticateSession(sessionId))
+        throw new InvalidSessionError('userModel', 'getUsernameFromSessionId', 'The provided session id was invalid.');
+    
+
+    try{
+        // Find the username and return it
+        [rows, columns] = await connection.query(`SELECT U.Id FROM Session S, User U WHERE S.Id = '${sessionId}' AND U.Id = S.UserId;`);
+        if(rows.length == 0)
+            throw new InvalidSessionError('userModel', 'getUsernameFromSessionId', 'No username was found from the provided session id.');
+        else
+            return rows[0].Id;
+    }
+    catch(error){
+        throw new DatabaseError('userModel', 'getUsernameFromSessionId', `Failed to query the database to find the username associated with the given session id: ${error}`);
+    }
+
+}
+
+
 /**
  * Gets the the username that corresponds to the user with the session id passed.    
  * @param {String} sessionId A session id.
@@ -378,5 +408,6 @@ module.exports = {
     refreshSession,
     initialize,
     removeSession,
-    getUsernameFromSessionId
+    getUsernameFromSessionId,
+    getUserIdFromSessionId
 }

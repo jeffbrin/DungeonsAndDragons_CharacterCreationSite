@@ -3,6 +3,7 @@ const app = express();
 const {engine} = require('express-handlebars');
 const bodyParser = require('body-parser');
 const expressListRoutes = require('express-list-routes');
+const cookieParser = require('cookie-parser');
 
 // Logger
 const logger = require('./logger');
@@ -11,7 +12,7 @@ const httpLogger = pinohttp({
     logger: logger
 });
 app.use(httpLogger);
-
+app.use(cookieParser());
 
 const port = 1339;
 
