@@ -238,12 +238,12 @@ async function authenticateUser(username, password) {
     }
 
     // Check if the user exists
-    if (rows.length > 0)
+    if (!rows.length > 0)
         throw new UserNotFoundError('userModel', 'authenticateUser', `No user with the username ${username} exists.`);
 
     // Check the password
     const userInfo = rows[0];
-    if(!bcrypt.compareSync(password, userInfo.password))
+    if(!bcrypt.compareSync(password, userInfo.Password))
         throw new IncorrectPasswordError('userModel', 'authenticateUser', 'The provided password was incorrect.');
 
     // Return a new session

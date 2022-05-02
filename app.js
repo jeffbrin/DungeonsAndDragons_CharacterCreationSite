@@ -57,6 +57,19 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
         }
         
     }
+    else if(request.query.choice){
+
+        try{
+            let choice = JSON.parse(request.query.choice);
+            
+            if(choice.method)
+                request.method = choice.method;
+        }
+        catch(error){
+            // Choice was not JSON
+        }
+        
+    }
     next();
 }
 

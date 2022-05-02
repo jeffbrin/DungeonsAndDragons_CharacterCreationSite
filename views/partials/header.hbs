@@ -22,8 +22,9 @@
       <div class="text-end">
         {{#if username}}
           <h2>{{username}}</h2>
-          <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
-          data-bs-target="#modalSignin">Logout</button>
+          <form action="/sessions" method="delete">
+            <button id="logout" class="btn btn-primary" name="choice" type="submit" value='{"method": "delete"}'>Logout</button>
+          </form>
         {{else}}
           <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
             data-bs-target="#modalLogin">Login</button>
