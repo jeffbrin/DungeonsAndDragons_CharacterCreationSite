@@ -19,7 +19,7 @@
       <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
         <input type="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
       </form>
-      <div class="text-end">
+      <div class="text-end d-flex" style="gap: 8px;">
         {{#if username}}
           <h2>{{username}}</h2>
           <form action="/sessions" method="delete">
@@ -29,13 +29,13 @@
           <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
             data-bs-target="#modalLogin">Login</button>
           <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
-            data-bs-target="#modalSignin">Sign-up</button>
+            data-bs-target="#modalSignup">Sign-up</button>
         {{/if}}
       </div>
     </div>
   </div>
   {{!-- Modal from https://getbootstrap.com/docs/5.0/components/modal/ --}}
-  <div class="modal fade modal-signin" aria-labelledby="modalSigninLabel" tabindex="-1" role="dialog" id="modalSignin">
+  <div class="modal fade modal-signin" aria-labelledby="modalSigninLabel" tabindex="-1" role="dialog" id="modalSignup">
     <div class="modal-dialog" role="document">
       <div class="modal-content rounded-5 shadow">
         <div class="modal-header p-5 pb-4 border-bottom-0" id="modalHeader">
@@ -56,6 +56,9 @@
             <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Sign up</button>
             <small class="text-muted">By clicking Sign up, you agree to allow the mindflayer to feast on your brain.</small>
             <hr class="my-4">
+            {{#if signupError}}
+            <p id="signupErrorText" style="color: red;">{{signupError}}</p>
+            {{/if}}
           </form>
         </div>
       </div>
@@ -71,7 +74,7 @@
           <h2 class="fw-bold mb-0">Login to your Account</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body p-5 pt-0" id="modalBody">
+        <div class="modal-body p-5 pt-0 d-flex" id="modalBody">
           <form class="" id="signUpForm" action="/sessions" method="post">
             <div class="form-floating mb-3">
               <input type="text" class="form-control rounded-4" name="username" id="usernameLogin" placeholder="username">
@@ -84,9 +87,61 @@
             <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Login</button>
             <small class="text-muted">By logging in you agree to surrender your conscience to the mindflayer.</small>
             <hr class="my-4">
+            {{#if loginError}}
+            <p id="loginErrorText" style="color: red;">{{loginError}}</p>
+            {{/if}}
           </form>
         </div>
       </div>
     </div>
   </div>
 </header>
+{{!-- Load the login modal if there was an error logging in --}}
+{{#if loginError}}
+  <script defer>
+
+    var myModal;
+    var timesModalWasShown = 0;
+    document.addEventListener('DOMContentLoaded', ()=>{
+      myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {})
+      myModal.toggle()
+
+      // Add an event to the modal to remove the test next time it's loaded
+      document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e) {
+        
+          console.log(timesModalWasShown)
+          if(document.getElementById('loginErrorText') != null)
+            document.getElementById('loginErrorText').remove();
+        
+
+          timesModalWasShown++;
+        })
+        
+    });
+
+  </script>
+{{/if}}
+{{!-- Load the signup modal if there was an error signup up --}}
+{{#if signupError}}
+  <script defer>
+
+    var myModal;
+    var timesModalWasShown = 0;
+    document.addEventListener('DOMContentLoaded', ()=>{
+      myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {})
+      myModal.toggle()
+
+      // Add an event to the modal to remove the test next time it's loaded
+      document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e) {
+        
+          console.log(timesModalWasShown)
+          if(document.getElementById('signupErrorText') != null)
+            document.getElementById('signupErrorText').remove();
+        
+          timesModalWasShown++;
+        })
+        
+    });
+
+  </script>
+{{/if}}

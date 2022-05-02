@@ -6,7 +6,7 @@ const router = express.Router();
 const routeRoot = '/sessions';
 const userModel = require('../models/userModel');
 const logger = require('../logger');
-const {DatabaseError} = require('../models/errorModel');
+const {DatabaseError, UserNotFoundError, IncorrectPasswordError, InvalidUsernameError, InvalidPasswordError} = require('../models/errorModel');
 
 
 
@@ -49,11 +49,23 @@ async function login(request, response){
         response.render('home.hbs', {homeActive: true, username: body.username});
     }
     catch(error){
-        if (error instanceof DatabaseError){
-            response.status(500).render('home.hbs', {homeActive: true})
+        if (error instanceof UserNotFoundError){
+            response.status(500).render('home.hbs', {homeActive: true, loginError: 'User not found.'})
+        }
+        else if (error instanceof DatabaseError){
+            response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong on our end, please try logging in again in a moment.', status: 500})
+        }
+        else if (error instanceof IncorrectPasswordError){
+            response.status(500).render('home.hbs', {homeActive: true, loginError: 'Incorrect password.'})
+        }
+        else if (error instanceof InvalidUsernameError){
+            response.status(500).render('home.hbs', {homeActive: true, loginError: 'Invalid username.'})
+        }
+        else if (error instanceof InvalidPasswordError){
+            response.status(500).render('home.hbs', {homeActive: true, loginError: 'Invalid password.'})
         }
         else{
-            response.status(500).render('home.hbs', {warning: 'Failed to log out, it may not have worked.', status: 500, homeActive: true})
+            response.status(500).render('home.hbs', {warning: 'Failed to log in.', status: 500, homeActive: true})
         }
     }
 }

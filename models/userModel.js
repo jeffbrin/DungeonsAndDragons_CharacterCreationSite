@@ -103,14 +103,14 @@ async function dropReliantTables(){
 async function addUser(username, password) {
 
     // Validate the username and password
-    if(!userValidation.validatePassword(password))
-        throw new InvalidPasswordError('userModel', 'addUser', 'The provided password was not strong enough.');
     try{
         userValidation.validateUsername(username);
     }
     catch(error){
         throw new InvalidUsernameError('userModel', 'addUser', error.message);
     }
+    if(!userValidation.validatePassword(password))
+        throw new InvalidPasswordError('userModel', 'addUser', 'The provided password was not strong enough.');
 
     // Make sure the user doesn't already exists
     let rows;
@@ -219,14 +219,14 @@ function dateTimeToMySqlFormat(datetimeValue){
 async function authenticateUser(username, password) {
 
     // Validate the username and password
-    if(!userValidation.validatePassword(password))
-        throw new InvalidPasswordError('userModel', 'authenticateUser', 'The provided password was not strong enough.');
     try{
         userValidation.validateUsername(username);
     }
     catch(error){
         throw new InvalidUsernameError('userModel', 'authenticateUser', error.message);
     }
+    if(!userValidation.validatePassword(password))
+        throw new InvalidPasswordError('userModel', 'authenticateUser', 'The provided password was not strong enough.');
 
     // Make sure the user exists
     let rows;

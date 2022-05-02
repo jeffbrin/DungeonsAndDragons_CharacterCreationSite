@@ -20,11 +20,29 @@ async function createUser(request, response){
         response.render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
     })
     .catch(error => {
-        if (error instanceof UserAlreadyExistsError || error instanceof InvalidPasswordError || error instanceof InvalidUsernameError || error instanceof DatabaseError){
+        if (error instanceof UserAlreadyExistsError){
             logger.error(error.toString());
 
             response.status(400);
-            response.render('home.hbs', {homeActive: true, error: error.message, status: 400});
+            response.render('home.hbs', {homeActive: true, signupError: 'Username already exists.'});
+        }
+        else if (error instanceof InvalidPasswordError){
+            logger.error(error.toString());
+
+            response.status(400);
+            response.render('home.hbs', {homeActive: true, signupError: `Invalid password.`});
+        }
+        else if(error instanceof InvalidUsernameError){
+            logger.error(error.toString());
+
+            response.status(400);
+            response.render('home.hbs', {homeActive: true, signupError: 'Invalid username.'});
+        }
+        else if(error instanceof DatabaseError){
+            logger.error(error.toString());
+
+            response.status(500);
+            response.render('home.hbs', {homeActive: true, error: 'Something went wrong on our end. Please wait a moment and try signing in again.', status: 500});
         }
         else{
             logger.error(error);
