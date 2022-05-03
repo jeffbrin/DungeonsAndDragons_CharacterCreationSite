@@ -3,6 +3,7 @@ const app = express();
 const {engine} = require('express-handlebars');
 const bodyParser = require('body-parser');
 const expressListRoutes = require('express-list-routes');
+const cookieParser = require('cookie-parser');
 
 // Logger
 const logger = require('./logger');
@@ -11,12 +12,13 @@ const httpLogger = pinohttp({
     logger: logger
 });
 app.use(httpLogger);
-
+app.use(cookieParser());
 
 const port = 1339;
 
 app.use(express.json())
 const controllers = ['spellController', 'characterController', 'userController', 'sessionController', 'homeController', 'errorController'];
+
 
 // Tell the app to use handlebars templating engine.  
 // Configure the engine to use a simple .hbs extension to simplify file naming
@@ -48,6 +50,19 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
 
         try{
             let choice = JSON.parse(request.body.choice);
+            
+            if(choice.method)
+                request.method = choice.method;
+        }
+        catch(error){
+            // Choice was not JSON
+        }
+        
+    }
+    else if(request.query.choice){
+
+        try{
+            let choice = JSON.parse(request.query.choice);
             
             if(choice.method)
                 request.method = choice.method;

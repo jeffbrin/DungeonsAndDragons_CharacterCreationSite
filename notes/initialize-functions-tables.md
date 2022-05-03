@@ -17,7 +17,7 @@ Table dependencies are indicated in brackets.
 
 ## BackgroundModel
 * Background - 
-  * CREATE TABLE IF NOT EXISTS Background(Id INT, Name TEXT, PRIMARY KEY (Id));
+  * CREATE TABLE IF NOT EXISTS Background(Id INT, Name TEXT, Description TEXT, PRIMARY KEY (Id));
 * Background Feature (background) - 
   * CREATE TABLE IF NOT EXISTS BackgroundFeature(BackgroundId INT, Name VARCHAR(200), Description TEXT, FOREIGN KEY (BackgroundId) REFERENCES Background(Id), PRIMARY KEY (BackgroundId, Name));
 
@@ -71,7 +71,7 @@ Split Character Model into
 * Ethics
 * Morality
 * PlayerCharacter (background, class, user, race, ethics, morality)
-* Known Spell (playercharacte, spell)
+* Known Spell (playercharacter, spell)
 * Owned Item (playercharacter)
 
 ## CharacterStatisticsModel
