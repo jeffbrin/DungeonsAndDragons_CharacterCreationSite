@@ -528,6 +528,52 @@ async function closeConnection(){
     connection.end();
 }
 
+/**
+ * Gets the skill proficiencies for a specific character.
+ * @returns A list of integers 
+ */
+async function getSkillProficiencies(characterId){
+
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSkillProficiencies', error.message);
+    }
+
+    let skillIdObjects;
+    try{
+        [skillIdObjects, columns] = await connection.query(`SELECT Id FROM SkillProficiency WHERE CharacterId = ${characterId}`);
+        return skillIdObjects.map(x => x.Id);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getSkillProficiencies', `Failed to get the skill proficiency ids from the database: ${error}`);
+    }
+
+}
+
+/**
+ * Gets the skill expertise for a specific character.
+ */
+async function getSkillExpertise(characterId){
+    
+}
+
+/**
+ * Gets the saving throw proficiencies for a specific character.
+ */
+async function getSavingThrowProficiencies(characterId){
+    
+}
+
+/**
+ * Gets the saving throw bonuses for a specific character.
+ */
+async function getSavingThrowBonuses(characterId){
+    
+}
+
 module.exports = { 
     initialize,
     closeConnection,
@@ -539,5 +585,6 @@ module.exports = {
     addSavingThrowProficiency,
     setSavingThrowBonus,
     getAllAbilities,
-    getAllSkills
+    getAllSkills,
+    getSkillProficiencies
 }
