@@ -5,6 +5,7 @@ const res = require('express/lib/response');
 const router = express.Router();
 const routeRoot = '/characters';
 const model = require('../models/characterModel');
+const logger = require('../logger');
 
 const errors = require('../models/errorModel');
 
@@ -13,10 +14,6 @@ const errors = require('../models/errorModel');
 hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     return arg1 == arg2
 });
-
-
-
-
 
 /**
  * Sends a character to the model by taking in the request's JSON and using it
@@ -40,13 +37,13 @@ async function sendCharacter(request, response) {
     } catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500);
-            console.log("database error from sendCharacter in Character Controller");
+            logger.error("database error from sendCharacter in Character Controller");
             response.render('characters.hbs', { error: true, message: "Couldn't Add Character There was a Database Error" });
         }
         else if (error instanceof errors.InvalidInputError) {
             let character = await model.printDb();
             response.status(400).render('characters.hbs', { error: true, message: "Couldn't Add Character, Input was invalid", character: character });
-            console.log('input error - from sendCharacter in characterController');
+            logger.error('input error - from sendCharacter in characterController');
         }
     }
 }
@@ -60,17 +57,17 @@ async function sendCharacter(request, response) {
 async function updateHitpoints(request, response) {
     requestJson = request.body;
     try {
-        let updated = await model.hitpointsModifier(request.params.id, requestJson.hp);
+        let updated = await model.addRemoveHp(request.params.id, requestJson.hp);
         response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated" });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
-            console.log("Database Error - From updateHitpoints in characterController")
+            logger.error("Database Error - From updateHitpoints in characterController")
         }
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${request.params.id}` });
-            console.log('input error - from updateHitpoints in characterController');
+            logger.error('input error - from updateHitpoints in characterController');
         }
     }
 }
@@ -91,11 +88,11 @@ async function getCharacter(request, response) {
     catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't get Character with id: ${id}` });
-            console.log("Database Error - From getCharacter in characterController")
+            logger.error("Database Error - From getCharacter in characterController")
         }
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${id}` });
-            console.log('input error - from getCharacter in characterController');
+            logger.error('input error - from getCharacter in characterController');
         }
     }
 }
@@ -107,22 +104,22 @@ async function getCharacter(request, response) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getAllCharacters(request, response) {
+async function getAllUserCharacters(request, response) {
     try {
-        let found = await model.printDb();
+        let found = await model.getUserCharacters(request.params.userId);
         response.status(201).render('characters.hbs', { charactersActive: true, character: found });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: "Database error, Couldn't get Characters" });
-            console.log("Database Error - From getAllCharacters in characterController");
+            logger.error("Database Error - From getAllCharacters in characterController");
         }
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: "Input Error, Couldn't get all Characters" });
-            console.log('input error - from getAllCharacters in characterController');
+            logger.error('input error - from getAllCharacters in characterController');
         }
         else{
-            console.log(error.message);
+            logger.error(error.message);
         }
     }
 }
@@ -144,11 +141,11 @@ async function updateCharacter(request, response) {
     catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
-            console.log("Database Error - From updateCharacter in characterController")
+            logger.error("Database Error - From updateCharacter in characterController")
         }
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't update Character with id: ${request.params.id}` });
-            console.log('input error - from updateCharacter in characterController');
+            logger.error('input error - from updateCharacter in characterController');
         }
         else {
             response.status(400).render('characters.hbs', { error: true, message: `${error.message}` });
@@ -174,12 +171,12 @@ async function deleteCharacter(request, response) {
         if (error instanceof errors.DatabaseError) {
             let found = await model.printDb();
             response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't delete Character with id: ${request.params.id}`, character: found });
-            console.log("Database Error - From deleteCharacter in characterController");
+            logger.error("Database Error - From deleteCharacter in characterController");
         }
         else if (error instanceof errors.InvalidInputError) {
             let found = await model.printDb();
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't delete Character with id: ${request.params.id}`, character: found });
-            console.log('input error - from deleteCharacter in characterController');
+            logger.error('input error - from deleteCharacter in characterController');
         }
     }
 }
@@ -201,7 +198,7 @@ router.post('/', sendCharacter);
 router.post('/forms', formRoute)
 router.delete('/:id', deleteCharacter);
 router.get('/:id', getCharacter);
-router.get('/', getAllCharacters);
+router.get('/', getAllUserCharacters);
 router.put('/:id/hp', updateHitpoints);
 
 module.exports = {

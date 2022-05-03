@@ -65,9 +65,9 @@ async function closeConnection() {
  * @param {Character} character 
  * @returns 
  */
-async function addCharacterObject(character){
-    return await addCharacter(character.classId, character.raceId, character.name, character.maxHP, 
-        character.background, character.ethicsId, character.moralityId, character.level, character.abilityScoreValues, 
+async function addCharacterObject(character) {
+    return await addCharacter(character.classId, character.raceId, character.name, character.maxHP,
+        character.background, character.ethicsId, character.moralityId, character.level, character.abilityScoreValues,
         character.savingThrowProficienciesIds, character.proficiencyBonus, character.userId);
 }
 
@@ -96,15 +96,15 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     //select from character table and select the next highest available id top order by ID
     const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`
     let characterId = 1;
-    try{
+    try {
         let [rows, column_definitions] = await connection.query(idQuery);
-        if(rows.length != 0){
+        if (rows.length != 0) {
             characterId = parseInt(rows[0].Id);
         }
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHP,background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
     }
-    catch(error){
-        throw new errors.InvalidInputError("characterModel", "addCharacter", error.message);
+    catch (error) {
+        throw new errors.InvalidInputError("characterModel", "addCharacter", `Couldn't Validate the character: ${error.message}`);
     }
 
     //ADD CHAR TO DB
@@ -112,15 +112,30 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name.toLowerCase()}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
 
     await connection.execute(query).then(logger.info("Insert command executed in addCharacter")).catch((error) => { throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command'); });
-    
-    //Add To Character Statistics Table
-    //Add Saving Throw Proficiency for each in the array of Ids
-    for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
-        await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+
+
+    try {
+
+        //Add To Character Statistics Table
+        //Add Saving Throw Proficiency for each in the array of Ids
+        for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
+            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+        }
+
+
+        //Add Ability Score Values
+        await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
+    } catch (error) {
+        if (error instanceof errors.InvalidInputError) {
+            throw new errors.InvalidInputError('characterModel', 'addCharacter', `Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+        else {
+            throw new errors.DatabaseError('characterModel', 'addCharacter', `Database connection or query error, Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+
     }
-    
-    //Add Ability Score Values
-    await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
 
     return true;
 }
@@ -163,10 +178,10 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
 async function addRemoveHp(id, hpValueChange) {
     let selectQ = `Select CurrentHp from ${tableName} WHERE Id = ${id};`;
     let [rows, column_definitions] = await connection.query(selectQ).then(logger.info("select Query before CurrentHp change Executed - addRemoveHp"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp',`Database connection failed ${error.message}`); });
+        .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed ${error.message}`); });
 
     if (rows.length === 0) {
-        throw new errors.InvalidInputError('characterModel', 'addRemoveHp',`Character with id: ${id} was not found in the Database`);
+        throw new errors.InvalidInputError('characterModel', 'addRemoveHp', `Character with id: ${id} was not found in the Database`);
     }
 
     let newHp = rows[0].CurrentHp + hpValueChange;
@@ -174,7 +189,7 @@ async function addRemoveHp(id, hpValueChange) {
 
     let query = `Update ${tableName} SET CurrentHp = ${newHp} WHERE Id = ${id};`;
     await connection.execute(query).then(logger.info("Update CurrentHp Query Executed - addRemoveHp"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp',`Database connection failed, couldn't update CurrentHp. ${error.message}`); });
+        .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed, couldn't update CurrentHp. ${error.message}`); });
 }
 
 
@@ -188,7 +203,7 @@ async function addRemoveHp(id, hpValueChange) {
 async function getCharacter(id) {
     let query = `SELECT Id, Name, RaceId, ClassId, CurrentHp from ${tableName} WHERE Id = ${id};`;
     let [rows, column_definitions] = await connection.query(query).then(logger.info("select Query before returning Character executed"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'getCharacter',`Database connection failed, couldn't get Character. ${error.message}`); });
+        .catch((error) => { throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${error.message}`); });
     if (rows.length === 0) {
         throw new errors.InvalidInputError('characterModel', 'getCharacter', `Character not found with id: ${id}`);
     }
@@ -202,20 +217,20 @@ async function getCharacter(id) {
  * @throws {InvalidInputError} - If the User does not exist OR the User has no Characters belonging to them.
  * @throws {DatabaseError} - If there is an error with the SELECT query while joining the PlayerCharacter and User Tables.
  */
-async function getUserCharacters(userId){
+async function getUserCharacters(userId) {
     const query = `SELECT c.Id from ${tableName} c, User u WHERE c.UserId = u.Id;`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info(`Select Query Success in getUserCharacter with userId: ${userId}`);
-        if (rows.length === 0){
+        if (rows.length === 0) {
             throw new errors.InvalidInputError();
         }
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'getUserCharacters', `User does not exists or has no characters`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'getUserCharacters', `Database connection or query error, couldn't get the Users Characters`);
         }
     }
@@ -241,10 +256,10 @@ async function removeCharacter(id) {
         let [rows, column_definitions] = await connection.query(checkingQ).then(logger.info("Select query to check if Id exists has been executed"));
 
         if (rows.length === 0) {
-            throw new errors.InvalidInputError('characterModel', 'removeCharacter',`Character with Id: ${id} does not exist in the Database.`);
+            throw new errors.InvalidInputError('characterModel', 'removeCharacter', `Character with Id: ${id} does not exist in the Database.`);
         }
         await connection.execute(query).then(logger.info(`Delete Query Executed Character with id: ${id}`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'removeCharacter',`Database connection failed, couldn't delete Character with id ${id}. ${error.message}`); });
+            .catch((error) => { throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${id}. ${error.message}`); });
         return true;
     }
     catch (error) {
@@ -258,13 +273,13 @@ async function removeCharacter(id) {
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function levelUp(characterId){
+async function levelUp(characterId) {
     const query = `SELECT Level FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of levelUp function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         let currentLevel = parseInt(rows[0].Level);
         currentLevel += 1;
@@ -275,14 +290,14 @@ async function levelUp(characterId){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s level is now ${currentLevel}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'levelUp', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'levelUp', `Database connection or query error, couldn't level up the Character`);
         }
     }
-} 
+}
 
 /**
  * Updates a character with the given Id in order to increment by the passed in experience to their current Experience
@@ -291,13 +306,13 @@ async function levelUp(characterId){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateExp(characterId, experience){
+async function updateExp(characterId, experience) {
     const query = `SELECT Experience FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateExp function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         let currentExperience = parseInt(rows[0].Experience);
         currentExperience += experience;
@@ -308,10 +323,10 @@ async function updateExp(characterId, experience){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Experience is now ${currentExperience}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateExp', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateExp', `Database connection or query error, couldn't add experience to the Character`);
         }
     }
@@ -324,15 +339,15 @@ async function updateExp(characterId, experience){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateAC(characterId, armorClass){
+async function updateAC(characterId, armorClass) {
     const query = `SELECT ArmorClass FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateAC function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
-        
+
 
         const updateQuery = `UPDATE ${tableName} SET ArmorClass = ${armorClass} WHERE Id = ${characterId};`;
 
@@ -340,10 +355,10 @@ async function updateAC(characterId, armorClass){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s ArmorClass is now ${armorClass}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateAC', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateAC', `Database connection or query error, couldn't update ArmorClass of the Character`);
         }
     }
@@ -356,13 +371,13 @@ async function updateAC(characterId, armorClass){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateSpeed(characterId, speed){
+async function updateSpeed(characterId, speed) {
     const query = `SELECT Speed FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateSpeed function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         const updateQuery = `UPDATE ${tableName} SET Speed = ${speed} WHERE Id = ${characterId};`;
 
@@ -370,10 +385,10 @@ async function updateSpeed(characterId, speed){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Speed is now ${speed}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateSpeed', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateSpeed', `Database connection or query error, couldn't update speed of the Character`);
         }
     }
@@ -386,15 +401,15 @@ async function updateSpeed(characterId, speed){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateInitiative(characterId, initiative){
+async function updateInitiative(characterId, initiative) {
     const query = `SELECT Initiative FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateSpeed function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
-        
+
 
         const updateQuery = `UPDATE ${tableName} SET Initiative = ${initiative} WHERE Id = ${characterId};`;
 
@@ -402,10 +417,10 @@ async function updateInitiative(characterId, initiative){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Initiative is now ${initiative}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateInitiative', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateInitiative', `Database connection or query error, couldn't update Initiative of the Character`);
         }
     }
