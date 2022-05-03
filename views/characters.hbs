@@ -34,6 +34,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
   {{/if}}
+  {{#if signedIn}}
   <div id="addchardiv" class="container">
     <h2 id="addmessageh2" class="text-center">Add Your Own Character!</h2>
     <form action="/characters" method="post" id="formMain">
@@ -84,6 +85,11 @@
 
     </form>
   </div>
+  {{else}}
+  <div class="container elevated minHeightDiv" id="notSignedInFormDiv">
+    <h2 class="text-center">Sign In to Add Your Own Characters</h2>
+  </div>
+  {{/if}}
 </section>
 
 

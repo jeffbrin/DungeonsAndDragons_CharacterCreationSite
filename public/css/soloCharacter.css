@@ -1,0 +1,44 @@
+:root {
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #26413C;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+}
+
+
+#mainContainer{
+    background-color: #1f201f;
+    min-height: 600px;
+}
+.ability{
+    background-color: var(--elevationColor);
+}
+.abilities{
+    background-color: var(--elevation2Color);
+}
+#hpSkills{
+    background-color: var(--elevationColor);
+}
+#savingThrows{
+    width: 100%;
+    height: 100%;
+    background-color: var(--elevationColor);
+}
+#logoCol{
+    width: 100%;
+    background-color: var(--elevationColor);
+}
+.skills{
+    background-color: var(--elevationColor);
+}
+.items{
+    background-color: var(--elevationColor);
+}
+.savingThrows{
+    background-color: var(--elevationColor);
+    border: 2px solid black;
+    border-radius: 1rem;
+}

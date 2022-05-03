@@ -188,3 +188,7 @@ input[type="search"]::-webkit-search-cancel-button {
 #modalHeaderLogin{
     background-color: #212529;
 }
+.minHeightDiv{
+    min-height: 300px;
+    margin-top: 2rem;
+}
