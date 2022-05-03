@@ -59,6 +59,19 @@ async function closeConnection() {
 }
 
 /* #region  CRUD Operations */
+
+/**
+ * Helper method to make testing easier. Adds a character using the addCharacter method but takes in an object and splits it up once.
+ * @param {Character} character 
+ * @returns 
+ */
+async function addCharacterObject(character){
+    return await addCharacter(character.classId, character.raceId, character.name, character.maxHP, 
+        character.background, character.ethicsId, character.moralityId, character.level, character.abilityScoreValues, 
+        character.savingThrowProficienciesIds, character.proficiencyBonus, character.userId);
+}
+
+
 /**
  * Adds a Character to the PlayerCharacter table
  * @param {Integer} classId - The Id of the user's selected class - 1 Based
@@ -108,6 +121,8 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     
     //Add Ability Score Values
     await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
+    return true;
 }
 
 /**
@@ -349,8 +364,6 @@ async function updateSpeed(characterId, speed){
         logger.info('Select query executed inside of updateSpeed function');
         if(rows.length === 0) throw new errors.InvalidInputError();
 
-        
-
         const updateQuery = `UPDATE ${tableName} SET Speed = ${speed} WHERE Id = ${characterId};`;
 
         await connection.execute(updateQuery);
@@ -480,5 +493,6 @@ module.exports = {
     updateExp,
     updateAC,
     updateSpeed,
-    updateInitiative
+    updateInitiative,
+    addCharacterObject
 };
