@@ -1,7 +1,5 @@
 const mysql = require('mysql2/promise');
-// const uuid = require('uuid');
-const crypto = require('crypto');
-const uuid = {v4: crypto.randomUUID};
+const uuid = require('uuid');
 const bcrypt = require('bcrypt');
 const logger = require('../logger');
 const userValidation = require('./validateUserUtils');
@@ -16,6 +14,8 @@ let connection;
  * @param {Boolean} reset indicates whether the new table should be reset.
  */
 async function initialize(databaseName, reset) {
+
+    a = [];
 
     try {
         connection = await mysql.createConnection({
