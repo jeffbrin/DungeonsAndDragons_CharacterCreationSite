@@ -21,16 +21,17 @@ startup()
 
 async function startup(){
     try{
-    await userModel.initialize(dbName, false)
-    await spellModel.initialize(dbName, false)
-    await raceModel.initialize(dbName, false)
-    await characterModel.initialize(dbName, false)
-    await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1))
+    await userModel.initialize(dbName, true);
+    await spellModel.initialize(dbName, true);
+    await raceModel.initialize(dbName, true);
+    await characterModel.initialize(dbName, true);
+    await userModel.addUser('anderson', 'Anderson514');
+    await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1);
     }catch(error){
         throw error;
     }
     // Always run the server even with failed initialization
     finally{
-        app.listen(port)
+        app.listen(port);
     }
 }
