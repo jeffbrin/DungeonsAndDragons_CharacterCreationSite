@@ -14,5 +14,5 @@ afterEach(async () => {
 
 
 test('addUser - Success - Returns session id', async () => {
-    console.log('YES');
+    
 })
