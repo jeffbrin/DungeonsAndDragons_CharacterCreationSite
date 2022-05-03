@@ -270,7 +270,7 @@ async function createTables() {
  * @throws {InvalidInputError} Thrown when the ability scores array doesn't contain 6 integers or when the character id is invalid.
  */
 async function setAbilityScores(characterId, abilityScores) {
-    await validationModel.loadMostRecentValuesFromDatabase();
+    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the ability scores
     try{
@@ -317,7 +317,7 @@ async function setAbilityScores(characterId, abilityScores) {
  */
 async function addSkillProficiency(characterId, skillId) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase();
+    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the skill id
     try{
@@ -406,7 +406,7 @@ async function addSkillExpertise(characterId, skillId) {
  */
 async function addSavingThrowProficiency(characterId, abilityId) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase();
+    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the ability id
     try{
@@ -452,7 +452,7 @@ async function addSavingThrowProficiency(characterId, abilityId) {
  */
 async function setSavingThrowBonus(characterId, abilityId, bonus) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase();
+    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the ability id
     try{

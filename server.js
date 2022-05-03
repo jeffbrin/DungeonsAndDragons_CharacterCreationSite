@@ -13,14 +13,15 @@ if (!dbName) {
 
 
 spellModel.initialize(dbName, false)
-.then(raceModel.initialize(dbName, false))
-.then(characterModel.initialize(dbName, false))
+.then(() => raceModel.initialize(dbName, false))
 .then( async () => {
     await characterStatisticsModel.initialize(dbName);
     await characterStatisticsModel.dropTables();
     await characterStatisticsModel.createTables();
 })
-.then(app.listen(port))
+.then( () => characterModel.initialize(dbName, false))
+.then( async () => await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1))
+.then( () => app.listen(port))
 .catch(error => {
     console.error(error.message);
     logger.error(error);

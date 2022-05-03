@@ -4,6 +4,7 @@ let connection;
 const tableName = 'PlayerCharacter';
 const logger = require('../logger');
 const errors = require('./errorModel');
+const characterStatsModel = require('./characterStatisticsModel');
 
 
 //## CharacterModel
@@ -33,7 +34,7 @@ async function initialize(databaseNameTmp, reset) {
     if (reset) {
         const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality;`;
         await connection.execute(deleteDbQuery).then(logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`))
-            .catch((error) => { throw new errors.DatabaseError(`characterModel', 'intitalize', "Couldn't connect to the database: ${error.message}`); });
+            .catch((error) => { throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`); });
     }
 
     await createEthicsTable();
@@ -72,6 +73,7 @@ async function closeConnection() {
  * Ex. [1, 0, 1, 2, 0, 3] -> Starts at strength and ends with Charisma. Array is 0 based but Ability Ids are 1 based
  * @param {Int32Array} savingThrowProficienciesIds - An array of Saving Throw Proficiencies IDs. Each index of the array is the Integer of the 
  * Saving Throw the Character is proficient in (1 based)
+ * @param {Integer} proficiencyBonus - The value of the proficiency bonus for a character in the Character Sheet
  * @param {Integer} userId - The Id of the user this character will belong to if created
  * @throws {InvalidInputError} - If the Input does not match up with the restrictions set
  * @throws {DatabaseError} - If there was an error connecting to the Database or with the Query
@@ -79,7 +81,13 @@ async function closeConnection() {
 async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, proficiencyBonus, userId) {
 
     //select from character table and select the next highest available id top order by ID
+    const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`
+    let characterId = 1;
     try{
+        let [rows, column_definitions] = await connection.query(idQuery);
+        if(rows.length != 0){
+            characterId = parseInt(rows[0].Id);
+        }
         await valUtils.isCharValid(connection, name, raceId, classId, maxHP,background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
     }
     catch(error){
@@ -87,10 +95,19 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     }
 
     //ADD CHAR TO DB
-    let query = `insert into ${tableName} (name, race, class, hitpoints) values ('${name.toLowerCase()}', '${race.toLowerCase()}', '${charClass.toLowerCase()}', '${hitpoints}');`;
+    let query = `insert into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
+    (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name.toLowerCase()}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
 
     await connection.execute(query).then(logger.info("Insert command executed in addCharacter")).catch((error) => { throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command'); });
-
+    
+    //Add To Character Statistics Table
+    //Add Saving Throw Proficiency for each in the array of Ids
+    for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
+        await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+    }
+    
+    //Add Ability Score Values
+    await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
 }
 
 /**
@@ -381,9 +398,6 @@ async function updateInitiative(characterId, initiative){
     }
 }
 
-async function setSkillProficiency(characterId, proficiencies){
-    valUtils.checkAbilityScores(proficiencies);
-}
 
 /* #endregion */
 
