@@ -511,10 +511,14 @@ async function getAllAbilities() {
  */
 async function getAllSkills(){
     try{
-        [skills, columns] = await connection.query('SELECT S.Name, S.Id, A.Name as AbilityName, A.Id as AbilityId FROM Ability A, Skill S WHERE A.Id = S.AbilityId;');
-        skills.Ability = {Id: skills.AbilityId, Name: skills.AbilityName}
-        delete skills.AbilityId;
-        delete skills.AbilityName;
+        [skills, columns] = await connection.query('SELECT S.Name, S.Id, A.Name as AbilityName, A.Id as AbilityId FROM Ability A, Skill S WHERE A.Id = S.AbilityId ORDER BY Name ASC;');
+        skills = skills.map(skill => {
+            skill.Ability = {Id: skill.AbilityId, Name: skill.AbilityName};
+            delete skill.AbilityId;
+            delete skill.AbilityName;
+            return skill;
+        });
+        
         return skills;
     }catch(error){
         throw new DatabaseError('characterStatisticsModel', 'getAllSkills', `Failed to get the list of skills from the database: ${error}`);

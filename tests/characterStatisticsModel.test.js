@@ -7,7 +7,8 @@ async function getAbilityNamesFromJsonFile(){
 }
 
 async function getSkillsFromJsonFile(){
-    
+    const skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
+    return skills;
 }
 
 const dbName = 'dnd_db_testing';
@@ -27,22 +28,23 @@ afterEach(async () => {
     await characterStatsModel.closeConnection();
 });
 
-test('getAllAbilities - Success - Returns all abilities in the json file in order.', async () => {
+test('getAllSkills - Success - Returns all skills in the json file in order.', async () => {
 
-    const abilities = await getAbilityNamesFromJsonFile();
-    const databaseAbilities = await characterStatsModel.getAllAbilities();
+    const skills = await getSkillsFromJsonFile();
+    const databaseSkills = await characterStatsModel.getAllSkills();
 
-    // Make sure each ability is the same in the right order
-    for(let i = 0; i < abilities.length; i++){
-        expect(abilities[i]).toBe(databaseAbilities[i].Name);
+    // Make sure each skill is the same in the right order
+    for(let i = 0; i < skills.length; i++){
+        expect(skills[i].Name).toBe(databaseSkills[i].Name);
+        expect(skills[i].Ability).toBe(databaseSkills[i].Ability.Name);
     }
 
 })
 
-test('getAllSkills - Success - Returns all abilities in the json file in order.', async () => {
+test('getAllAbilities - Success - Returns all abilities in the json file in order.', async () => {
 
     const abilities = await getAbilityNamesFromJsonFile();
-    const databaseSkills = await characterStatsModel.getAllSkills();
+    const databaseSkills = await characterStatsModel.getAllAbilities();
 
     // Make sure each ability is the same in the right order
     for(let i = 0; i < abilities.length; i++){
