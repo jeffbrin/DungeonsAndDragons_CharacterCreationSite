@@ -42,11 +42,11 @@ test('getAllAbilities - Success - Returns all abilities in the json file in orde
 test('getAllSkills - Success - Returns all abilities in the json file in order.', async () => {
 
     const abilities = await getAbilityNamesFromJsonFile();
-    const databaseAbilities = await characterStatsModel.getAllAbilities();
+    const databaseSkills = await characterStatsModel.getAllSkills();
 
     // Make sure each ability is the same in the right order
     for(let i = 0; i < abilities.length; i++){
-        expect(abilities[i]).toBe(databaseAbilities[i].Name);
+        expect(abilities[i]).toBe(databaseSkills[i].Name);
     }
 
 })
