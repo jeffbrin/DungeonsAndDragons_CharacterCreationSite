@@ -1,9 +1,12 @@
+/*
+* Model written by Jeffrey
+*/
+
 const mysql = require('mysql2/promise')
 const validationModel = require('./validateRaceUtils')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
-
 
 let connection;
 /**
@@ -27,12 +30,9 @@ async function initialize(databaseName, reset) {
     }
 
     // Create the tables and populate them
-    await createRaceTable(connection, reset);
+    await createRaceTable(reset);
     await createRacialTraitTable();
     await populateRaceAndRacialTraitTables();
-
-    console.log(await getAllRaces());
-    console.log(await getRace(1));
 }
 
 /**
@@ -124,7 +124,7 @@ async function populateRaceAndRacialTraitTables() {
     let raceTableHasData = false;
     try {
         [rows, columnData] = await connection.query('SELECT * from Race;');
-        raceTableHasData = rows > 0
+        raceTableHasData = rows.length > 0
     }
     catch (error) {
         throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
@@ -160,7 +160,7 @@ async function populateRaceAndRacialTraitTables() {
                 raceId++;
             }
         } catch (error) {
-            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Rae table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
+            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Race table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
         }
 
         logger.info('Successfully populated the Race and RacialTrait tables.')
@@ -229,9 +229,23 @@ async function getRace(id){
     }
 
     // Add the traits to the race object
+    race = race[0]
     race.Traits = traits;
 
     return race;
 }
 
-module.exports = { initialize, getAllRaces, getRace}
+/**
+ * Closes the connection to the database.
+ */
+async function closeConnection(){
+    try{
+        connection.end()
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'closeConnection',`Failed to close the connection: ${error}`);
+    }
+}
+
+module.exports = { initialize, getAllRaces, getRace, closeConnection}
+

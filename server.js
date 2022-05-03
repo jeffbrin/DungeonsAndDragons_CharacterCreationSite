@@ -4,6 +4,7 @@ const spellModel = require('./models/spellModel');
 const raceModel = require('./models/raceModel');
 const characterModel = require('./models/characterModel');
 const userModel = require('./models/userModel');
+const characterStatisticsModel = require('./models/characterStatisticsModel');
 const logger = require('./logger.js');
 
 let dbName = process.argv[2];
@@ -24,6 +25,7 @@ async function startup(){
     await spellModel.initialize(dbName, false)
     await raceModel.initialize(dbName, false)
     await characterModel.initialize(dbName, false)
+    await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1))
     }catch(error){
         throw error;
     }
