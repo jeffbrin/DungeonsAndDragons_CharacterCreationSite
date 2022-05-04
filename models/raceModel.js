@@ -121,7 +121,7 @@ async function populateRaceAndRacialTraitTables() {
     let raceTableHasData = false;
     try {
         [rows, columnData] = await connection.query('SELECT * from Race;');
-        raceTableHasData = rows > 0
+        raceTableHasData = rows.length > 0
     }
     catch (error) {
         throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
@@ -157,7 +157,7 @@ async function populateRaceAndRacialTraitTables() {
                 raceId++;
             }
         } catch (error) {
-            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Rae table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
+            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Race table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
         }
 
         logger.info('Successfully populated the Race and RacialTrait tables.')
