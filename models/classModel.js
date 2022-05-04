@@ -127,19 +127,19 @@ async function populateClassAndClassFeatureTables() {
     const dataFile = 'database-content-json/classes.json';
     const MAXLEVEL = 20;
     // Read the json file
-    let ClassData;
+    let classData;
     try {
-        ClassData = JSON.parse(await fs.readFile(dataFile));
+        classData = JSON.parse(await fs.readFile(dataFile));
     }
     catch (error) {
         throw new DatabaseError('ClassModel', 'populateClassAndClassFeatureTables', `There was an issue reading the ClassFeature json file: ${error}`)
     }
 
     // Check if the table already has data in it
-    let ClassTableHasData = false;
+    let classTableHasData = false;
     try {
         [rows, columnData] = await connection.query('SELECT * from Class;');
-        ClassTableHasData = rows > 0;
+        classTableHasData = rows > 0;
         
     }
     catch (error) {
@@ -147,16 +147,16 @@ async function populateClassAndClassFeatureTables() {
     }
     
     // Only add the data if the Class table doesn't already have data in it
-    if (!ClassTableHasData) {
+    if (!classTableHasData) {
         try {
 
             
 
             // Loop through each Class in the file
-            let ClassId = 1;
-    for (Class in ClassData) {
-        classFeatures = ClassData[Class]["Class Features"];
-        let HitDie = ClassData[Class]["Class Features"]["Hit Points"].content[0].split(' ')[2];
+            let classId = 1;
+    for (Class in classData) {
+        classFeatures = classData[Class]["Class Features"];
+        let hitDie = classData[Class]["Class Features"]["Hit Points"].content[0].split(' ')[2];
         // Get the list of class Features for this Class
          
         let classLevelTable;
@@ -181,7 +181,7 @@ async function populateClassAndClassFeatureTables() {
 
         // console.log(classLevelTable);
          // Add the Class to the Class table
-        const addClassCommand = `INSERT INTO Class (Id, Name, HitDie) values(${ClassId}, '${Class}', '${HitDie}');`;
+        const addClassCommand = `INSERT INTO Class (Id, Name, HitDie) values(${classId}, '${Class}', '${hitDie}');`;
         await connection.execute(addClassCommand);
         logger.info(`Added ${Class} to the Class table.`);
         
@@ -198,9 +198,9 @@ async function populateClassAndClassFeatureTables() {
             let cFeatureLevel = [];
             let addFeatureCommand;
             if(classFeatures[cFeatures].content == null){
-                cFeatureDesc =ReduceArrayToString(classFeatures[cFeatures])
+                cFeatureDesc =reduceArrayToString(classFeatures[cFeatures])
             }else{
-                cFeatureDesc = ReduceArrayToString(classFeatures[cFeatures].content)
+                cFeatureDesc = reduceArrayToString(classFeatures[cFeatures].content)
             }
             for(let j = 0; j < classLevelTable.length; j++){
                 
@@ -216,19 +216,19 @@ async function populateClassAndClassFeatureTables() {
             
             if(cFeatureLevel.length == 0){
                 cFeatureLevel[0] = 1 
-                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${ClassId}, '${cFeatures}', '${cFeatureDesc.replace(/'/g, "''")}', 1);`;
+                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures}', '${cFeatureDesc.replace(/'/g, "''")}', 1);`;
                 await connection.execute(addFeatureCommand);
             }else{
                 
                 for(let k = 0; k < cFeatureLevel.length; k++){
-                    addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${ClassId}, '${cFeatures}', '${cFeatureDesc.replace(/'/g, "''")}', ${cFeatureLevel[k]});`;
+                    addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures}', '${cFeatureDesc.replace(/'/g, "''")}', ${cFeatureLevel[k]});`;
                     await connection.execute(addFeatureCommand);
             
                 }
             }
             
         }
-        ClassId++;
+        classId++;
         
     }
         } catch (error) {
@@ -245,12 +245,12 @@ async function populateClassAndClassFeatureTables() {
  * @param {*} array 
  * @returns string
  */
-function ReduceArrayToString(array){
+function reduceArrayToString(array){
    if(typeof array == "string"){
         return array + "\n";
    }
     return array.reduce((current, next) => {
-        return current + ReduceArrayToString(next);
+        return current + reduceArrayToString(next);
     },"");
     
 
