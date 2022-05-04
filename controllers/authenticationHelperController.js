@@ -1,4 +1,5 @@
 const userModel = require('../models/userModel');
+const {InvalidSessionError, DatabaseError} = require('../models/errorModel');
 
 
 /**
@@ -38,7 +39,7 @@ async function gateAccess(request, response, callback){
 /**
  * Calls a different controller function depending on the user's login status.
  * If the user is logged in, their session is refreshed and the loggedInCallback is called, otherwise the loggedOutCallback is called.
- * The callbacks are called with the request and response objects.
+ * The callbacks are called with the request and response objects as well as the user's username if the logged in function is called.
  * On a DatabaseError, the user is redirected to the home page with an error displayed.
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
@@ -55,9 +56,9 @@ async function loadDifferentPagePerLoginStatus(request, response, loggedInCallba
         userModel.refreshSession(request.cookies.sessionId)
         .then(async newSession => {
             response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
-            await loggedInCallback(request, response);
+            await loggedInCallback(request, response, await userModel.getUsernameFromSessionId(newSession.sessionId));
         })
-        .catch(error => {
+        .catch(async error => {
             if (error instanceof InvalidSessionError){
                 // Delete the cookie
                 response.clearCookie('sessionId');

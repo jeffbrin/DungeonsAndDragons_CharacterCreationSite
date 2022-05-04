@@ -3,14 +3,14 @@
  */
 
 const validator = require('validator');
-const races = [];
-const classes = [];
-const backgrounds = [];
-const ethics = [];
-const moralities = [];
+let races = [];
+let classes = [];
+let backgrounds = [];
+let ethics = [];
+let moralities = [];
 const ABILITY_SCORE_LENGTH = 6;
-const savingThrows = [];
-const users = [];
+let savingThrows = [];
+let users = [];
 const errors = require('./errorModel');
 const logger = require('../logger');
 const { default: isAlpha } = require('validator/lib/isAlpha');
@@ -31,7 +31,7 @@ class ValidationError extends errors.InvalidInputError {
  * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function loadMostRecentValuesFromDatabase(connection) {
-    const racesQuery = `SELECT Id FROM RACE;`;
+    const racesQuery = `SELECT Id FROM Race;`;
     try {
         let [rows, column_definitions] = await connection.query(racesQuery);
         logger.info("validateCharacter - select Query to retrieve races completed - loadMostRecentValuesFromDatabase");
@@ -42,7 +42,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const classesQuery = 'SELECT Id FROM CLASS;';
+    const classesQuery = 'SELECT Id FROM Class;';
     try {
         let [rows, column_definitions] = await connection.query(classesQuery);
         logger.info("validateCharacter - select Query to retrieve classes completed - loadMostRecentValuesFromDatabase");
@@ -52,7 +52,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const backgroundsQuery = 'SELECT Id FROM BACKGROUND;';
+    const backgroundsQuery = 'SELECT Id FROM Background;';
     try {
         let [rows, column_definitions] = await connection.query(backgroundsQuery);
         logger.info("validateCharacter - select Query to retrieve backgrounds completed - loadMostRecentValuesFromDatabase");
@@ -62,7 +62,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const ethicsQuery = 'SELECT Id FROM ETHICS;';
+    const ethicsQuery = 'SELECT Id FROM Ethics;';
     try {
         let [rows, column_definitions] = await connection.query(ethicsQuery);
         logger.info("validateCharacter - select Query to retrieve ethics completed - loadMostRecentValuesFromDatabase");
@@ -72,7 +72,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const moralitiesQuery = 'SELECT Id FROM MORALITY;';
+    const moralitiesQuery = 'SELECT Id FROM Morality;';
     try {
         let [rows, column_definitions] = await connection.query(moralitiesQuery);
         logger.info("validateCharacter - select Query to retrieve moralities completed - loadMostRecentValuesFromDatabase");
@@ -82,7 +82,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const savingThrowsQuery = 'SELECT Id FROM ABILITY;';
+    const savingThrowsQuery = 'SELECT Id FROM Ability;';
     try {
         let [rows, column_definitions] = await connection.query(savingThrowsQuery);
         logger.info("validateCharacter - select Query to retrieve savingThrows completed - loadMostRecentValuesFromDatabase");
@@ -92,7 +92,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const usersQuery = 'SELECT Id FROM USER;';
+    const usersQuery = 'SELECT Id FROM User;';
     try {
         let [rows, column_definitions] = await connection.query(usersQuery);
         logger.info("validateCharacter - select Query to retrieve users completed - loadMostRecentValuesFromDatabase");
