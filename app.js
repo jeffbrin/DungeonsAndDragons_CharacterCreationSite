@@ -14,7 +14,6 @@ const httpLogger = pinohttp({
 app.use(httpLogger);
 app.use(cookieParser());
 
-const port = 1339;
 
 app.use(express.json())
 const controllers = ['spellController', 'characterController', 'userController', 'sessionController', 'homeController', 'errorController'];

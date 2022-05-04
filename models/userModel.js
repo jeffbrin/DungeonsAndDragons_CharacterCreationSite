@@ -66,6 +66,8 @@ async function dropReliantTables(){
         await connection.execute('DROP TABLE IF EXISTS SkillExpertise;')
         await connection.execute('DROP TABLE IF EXISTS SavingThrowProficiency;')
         await connection.execute('DROP TABLE IF EXISTS SavingThrowBonus;')
+        await connection.execute('DROP TABLE IF EXISTS KnownSpell;')
+        await connection.execute('DROP TABLE IF EXISTS OwnedItem;')
         await connection.execute('DROP TABLE IF EXISTS Spell;');
         await connection.execute('DROP TABLE IF EXISTS SpellSchool;')
         await connection.execute('DROP TABLE IF EXISTS PlayerCharacter;')
@@ -75,17 +77,6 @@ async function dropReliantTables(){
         throw new DatabaseError('userModel', 'dropReliantTables', `Failed to drop the tables which are reliant on the User table: ${error}`)
     }
 }
-
-// class Session {
-//     constructor(userId, expiresAt) {
-//         this.userId = username
-//         this.expiresAt = expiresAt
-//     }
-//     // We'll use this method later to determine if the session has expired
-//     isExpired() {
-//         this.expiresAt < (new Date())
-//     }
-// }
 
 /**
  * Adds a user to the database. If a user with the provided name is already in the database, a UserAlreadyExistsError is thrown.
@@ -263,11 +254,12 @@ function hashPassword(password){
 /**
  * Refreshes a user session. If the session is invalid or expired, an InvalidSessionError will be thrown.
  * @param {Integer} sessionId The id of a user session.
+ * @param {Integer} time The number of minutes this session should remain valid for.
  * @returns The new session id and expiry date {sessionId, expiryDate} to provide the user as a cookie.
  * @throws {InvalidSessionError} Thrown when an invalid session was provided. (Expired, non-existant, null).
  * @throws {DatabaseError} Thrown when there is an issue removing an old session from the database or adding the new one.
  */
-async function refreshSession(sessionId) {
+async function refreshSession(sessionId, time = 15) {
 
     // Throw if the session is invalid
     const sessionIsAuthenticated = await authenticateSession(sessionId);
@@ -276,7 +268,7 @@ async function refreshSession(sessionId) {
     }
 
     // Create and store a new Session object that will expire in 15 minutes.
-    const newSession = await createSession(await getUserIdFromSessionId(sessionId), 15);
+    const newSession = await createSession(await getUserIdFromSessionId(sessionId), time);
     // Delete the old entry in the database
     try{
         await connection.execute(`DELETE FROM Session WHERE Id = '${sessionId}'`);
@@ -406,7 +398,8 @@ async function getUsernameFromSessionId(sessionId){
  * Closes the connection to the database.
  */
 async function closeConnection(){
-    await connection.end();
+    if(connection)
+        connection.end();
 }
 
 module.exports = {

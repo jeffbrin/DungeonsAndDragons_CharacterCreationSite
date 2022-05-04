@@ -1,1 +1,1 @@
-module.exports = { v4: jest.fn(() => Math.floor(Math.random() * 300)) }
+module.exports = { v4: jest.fn(() => String(Math.floor(Math.random() * 300))) }
