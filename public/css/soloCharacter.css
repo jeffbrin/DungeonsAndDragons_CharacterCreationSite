@@ -18,6 +18,8 @@
 }
 .abilities{
     background-color: var(--elevation2Color);
+    height: 100%;
+    width: 100px;
 }
 #hpSkills{
     background-color: var(--elevationColor);
@@ -41,4 +43,7 @@
     background-color: var(--elevationColor);
     border: 2px solid black;
     border-radius: 1rem;
+}
+.fs-5rem{
+    font-size: 5rem;
 }
