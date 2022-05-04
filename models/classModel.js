@@ -3,9 +3,7 @@ const validationModel = require('./validateClassUtils')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
-const console = require('console');
 
-// initialize("dnd_db_testing", true);
 
 let connection;
 /**
@@ -241,9 +239,10 @@ async function populateClassAndClassFeatureTables() {
 }
 
 /**
- * Concatenates an array of strings onto one singular string
- * @param {*} array 
- * @returns string
+ * Concatenates an array of strings onto one singular string.
+ * Calls this method recursively on any sub-array found within the original array.
+ * @param {Object} array The array to be reduced to a string.
+ * @returns The string created by reducing the array.
  */
 function reduceArrayToString(array){
    if(typeof array == "string"){
