@@ -15,8 +15,6 @@ let connection;
  */
 async function initialize(databaseName, reset) {
 
-    a = [];
-
     try {
         connection = await mysql.createConnection({
             host: 'localhost',
