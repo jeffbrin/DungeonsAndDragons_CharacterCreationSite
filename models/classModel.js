@@ -137,7 +137,7 @@ async function populateClassAndClassFeatureTables() {
     let classTableHasData = false;
     try {
         [rows, columnData] = await connection.query('SELECT * from Class;');
-        classTableHasData = rows > 0;
+        classTableHasData = rows.length > 0;
         
     }
     catch (error) {

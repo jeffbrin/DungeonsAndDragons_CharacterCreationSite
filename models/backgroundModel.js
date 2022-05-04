@@ -132,7 +132,7 @@ async function populateBackgroundAndFeaturesTable() {
      let backgroundTableHasData = false;
      try {
          [rows, columnData] = await connection.query('SELECT * from Background;');
-         backgroundTableHasData = rows > 0
+         backgroundTableHasData = rows.length > 0
      }
      catch (error) {
          throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to read from the Background table: ${error}`);
