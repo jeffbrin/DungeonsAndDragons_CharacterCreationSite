@@ -124,7 +124,7 @@ async function createClassFeatureTable() {
  * @throws {DatabaseError} Thrown when there is an IO issue with the database.
  */
 async function populateClassAndClassFeatureTables() {
-    const dataFile = 'database-content-json/Classes.json';
+    const dataFile = 'database-content-json/classes.json';
     const MAXLEVEL = 20;
     // Read the json file
     let ClassData;
