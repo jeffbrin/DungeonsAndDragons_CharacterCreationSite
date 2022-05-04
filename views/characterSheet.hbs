@@ -1,41 +1,41 @@
 <div class="container" id="mainContainer">
-    <div class="row" id="row0">
+    <div class="row h-20" id="row0">
         <div class="col">
             <div class="fs-5rem text-center">Name</div>
         </div>
         <div class="col container">
-            <div class="row">
+            <div class="row h-50">
                 <img src="/images/icons/swords.png">
             </div>
             <div class="row">
-                <div class="text-center">Level</div>
+                <div class="text-center fs-1-5rem">Level</div>
             </div>
         </div>
 
         <div class="col container">
-            <div class="row">
+            <div class="row h-50">
                 <img src="/images/icons/class/barbarian.png">
             </div>
             <div class="row">
-                <div class="text-center">Class Name</div>
+                <div class="text-center fs-1-5rem">Class Name</div>
             </div>
         </div>
 
         <div class="col container">
-            <div class="row">
-                <img src="/images/icons/race/elf.png">
+            <div class="row h-50">
+                <img class="" src="/images/icons/race/elf.png">
             </div>
             <div class="row">
-                <div class="text-center">Race</div>
+                <div class="text-center fs-1-5rem">Race</div>
             </div>
         </div>
 
         <div class="col container">
-            <div class="row">
-                <img src="/images/icons/shield.png">
+            <div class="row h-50">
+                <img  src="/images/icons/shield.png">
             </div>
             <div class="row">
-                <div class="text-center">Armor Class</div>
+                <div class="text-center fs-1-5rem">Armor Class</div>
             </div>
         </div>
 
@@ -48,34 +48,48 @@
         </div>
     </div>
 
-    <div class="row" id="row1">
-        <div class="col ability">
+    <div class="row h-10" id="row1">
+        <div class="col ability h-100">
             <div class="abilities">Str</div>
         </div>
-        <div class="col text-center" id="logoCol">
-            <img src="/images/icons/expLogo.png">
+        <div class="col text-center h-100" id="logoCol">
+            <img class="block" src="/images/icons/expLogo.png">
         </div>
         <div class="col">
-            <div class="fs-5rem text-center">EXP</div>
+            <div class="fs-3rem text-center">EXP</div>
         </div>
     </div>
 
-    <div class="row" id="row2">
-        <div class="col ability">
+    <div class="row h-10" id="row2">
+        <div class="col ability w-33">
             <div class="abilities">DEX</div>
         </div>
-        <div class="col text-center">
-            <img src="/images/icons/heart.png">
-        </div>
-        <div class="col elevated">
+        <div class="col elevated container h-100 w-33">
+            <div class="row h-33">
+                <div>Current</div>
+            </div>
+
+            <div class="row h-33">
+                <img class="block" src="/images/icons/heart.png">
+                <hr class="mtop-1rem">
+            </div>
+
+            <div class="row h-33">
+                <div>Max</div>
+            </div>
         </div>
 
-        <div class="col">
-            <div class="elevated">+/-</div>
+        <div class="col container w-33 h-100">
+            <div class="elevated row h-50">
+                <button id="btnPlus">Plus</button>
+            </div>
+            <div class="elevated row h-50">
+                <button id="btnMinus">Minus</button>
+            </div>
         </div>
     </div>
 
-    <div class="row" id="row3">
+    <div class="row h-10" id="row3">
         <div class="col ability">
             <div class="abilities">CON</div>
         </div>
@@ -87,7 +101,7 @@
         </div>
     </div>
 
-    <div class="row" id="row4">
+    <div class="row h-10" id="row4">
         <div class="col ability">
             <div class="abilities">INT</div>
         </div>
@@ -99,7 +113,7 @@
         </div>
     </div>
 
-    <div class="row" id="row5">
+    <div class="row h-10" id="row5">
         <div class="col ability">
             <div class="abilities">WIS</div>
         </div>
@@ -111,7 +125,7 @@
         </div>
     </div>
 
-    <div class="row" id="row6">
+    <div class="row h-10" id="row6">
         <div class="col ability">
             <div class="abilities">CHA</div>
         </div>
@@ -123,7 +137,7 @@
         </div>
     </div>
 
-    <div class="row" id="row7">
+    <div class="row h-20" id="row7">
         <div class="col">
             <div class="savingThrows">Saving Throws</div>
         </div>
