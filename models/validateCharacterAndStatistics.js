@@ -49,14 +49,14 @@
      }
  
      try {
-         checkRace(raceId);
+         await checkRace(raceId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
      }
  
      try {
-         checkClass(charClassId);
+        await checkClass(charClassId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
@@ -70,21 +70,21 @@
      }
  
      try {
-         checkBackground(backgroundId);
+        await checkBackground(backgroundId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
      }
  
      try {
-         checkEthics(ethicsId);
+        await checkEthics(ethicsId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
      }
  
      try {
-         checkMorality(moralityId);
+        await checkMorality(moralityId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
@@ -105,14 +105,14 @@
      }
  
      try {
-         checkSavingThrowProficiencies(savingThrowIds);
+        await checkSavingThrowProficiencies(savingThrowIds);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
      }
  
      try {
-         checkUserID(userId);
+        await checkUserID(userId);
      } catch (error) {
          caught = true;
          bigErrorMessage += error.message;
@@ -149,7 +149,7 @@
   * @param {Integer} raceId The Id of the selected race
   * @throws {ValidationError} If the raceId was not found in the database.
   */
- function checkRace(raceId) {
+ async function checkRace(raceId) {
      const racesQuery = `SELECT Id FROM race;`;
      try {
          var [races, column_definitions] = await connection.query(racesQuery);
@@ -171,7 +171,7 @@
   * @param {Integer} charClassId - The class Id of the character being validated.
   * @throws {ValidationError} If the charClassId was not found in the database.
   */
- function checkClass(charClassId) {
+ async function checkClass(charClassId) {
      const classesQuery = 'SELECT Id FROM Class;';
      try {
          var [classes, column_definitions] = await connection.query(classesQuery);
@@ -203,7 +203,7 @@
   * @param {Integer} backgroundId - The Background Id that needs to be validated.
   * @throws {ValidationError} If the backgroundId was not found in the database.
   */
- function checkBackground(backgroundId) {
+ async function checkBackground(backgroundId) {
      const backgroundsQuery = 'SELECT Id FROM Background;';
      try {
          var [backgrounds, column_definitions] = await connection.query(backgroundsQuery);
@@ -224,7 +224,7 @@
   * @param {Integer} ethicsId - The Ethics Id that needs to be validated
   * @throws {ValidationError} If the ethicsId was not found in the database.
   */
- function checkEthics(ethicsId) {
+ async function checkEthics(ethicsId) {
      const ethicsQuery = 'SELECT Id FROM Ethics;';
      try {
          var [ethics, column_definitions] = await connection.query(ethicsQuery);
@@ -244,7 +244,7 @@
   * @param {Integer} moralityId - The Morality Id that needs to be validated
   * @throws {ValidationError} If the moralityId was not found in the database.
   */
- function checkMorality(moralityId) {
+ async function checkMorality(moralityId) {
      const moralitiesQuery = 'SELECT Id FROM Morality;';
      try {
          var [moralities, column_definitions] = await connection.query(moralitiesQuery);
@@ -296,7 +296,7 @@
   * @param {IntegerArray} savingThrowIds 
   * @throws {ValidationError} If any savingThrowId was not found in the database.
   */
- function checkSavingThrowProficiencies(savingThrowIds) {
+ async function checkSavingThrowProficiencies(savingThrowIds) {
      const savingThrowsQuery = 'SELECT Id FROM Ability;';
      try {
          var [savingThrows, column_definitions] = await connection.query(savingThrowsQuery);
@@ -319,7 +319,7 @@
   * @param {Integer} userId - The Id of the user who is creating a character
   * @throws {ValidationError} If the userId was not found in the database.
   */
- function checkUserID(userId) {
+ async function checkUserID(userId) {
      const usersQuery = 'SELECT Id FROM User;';
      try {
          var [users, column_definitions] = await connection.query(usersQuery);
