@@ -17,7 +17,7 @@ async function createUser(request, response){
     .then( async (newSession) => {
         // Set the cookie and render the home page
         response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate }); 
-        response.render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
+        response.status(201).render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
     })
     .catch(error => {
         if (error instanceof UserAlreadyExistsError){
