@@ -307,18 +307,6 @@ async function authenticateSession(sessionId) {
         throw new DatabaseError('userModel', 'authenticateSession', `Failed to query the database to find a matching session id: ${error}`);
     }
 
-    // Old way with no database
-    // // We then get the session of the user from our session map
-    // userSession = sessions[sessionId]
-    // if (!userSession) {
-    //     return null;
-
-    // }// If the session has expired, delete the session from our map and return null
-    // if (userSession.isExpired()) {
-    //     delete sessions[sessionId];
-    //     return null;
-    // }
-
 }
 
 /**
