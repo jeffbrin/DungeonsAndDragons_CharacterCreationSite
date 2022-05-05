@@ -114,7 +114,7 @@ async function addUser(username, password) {
 
     // Check if the user exists
     if (rows.length > 0)
-        throw new UserAlreadyExistsError('userModel', 'addUser', `The user with the username ${username} already exists.`);
+        throw new UserAlreadyExistsError('userModel', 'addUser', `A user with the username ${username} already exists.`);
 
     // Get the new user id
     let userId = 1;

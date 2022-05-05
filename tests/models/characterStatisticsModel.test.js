@@ -1,4 +1,4 @@
-// const characterStatsModel = require('../models/characterStatisticsModel');
+// const characterStatsModel = require('../../models/characterStatisticsModel');
 // const fs = require('fs/promises');
 
 // async function getAbilityNamesFromJsonFile(){

@@ -1,9 +1,9 @@
-// const app = require("../app"); 
+// const app = require("../../app"); 
 // const supertest = require("supertest");
 // const testRequest = supertest(app);
 
 // const dbName = "dnd_db_testing"; 
-// const model = require('../models/spellModel');
+// const model = require('../../models/spellModel');
 // beforeEach(async () => {
 //     await model.initialize(dbName, true);    
 // });

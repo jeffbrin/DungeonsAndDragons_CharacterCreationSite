@@ -1,9 +1,9 @@
-const app = require("../app"); 
+const app = require("../../app"); 
 const supertest = require("supertest");
 const testRequest = supertest(app);
 
 const dbName = "dnd_db_testing"; 
-const userModel = require('../models/userModel');
+const userModel = require('../../models/userModel');
 const validUser = {username: 'username', password: 'Password1'}
 
 /**
@@ -22,6 +22,7 @@ function getResponseSessionId(response){
 
 beforeEach(async () => {
     await userModel.initialize(dbName, true);    
+    await userModel.addUser(validUser.username, validUser.password);
 });
 
 afterEach(async () => {
@@ -34,7 +35,7 @@ afterEach(async () => {
 
 // Logging in
 test("POST /sessions success", async () => {
-    const testResponse = await testRequest.post('/users').send(validUser);
+    const testResponse = await testRequest.post('/sessions').send(validUser);
     expect(testResponse.status).toBe(201);
 
     let ct = testResponse.get('content-type');
@@ -43,4 +44,65 @@ test("POST /sessions success", async () => {
     // Response contains a sessionId
     let sessionId = getResponseSessionId(testResponse);
     expect(sessionId == null).toBe(false);
+});
+
+test("POST /sessions failure - Invalid username", async () => {
+    const testResponse = await testRequest.post('/sessions').send({username: '', password: validUser.password});
+    expect(testResponse.status).toBe(400);
+
+    let ct = testResponse.get('content-type');
+    expect(ct.startsWith('text/html')).toBe(true);
+
+    // Response doesn't contain a sessionId
+    let sessionId = getResponseSessionId(testResponse);
+    expect(sessionId == null).toBe(true);
+});
+
+test("POST /sessions failure - Invalid password", async () => {
+    const testResponse = await testRequest.post('/sessions').send({username: validUser.username, password: ''});
+    expect(testResponse.status).toBe(400);
+
+    let ct = testResponse.get('content-type');
+    expect(ct.startsWith('text/html')).toBe(true);
+
+    // Response doesn't contain a sessionId
+    let sessionId = getResponseSessionId(testResponse);
+    expect(sessionId == null).toBe(true);
+});
+
+test("POST /sessions failure - Username doesn't exist", async () => {
+    const testResponse = await testRequest.post('/sessions').send({username: 'user', password: validUser.password});
+    expect(testResponse.status).toBe(400);
+
+    let ct = testResponse.get('content-type');
+    expect(ct.startsWith('text/html')).toBe(true);
+
+    // Response doesn't contain a sessionId
+    let sessionId = getResponseSessionId(testResponse);
+    expect(sessionId == null).toBe(true);
+});
+
+test("POST /sessions failure - Empty body", async () => {
+    const testResponse = await testRequest.post('/sessions').send();
+    expect(testResponse.status).toBe(400);
+
+    let ct = testResponse.get('content-type');
+    expect(ct.startsWith('text/html')).toBe(true);
+
+    // Response doesn't contain a sessionId
+    let sessionId = getResponseSessionId(testResponse);
+    expect(sessionId == null).toBe(true);
+})
+
+test("POST /sessions failure - Closed database connection", async () => {
+    userModel.closeConnection();
+    const testResponse = await testRequest.post('/sessions').send(validUser);
+    expect(testResponse.status).toBe(500);
+
+    let ct = testResponse.get('content-type');
+    expect(ct.startsWith('text/html')).toBe(true);
+
+    // Response doesn't contain a sessionId
+    let sessionId = getResponseSessionId(testResponse);
+    expect(sessionId == null).toBe(true);
 });

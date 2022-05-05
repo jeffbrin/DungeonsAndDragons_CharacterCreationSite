@@ -1,6 +1,6 @@
-// const raceModel = require('../models/raceModel');
+// const raceModel = require('../../models/raceModel');
 // const fs = require('fs/promises')
-// const errorModel = require('../models/errorModel')
+// const errorModel = require('../../models/errorModel')
 // const dbName = 'dnd_db_testing'
 // const racesArray = []
 

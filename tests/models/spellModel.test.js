@@ -1,4 +1,4 @@
-// const spellModel = require('../models/spellModel');
+// const spellModel = require('../../models/spellModel');
 // const dbName = 'dnd_db_testing'
 
 // const randomSpells = [

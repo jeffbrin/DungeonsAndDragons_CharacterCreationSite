@@ -1,4 +1,4 @@
-// const userModel = require('../models/userModel');
+// const userModel = require('../../models/userModel');
 // const mysql = require('mysql2/promise');
 // const dbName = 'dnd_db_testing'
 // const {DatabaseError, InvalidUsernameError, InvalidSessionError, InvalidPasswordError, IncorrectPasswordError, UserAlreadyExistsError, UserNotFoundError} = require('../models/errorModel');
