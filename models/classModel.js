@@ -41,7 +41,7 @@ async function initialize(databaseName, reset) {
  * @param {boolean} reset Indicates whether the tables should be if they already exist.
  * @throws {DatabaseError} Thrown when a table either failed to be dropped or failed to be created.
  */
-async function createClassTable(reset) {
+async function createClassTable(connection, reset) {
 
     // Reset if the reset flag is true
     if (reset) {

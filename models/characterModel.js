@@ -36,7 +36,7 @@ async function initialize(databaseNameTmp, reset) {
     await createKnownSpellTable();
     await createOwnedItemTable();
 
-
+    await characterStatsModel.initialize(databaseNameTmp);
 }
 
 
@@ -55,8 +55,8 @@ async function closeConnection() {
 
 /**
  * Helper method to make testing easier. Adds a character using the addCharacter method but takes in an object and splits it up once.
- * @param {Character} character 
- * @returns 
+ * @param {Character} character - The character as an object
+ * @returns uses the addCharacter function as a promise
  */
 async function addCharacterObject(character) {
     return await addCharacter(character.classId, character.raceId, character.name, character.maxHP,
