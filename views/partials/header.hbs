@@ -17,19 +17,19 @@
       </ul>
 
       <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
-        <input type="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
+        <input type="search" id="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
       </form>
       <div class="text-end d-flex" style="gap: 8px;">
         {{#if username}}
-          <h2>{{username}}</h2>
+          <h2 id="usernameDisplay">{{username}}</h2>
           <form action="/sessions" method="delete">
-            <button id="logout" class="btn btn-primary" name="choice" type="submit" value='{"method": "delete"}'>Logout</button>
+            <button id="logoutButton" class="btn btn-primary" name="choice" type="submit" value='{"method": "delete"}'>Logout</button>
           </form>
         {{else}}
           <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
-            data-bs-target="#modalLogin">Login</button>
+            data-bs-target="#modalLogin" id="loginButton">Login</button>
           <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
-            data-bs-target="#modalSignup">Sign-up</button>
+            data-bs-target="#modalSignup" id="signupButton">Sign-up</button>
         {{/if}}
       </div>
     </div>
@@ -50,10 +50,10 @@
               <label for="usernameSignup">Username</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-4" name="password" id="floatingPassword" placeholder="Password">
+              <input type="password" class="form-control rounded-4" name="password" id="passwordSignup" placeholder="Password">
               <label for="floatingPassword">Password</label>
             </div>
-            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Sign up</button>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit" id="signupSubmitButton">Sign up</button>
             <small class="text-muted">By clicking Sign up, you agree to allow the mindflayer to feast on your brain.</small>
             <hr class="my-4">
             {{#if signupError}}
@@ -84,7 +84,7 @@
               <input type="password" class="form-control rounded-4" name="password" id="passwordLogin" placeholder="Password">
               <label for="passwordLogin">Password</label>
             </div>
-            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit">Login</button>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit" id="loginSubmitButton">Login</button>
             <small class="text-muted">By logging in you agree to surrender your conscience to the mindflayer.</small>
             <hr class="my-4">
             {{#if loginError}}
