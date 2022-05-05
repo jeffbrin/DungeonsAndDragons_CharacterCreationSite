@@ -66,7 +66,8 @@ async function addCharacterObject(character) {
 
 
 /**
- * Adds a Character to the PlayerCharacter table
+ * Adds a Character to the PlayerCharacter table by first assign them a unique Id, depending on what is available in the database.
+ * Then Validates all the inputs
  * @param {Integer} classId - The Id of the user's selected class - 1 Based
  * @param {Integer} raceId - The Id of the user's selected race - 1 Based
  * @param {String} name - The Name of the Character
@@ -126,10 +127,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
         else {
             throw new errors.DatabaseError('characterModel', 'addCharacter', `Database connection or query error, Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
         }
-
     }
-
-
     return true;
 }
 
