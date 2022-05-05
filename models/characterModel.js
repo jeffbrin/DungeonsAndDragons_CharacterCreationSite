@@ -7,13 +7,6 @@ const errors = require('./errorModel');
 const characterStatsModel = require('./characterStatisticsModel');
 
 
-//## CharacterModel
-// * Ethics
-// * Morality
-// * PlayerCharacter (background, class, user, race, ethics, morality)
-// * Known Spell (PlayerCharacter, spell)
-// * Owned Item (PlayerCharacter)
-
 /**
  * Initializes the connection to the database. 
  * It also creates the tables needed and drops the tables if reset is true.

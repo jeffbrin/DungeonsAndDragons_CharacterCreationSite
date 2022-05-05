@@ -127,26 +127,26 @@ async function populateBackgroundAndFeaturesTable() {
     catch (error) {
         throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeaturesTable', `There was an issue reading the Backgrounds json file: ${error}`)
     }
-    // Check if the table already has data in it
-    let backgroundTableHasData = false;
-    try {
-        [rows, columnData] = await connection.query('SELECT * from Background;');
-        backgroundTableHasData = rows.length > 0;
-    }
-    catch (error) {
-        throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to read from the Background table: ${error}`);
-    }
-
-    // Only add the data if the background table doesn't already have data in it
-    if (!backgroundTableHasData) {
-        try {
-
-            // Loop through each background in the file
-            let backgroundId = 1;
-            for (let i = 0; i < backgroundData.length; i++) {
-
-
-                // Get the list of features for this background
+     // Check if the table already has data in it
+     let backgroundTableHasData = false;
+     try {
+         [rows, columnData] = await connection.query('SELECT * from Background;');
+         backgroundTableHasData = rows.length > 0
+     }
+     catch (error) {
+         throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to read from the Background table: ${error}`);
+     }
+ 
+     // Only add the data if the background table doesn't already have data in it
+     if (!backgroundTableHasData) {
+         try {
+ 
+             // Loop through each background in the file
+             let backgroundId = 1;
+             for(let i = 0; i < backgroundData.length; i++){
+                
+                
+                 // Get the list of features for this background
                 //  const Backgrounds = BackgroundData;
                 let name = backgroundData[i].Name;
                 let desc = backgroundData[i].Description;
