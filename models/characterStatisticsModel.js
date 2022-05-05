@@ -525,7 +525,8 @@ async function getAllSkills(){
  * Closes the connection to the database.
  */
 async function closeConnection(){
-    connection.end();
+    if(connection)
+        connection.end();
 }
 
 module.exports = { 
