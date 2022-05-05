@@ -26,8 +26,12 @@ async function initialize(databaseNameTmp, reset) {
     //if reset true, drop all the tables in reverse creation order.
     if (reset) {
         const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality;`;
-        await connection.execute(deleteDbQuery).then(logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`))
-            .catch((error) => { throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`); });
+        try {
+            await connection.execute(deleteDbQuery);
+            logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
+        } catch (error) {
+            throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
+        }
     }
 
     await createEthicsTable();
@@ -47,8 +51,12 @@ async function initialize(databaseNameTmp, reset) {
  * @throws {DatabaseError} If there was an error on the database's side
  */
 async function closeConnection() {
-    await connection.end().then(logger.info(`Connection closed from closeConnection() in characterModel`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'closeConnection', "Couldn't close the database connection"); });
+    try {
+        await connection.end();
+        logger.info(`Connection closed from closeConnection() in characterModel`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'closeConnection', "Couldn't close the database connection");
+    }
 }
 
 /* #region  CRUD Operations */
@@ -105,7 +113,12 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     let query = `insert into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
     (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name.toLowerCase()}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
 
-    await connection.execute(query).then(logger.info("Insert command executed in addCharacter")).catch((error) => { throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command'); });
+    try {
+        await connection.execute(query);
+        logger.info("Insert command executed in addCharacter");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command');
+    }
 
 
     try {
@@ -147,14 +160,26 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Character, cannot update character");
     }
     let selectQuery = `Select 1 from ${tableName} WHERE id = ${id}`;
-    let [rows, column_definitions] = await connection.query(selectQuery).then(logger.info("select Query before Update Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError('characterModel', 'updateCharacter', 'Couldn\'t execute the command'); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(selectQuery);
+        logger.info("select Query before Update Executed - updateCharacter()");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'updateCharacter', 'Couldn\'t execute the command');
+    }
 
     //Check if there is an ID that matches in the database
     if (rows.length == 0) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Id, character DOES NOT EXIST!");
     }
-    let query = `Update ${tableName} SET name = '${newName.toLowerCase()}', race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
-    await connection.execute(query).then(logger.info("Update Query Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError(error.message); });
+    let query = `Update ${tableName} SET Name = '${newName.toLowerCase()}', Race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
+
+    try {
+        await connection.execute(query);
+        logger.info("Update Query Executed - updateCharacter()")
+    } catch (error) {
+        throw new errors.DatabaseError('characterModule', 'updateCharacter', `Update Failed, Database error: ${error.message}`);
+    }
 }
 
 
@@ -168,8 +193,14 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
  */
 async function addRemoveHp(id, hpValueChange) {
     let selectQ = `Select CurrentHp from ${tableName} WHERE Id = ${id};`;
-    let [rows, column_definitions] = await connection.query(selectQ).then(logger.info("select Query before CurrentHp change Executed - addRemoveHp"))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed ${error.message}`); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(selectQ);
+        logger.info("select Query before CurrentHp change Executed - addRemoveHp");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed ${error.message}`);
+    }
+
 
     if (rows.length === 0) {
         throw new errors.InvalidInputError('characterModel', 'addRemoveHp', `Character with id: ${id} was not found in the Database`);
@@ -177,10 +208,13 @@ async function addRemoveHp(id, hpValueChange) {
 
     let newHp = rows[0].CurrentHp + hpValueChange;
 
-
     let query = `Update ${tableName} SET CurrentHp = ${newHp} WHERE Id = ${id};`;
-    await connection.execute(query).then(logger.info("Update CurrentHp Query Executed - addRemoveHp"))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed, couldn't update CurrentHp. ${error.message}`); });
+    try {
+        await connection.execute(query);
+        logger.info("Update CurrentHp Query Executed - addRemoveHp");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed, couldn't update CurrentHp. ${error.message}`);
+    }
 }
 
 
@@ -193,8 +227,13 @@ async function addRemoveHp(id, hpValueChange) {
  */
 async function getCharacter(id) {
     let query = `SELECT Id, Name, RaceId, ClassId, CurrentHp from ${tableName} WHERE Id = ${id};`;
-    let [rows, column_definitions] = await connection.query(query).then(logger.info("select Query before returning Character executed"))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${error.message}`); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(query);
+        logger.info("select Query before returning Character executed");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${error.message}`);
+    }
     if (rows.length === 0) {
         throw new errors.InvalidInputError('characterModel', 'getCharacter', `Character not found with id: ${id}`);
     }
@@ -234,27 +273,27 @@ async function getUserCharacters(userId) {
  * @param {Integer} id 
  * @throws {InvalidInputError} If the character is not found 
  * @throws {DatabaseError} If there was an error on the database's side
+ * @returns {boolean} true if deleted, throws otherwise
  */
 async function removeCharacter(id) {
     let query = `DELETE FROM ${tableName} WHERE Id = ${id};`;
 
     //Select The Id of the user who's character this belongs to in order to remove that character from them as well
-    //ASK JEFF BOUT THIS
-    const userQ = `SELECT Id FROM UserId WHERE CharacterId = ${id};`;
 
     try {
         let checkingQ = `SELECT 1 from ${tableName} WHERE Id = ${id};`;
-        let [rows, column_definitions] = await connection.query(checkingQ).then(logger.info("Select query to check if Id exists has been executed"));
-
+        let [rows, column_definitions] = await connection.query(checkingQ);
+        logger.info("Select query to check if Id exists has been executed");
         if (rows.length === 0) {
             throw new errors.InvalidInputError('characterModel', 'removeCharacter', `Character with Id: ${id} does not exist in the Database.`);
         }
-        await connection.execute(query).then(logger.info(`Delete Query Executed Character with id: ${id}`))
-            .catch((error) => { throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${id}. ${error.message}`); });
+
+        await connection.execute(query);
+        logger.info(`Delete Query Executed Character with id: ${id}. About to return true`);
         return true;
     }
     catch (error) {
-        throw error;
+        throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${id}. ${error.message}`);
     }
 }
 
@@ -431,22 +470,74 @@ function getConnection() {
 /* #region  Create Table Methods */
 /**
  * Creates the Ethics table with an SQL Query
- * @throws {DatabaseError} if there was a problem with executing the SQL Query
+ * Inserts the 3 ethics to the table if they are not already there
+ * @throws {DatabaseError} if there was a problem with executing the SQL Queries
  */
 async function createEthicsTable() {
     const sqlQuery = "CREATE TABLE IF NOT EXISTS Ethics(Id INT, Name TEXT, PRIMARY KEY(Id));";
-    await connection.execute(sqlQuery).then(logger.info(`Table: Ethics Created/Exists - createEthicsTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`); });
+    try {
+        await connection.execute(sqlQuery);
+        logger.info(`Table: Ethics Created/Exists - createEthicsTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`);
+    }
+
+    const checkIfEthics = `SELECT Id from Ethics;`;
+    const ethics = ['lawful', 'chaotic', 'neutral'];
+    try {
+        let [rows, columns] = await connection.query(checkIfEthics);
+        if (!rows.length > 0) {
+            logger.info(`Ethics not there, will add them to the Ethics Table.`);
+            for (let i = 0; i < 3; i++) {
+                const ethicsQ = `INSERT INTO Ethics(Id, Name) VALUES (${i + 1}, ${ethics[i]});`;
+                await connection.execute(ethicsQ);
+                logger.info(`Added ${ethics[i]} to the Ethics Table with Id: ${i + 1}`);
+            }
+            return;
+        }
+        logger.info(`Ethics already there, will not add them.`)
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Database connection or query error, Couldn't Add or query from the Ethics table: ${error.message}`);
+    }
+
+
 }
 
 /**
  * Creates the Morality table with an SQL Query
+ * Adds the 3 moralities to the table if there are none in the Table (if they were added before)
  * @throws {DatabaseError} if there was a problem with executing the SQL Query
  */
 async function createMoralityTable() {
     const sql = `CREATE TABLE IF NOT EXISTS Morality(Id INT, Name TEXT, PRIMARY KEY(Id));`;
-    await connection.execute(sql).then(logger.info(`Table: Morality Created/Exists - createMoralityTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+
+        await connection.execute(sql);
+        logger.info(`Table: Morality Created/Exists - createMoralityTable()`);
+
+    } catch (error) {
+
+        throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Couldn't connect to the database: ${error.message}.`);
+
+    }
+    const checkIfMoralities = `SELECT Id from Morality;`;
+    const moralities = ['good', 'evil', 'neutral'];
+    try {
+        let [rows, columns] = await connection.query(checkIfMoralities);
+        if (!rows.length > 0) {
+            logger.info(`Moralities not there, will add them to the Morality Table.`);
+            for (let i = 0; i < 3; i++) {
+                const moralityQ = `INSERT INTO Morality(Id, Name) VALUES (${i + 1}, ${moralities[i]});`;
+                await connection.execute(moralityQ);
+                logger.info(`Added ${moralities[i]} to the Morality Table with Id: ${i + 1}`);
+            }
+            return;
+        }
+        logger.info(`Moralities already there, will not add them.`)
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Database connection or query error, Couldn't Add or query from the Morality table: ${error.message}`);
+    }
 }
 /**
  * Creates the PlayerCharacter table with an SQL Query
@@ -458,8 +549,13 @@ async function createPlayerCharacterTable() {
         Experience INT, PRIMARY KEY(Id), FOREIGN KEY (UserId) REFERENCES User(Id), FOREIGN KEY (ClassId) REFERENCES Class(Id), 
         FOREIGN KEY (RaceId) REFERENCES Race(Id), FOREIGN KEY (EthicsId) REFERENCES Ethics(Id), FOREIGN KEY (MoralityId) 
         REFERENCES Morality(Id), FOREIGN KEY (BackgroundId) REFERENCES Background(Id));`;
-    await connection.execute(sqlQueryC).then(logger.info(`Table: ${tableName} Created/Exists - createPlayerCharacterTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createPlayerCharacterTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+        await connection.execute(sqlQueryC);
+        logger.info(`Table: ${tableName} Created/Exists - createPlayerCharacterTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createPlayerCharacterTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 /**
  * Creates the KnownSpell table with an SQL Query
@@ -468,9 +564,13 @@ async function createPlayerCharacterTable() {
 async function createKnownSpellTable() {
     const sql = `CREATE TABLE IF NOT EXISTS KnownSpell(SpellId INT, CharacterId INT, FOREIGN KEY (SpellId) 
     REFERENCES Spell(Id), FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (SpellId, CharacterId));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createKnownSpellTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createKnownSpellTable', `Couldn't connect to the database: ${error.message}.`); });
 
+    try {
+        await connection.execute(sql);
+        logger.info(`Table: KnownSpell Created/Exists - createKnownSpellTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createKnownSpellTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 
 /**
@@ -480,8 +580,13 @@ async function createKnownSpellTable() {
 async function createOwnedItemTable() {
     const sql = `CREATE TABLE IF NOT EXISTS OwnedItem(CharacterId INT, Name VARCHAR(200), Count INT, 
     FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (CharacterId, Name));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createOwnedItemTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createOwnedItemTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+        await connection.execute(sql);
+        logger.info(`Table: KnownSpell Created/Exists - createOwnedItemTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createOwnedItemTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 /* #endregion */
 
