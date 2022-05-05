@@ -34,6 +34,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
   {{/if}}
+  {{#if singedIn}}
   <div id="addchardiv" class="container">
     <h2 id="addmessageh2" class="text-center">Add Your Own Character!</h2>
     <form action="/characters" method="post" id="formMain">
@@ -84,6 +85,59 @@
 
     </form>
   </div>
+  {{else}}
+  <div id="addchardiv_{{loggedIn}}" class="container">
+    <h2 id="loginToAddMessage" class="text-center">Login To Add Your Own Character</h2>
+    <form>
+      <!-- Name input -->
+      <div class="form-outline mb-4" id="divName">
+        <input type="text" id="inputName_{{loggedIn}}" name="name" class="form-control" />
+        <label class="form-label" for="name">Name</label>
+      </div>
+
+      {{!-- Race Input --}}
+      <select class="form-select" id="selectRace_{{loggedIn}}" name="race" aria-label="Default select example">
+        <option selected>Select a Race</option>
+        <option value="dragonborn">Dragonborn</option>
+        <option value="dwarf">Dwarf</option>
+        <option value="elf">Elf</option>
+        <option value="gnome">Gnome</option>
+        <option value="half-elf">Half-Elf</option>
+        <option value="halfling">Halfling</option>
+        <option value="half-orc">Half-Orc</option>
+        <option value="human">Human</option>
+        <option value="tiefling">Tiefling</option>
+      </select>
+
+      {{!-- Class Input --}}
+      <select name="charClass" id="selectClass_{{loggedIn}}" class="form-select" aria-label="Default select example">
+        <option selected>Select a Class</option>
+        <option value="barbarian">Barbarian</option>
+        <option value="bard">Bard</option>
+        <option value="cleric">Cleric</option>
+        <option value="druid">Druid</option>
+        <option value="fighter">Fighter</option>
+        <option value="monk">Monk</option>
+        <option value="paladin">Paladin</option>
+        <option value="ranger">Ranger</option>
+        <option value="rogue">Rogue</option>
+        <option value="sorcerer">Sorcerer</option>
+        <option value="warlock">Warlock</option>
+        <option value="wizard">Wizard</option>
+      </select>
+      <div class="form-outline" id="divHp_{{loggedIn}}">
+        <input name="hitpoints" min="0" max="10" type="number" id="typeNumber" class="form-control" />
+        <label class="form-label" for="typeNumber">Hitpoints</label>
+      </div>
+      <div class="row justify-content-center">
+        <input type="submit" id="submitBtn" class="btn btn-warning btn-primary" data-bs-toggle="tooltip"
+          data-bs-placement="top" title="Input data and Create your Masterpiece"></input>
+      </div>
+
+    </form>
+  </div>
+  {{/if}}
+
 </section>
 
 
