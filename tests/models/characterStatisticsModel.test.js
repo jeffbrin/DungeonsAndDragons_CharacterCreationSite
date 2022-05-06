@@ -1,3 +1,44 @@
+const characterStatsModel = require('../../models/characterStatisticsModel');
+const characterModel = require('../../models/characterModel');
+const spellModel = require('../../models/spellModel');
+const backgroundModel = require('../../models/backgroundModel');
+const classModel = require('../../models/classModel');
+const raceModel = require('../../models/raceModel');
+const fs = require('fs/promises');
+const dbName = 'dnd_db_testing';
+const {DatabaseError} = require('../../models/errorModel');
+
+async function getAbilityNamesFromJsonFile(){
+    const abilities = JSON.parse(await fs.readFile('database-content-json/abilities.json'));
+    return abilities;
+}
+
+async function getSkillsFromJsonFile(){
+    const skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
+    return skills;
+}
+
+// Initialize the database before each test.
+beforeEach(async () => {
+    await classModel.initialize(dbName, true);
+    await backgroundModel.initialize(dbName, true);
+    await raceModel.initialize(dbName, true);
+    await spellModel.initialize(dbName, true);
+    await characterModel.initialize(dbName, true);
+    await characterStatsModel.initialize(dbName);   
+    await characterStatsModel.dropTables();
+    await characterStatsModel.createTables();
+});
+
+// Close the database connection after each test to prevent open handles error.
+afterEach(async () => {
+    await classModel.closeConnection();
+    await raceModel.closeConnection();
+    await backgroundModel.closeConnection();
+    await spellModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
+});
 
 // Get all skills
 test('getAllSkills - Success - Returns all skills in the json file in order.', async () => {
