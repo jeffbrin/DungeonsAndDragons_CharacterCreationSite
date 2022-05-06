@@ -4,7 +4,7 @@
  */
 
 const mysql = require('mysql2/promise')
-const validationModel = require('./validateBackgroundUtils')
+const validationModel = require('./validateBackgroundUtils.js')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
