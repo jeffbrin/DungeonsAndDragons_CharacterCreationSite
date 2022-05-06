@@ -50,6 +50,7 @@ async function initialize(databaseName, reset) {
     // Create the session table
     try{
         await connection.execute('CREATE TABLE IF NOT EXISTS Session (Id VARCHAR(200), UserId INT, ExpiryDate DATETIME, PRIMARY KEY(Id), FOREIGN KEY (UserId) REFERENCES User(Id));');
+        console.log('SESSION TABLE MADE')
     }
     catch(error){
         throw new DatabaseError('userModel', 'initialize', `Failed to create the Session table: ${error};`);
