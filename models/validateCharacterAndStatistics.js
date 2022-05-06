@@ -1,16 +1,8 @@
 /**
  * Module made by Samuel
  */
-
+let connection;
 const validator = require('validator');
-let races = [];
-let classes = [];
-let backgrounds = [];
-let ethics = [];
-let moralities = [];
-const ABILITY_SCORE_LENGTH = 6;
-let savingThrows = [];
-let users = [];
 const errors = require('./errorModel');
 const logger = require('../logger');
 const { default: isAlpha } = require('validator/lib/isAlpha');
@@ -22,86 +14,6 @@ class ValidationError extends errors.InvalidInputError {
     }
 }
 
-
-
-/* #region  Get Data From DB */
-/**
- * Loads the required validation data from the database into the arrays
- * Sets the public constants to the data retrieved.
- * @throws {DatabaseError} Thrown when the database connection is undefined.
- */
-async function loadMostRecentValuesFromDatabase(connection) {
-    const racesQuery = `SELECT Id FROM Race;`;
-    try {
-        let [rows, column_definitions] = await connection.query(racesQuery);
-        logger.info("validateCharacter - select Query to retrieve races completed - loadMostRecentValuesFromDatabase");
-        races = rows;
-
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the races select Query: ${error.message}`);
-    }
-
-
-    const classesQuery = 'SELECT Id FROM Class;';
-    try {
-        let [rows, column_definitions] = await connection.query(classesQuery);
-        logger.info("validateCharacter - select Query to retrieve classes completed - loadMostRecentValuesFromDatabase");
-        classes = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the classes select Query: ${error.message}`);
-    }
-
-
-    const backgroundsQuery = 'SELECT Id FROM Background;';
-    try {
-        let [rows, column_definitions] = await connection.query(backgroundsQuery);
-        logger.info("validateCharacter - select Query to retrieve backgrounds completed - loadMostRecentValuesFromDatabase");
-        backgrounds = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
-    }
-
-
-    const ethicsQuery = 'SELECT Id FROM Ethics;';
-    try {
-        let [rows, column_definitions] = await connection.query(ethicsQuery);
-        logger.info("validateCharacter - select Query to retrieve ethics completed - loadMostRecentValuesFromDatabase");
-        ethics = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the ethics select Query: ${error.message}`);
-    }
-
-
-    const moralitiesQuery = 'SELECT Id FROM Morality;';
-    try {
-        let [rows, column_definitions] = await connection.query(moralitiesQuery);
-        logger.info("validateCharacter - select Query to retrieve moralities completed - loadMostRecentValuesFromDatabase");
-        moralities = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the moralities select Query: ${error.message}`);
-    }
-
-
-    const savingThrowsQuery = 'SELECT Id FROM Ability;';
-    try {
-        let [rows, column_definitions] = await connection.query(savingThrowsQuery);
-        logger.info("validateCharacter - select Query to retrieve savingThrows completed - loadMostRecentValuesFromDatabase");
-        savingThrows = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
-    }
-
-
-    const usersQuery = 'SELECT Id FROM User;';
-    try {
-        let [rows, column_definitions] = await connection.query(usersQuery);
-        logger.info("validateCharacter - select Query to retrieve users completed - loadMostRecentValuesFromDatabase");
-        users = rows;
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'loadMostRecentValuesFromDatabase', `Couldn\`t execute the users select Query: ${error.message}`);
-    }
-}
-/* #endregion */
 
 /**
  * Validates a Character against a set of restrictions that are set in place.
@@ -122,13 +34,12 @@ async function loadMostRecentValuesFromDatabase(connection) {
  * @param {Integer} userId - The Id of the user this character will belong to if created
  * @throws {InvalidInputError} If the Character is not valid, builds up an error message with all the things wrong with the Input.
  */
-async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId) {
+async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId) {
 
     let bigErrorMessage = `Character is NOT valid: `
     let caught = false;
 
-    //CALLS THE characterStatisticsModel to validate some things
-    await loadMostRecentValuesFromDatabase(connection);
+    connection = passedConnection;
     try {
         checkName(name);
     } catch (error) {
@@ -137,14 +48,14 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     }
 
     try {
-        checkRace(raceId);
+        await checkRace(raceId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
     }
 
     try {
-        checkClass(charClassId);
+        await checkClass(charClassId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
@@ -158,21 +69,21 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     }
 
     try {
-        checkBackground(backgroundId);
+        await checkBackground(backgroundId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
     }
 
     try {
-        checkEthics(ethicsId);
+        await checkEthics(ethicsId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
     }
 
     try {
-        checkMorality(moralityId);
+        await checkMorality(moralityId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
@@ -193,14 +104,14 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     }
 
     try {
-        checkSavingThrowProficiencies(savingThrowIds);
+        await checkSavingThrowProficiencies(savingThrowIds);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
     }
 
     try {
-        checkUserID(userId);
+        await checkUserID(userId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
@@ -232,28 +143,52 @@ function checkName(name) {
     logger.info(`Name, ${name}, was validated inside of validateCharacter module in checkName.`);
 }
 /**
+ * Queries the database for the rows then
  * Checks the RaceId of the character to make sure it is a valid race in the database
  * @param {Integer} raceId The Id of the selected race
  * @throws {ValidationError} If the raceId was not found in the database.
  */
-function checkRace(raceId) {
+async function checkRace(raceId) {
+    const racesQuery = `SELECT Id FROM Race;`;
+    try {
+        var [races, column_definitions] = await connection.query(racesQuery);
+        logger.info("validateCharacter - select Query to retrieve races completed - checkRace");
+        
+        races = races.map( (race) => race.Id);
+
+
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkRace', `Couldn\`t execute the races select Query: ${error.message}`);
+    }
     if (!races.includes(raceId)) {
         logger.error(`Race must be one of the Valid Races. ${raceId} is not a valid Id of a race`);
         throw new ValidationError(`\nRace, must be one of the valid races`);
     }
-    logger.info(`Race, ${race}, was validated inside of validateCharacter module in checkRace.`);
+    logger.info(`Race, ${raceId}, was validated inside of validateCharacter module in checkRace.`);
 }
+
 /**
+ * Queries the database for the rows then
  * Validates the class Id to ensure it is in the database.
  * @param {Integer} charClassId - The class Id of the character being validated.
  * @throws {ValidationError} If the charClassId was not found in the database.
  */
-function checkClass(charClassId) {
-    if (!classes.includes(charClass.toLowerCase())) {
-        logger.error("Class must be one of the Valid Classes. Input: " + charClass);
+async function checkClass(charClassId) {
+    const classesQuery = 'SELECT Id FROM Class;';
+    try {
+        var [classes, column_definitions] = await connection.query(classesQuery);
+        logger.info("validateCharacter - select Query to retrieve classes completed - checkClass");
+
+        classes = classes.map( (thisClass) => thisClass.Id);
+        
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${error.message}`);
+    }
+    if (!classes.includes(charClassId)) {
+        logger.error("Class must be one of the Valid Classes. Input: " + charClassId);
         throw new ValidationError(`\nClass, ${charClassId}, must be one of the valid classes`);
     }
-    logger.info(`Class, ${charClass}, was validated inside of validateCharacter module in checkClass.`);
+    logger.info(`Class, ${charClassId}, was validated inside of validateCharacter module in checkClass.`);
 }
 /**
  * Validates the Max Hit Points of the character being validated
@@ -268,23 +203,44 @@ function checkMaxHitPoints(maxHitpoints) {
     logger.info(`Max HP, ${maxHitpoints}, was validated inside of validateCharacter module in checkMaxHitPoints.`);
 }
 /**
+ * Queries the database for the rows then
  * Validates the background Id against the database
  * @param {Integer} backgroundId - The Background Id that needs to be validated.
  * @throws {ValidationError} If the backgroundId was not found in the database.
  */
-function checkBackground(backgroundId) {
+async function checkBackground(backgroundId) {
+    const backgroundsQuery = 'SELECT Id FROM Background;';
+    try {
+        var [backgrounds, column_definitions] = await connection.query(backgroundsQuery);
+        logger.info("validateCharacter - select Query to retrieve backgrounds completed - checkBackground");
+
+        backgrounds = backgrounds.map( (background) => background.Id);
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkBackground', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
+    }
     if (!backgrounds.includes(backgroundId)) {
         logger.error(`Background with id ${backgroundId} was not found inside of validateCharacter module in checkBackground`);
         throw new ValidationError(`\nBackground  of id ${backgroundId}must be a valid background. There is no background that matches.`);
     }
+
     logger.info(`Background with ID: ${backgroundId} was validated inside of validateCharacter module in checkBackground`);
 }
 /**
+ * Queries the database for the rows then
  * Validates the Ethics Id against the database.
  * @param {Integer} ethicsId - The Ethics Id that needs to be validated
  * @throws {ValidationError} If the ethicsId was not found in the database.
  */
-function checkEthics(ethicsId) {
+async function checkEthics(ethicsId) {
+    const ethicsQuery = 'SELECT Id FROM Ethics;';
+    try {
+        var [ethics, column_definitions] = await connection.query(ethicsQuery);
+        logger.info("validateCharacter - select Query to retrieve ethics completed - checkEthics");
+
+        ethics = ethics.map( (ethic) => ethic.Id);
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkEthics', `Couldn\`t execute the ethics select Query: ${error.message}`);
+    }
     if (!ethics.includes(ethicsId)) {
         logger.error(`ethics with id ${ethicsId} was not found inside of validateCharacter module in checkEthics`);
         throw new ValidationError(`\nethics  of id ${ethicsId}must be a valid ethics. There is no ethics that matches.`);
@@ -292,11 +248,20 @@ function checkEthics(ethicsId) {
     logger.info(`ethics with ID: ${ethicsId} was validated inside of validateCharacter module in checkEthics`);
 }
 /**
+ * Queries the database for the rows then
  * Validates the Morality Id against the database
  * @param {Integer} moralityId - The Morality Id that needs to be validated
  * @throws {ValidationError} If the moralityId was not found in the database.
  */
-function checkMorality(moralityId) {
+async function checkMorality(moralityId) {
+    const moralitiesQuery = 'SELECT Id FROM Morality;';
+    try {
+        var [moralities, column_definitions] = await connection.query(moralitiesQuery);
+        logger.info("validateCharacter - select Query to retrieve moralities completed - checkMorality");
+        moralities = moralities.map( (morality) => morality.Id);
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkMorality', `Couldn\`t execute the moralities select Query: ${error.message}`);
+    }
     if (!moralities.includes(moralityId)) {
         logger.error(`Morality with id ${moralityId} was not found inside of validateCharacter module in checkMorality`);
         throw new ValidationError(`\nMorality  of id ${moralityId}must be a valid Morality. There is no morality that matches.`);
@@ -336,11 +301,19 @@ function checkAbilityScores(abilityScoreValues) {
     logger.info(`AbilityScores Array was validated inside of validateCharacter module in checkAbilityScores`);
 }
 /**
+ * Queries the database for the rows then
  * Validates The Saving throw Ids to ensure they all correspond to skills.
  * @param {IntegerArray} savingThrowIds 
  * @throws {ValidationError} If any savingThrowId was not found in the database.
  */
-function checkSavingThrowProficiencies(savingThrowIds) {
+async function checkSavingThrowProficiencies(savingThrowIds) {
+    const savingThrowsQuery = 'SELECT Id FROM Ability;';
+    try {
+        var [savingThrows, column_definitions] = await connection.query(savingThrowsQuery);
+        logger.info("validateCharacter - select Query to retrieve savingThrows completed - checkSavingThrowProficiencies");
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkSavingThrowProficiencies', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
+    }
 
     for (let i = 0; i < savingThrowIds.length; i++) {
         if (!savingThrows.includes(savingThrowIds[i])) {
@@ -351,11 +324,21 @@ function checkSavingThrowProficiencies(savingThrowIds) {
     logger.info(`savingThrows with ID: ${savingThrowIds} was validated inside of validateCharacter module in checkSavingThrowProficiencies`);
 }
 /**
+ * Queries the database for the rows then
  * Validates the userId to ensure that it is a valid user
  * @param {Integer} userId - The Id of the user who is creating a character
  * @throws {ValidationError} If the userId was not found in the database.
  */
-function checkUserID(userId) {
+async function checkUserID(userId) {
+    const usersQuery = 'SELECT Id FROM User;';
+    try {
+        var [users, column_definitions] = await connection.query(usersQuery);
+        logger.info("validateCharacter - select Query to retrieve users completed - checkUserID");
+        users = users.map((user) => user.Id);
+    } catch (error) {
+        throw new errors.DatabaseError('validateCharacter', 'checkUserID', `Couldn\`t execute the users select Query: ${error.message}`);
+    }
+
     if (!users.includes(userId)) {
         logger.error(`User with id ${userId} was not found inside of validateCharacter module in checkUserID`);
         throw new ValidationError(`\nUser  of id ${userId}must be a valid User. There is no User that matches.`);
@@ -369,7 +352,7 @@ function checkUserID(userId) {
  * @throws {InvalidInputError} Thrown when the character id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-function checkCharacterId(characterId){
+function checkCharacterId(characterId) {
 
 }
 
@@ -379,7 +362,7 @@ function checkCharacterId(characterId){
  * @throws {InvalidInputError} Thrown when the skill id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
- function checkSkillId(skillId){
+function checkSkillId(skillId) {
 
 }
 
@@ -389,18 +372,17 @@ function checkCharacterId(characterId){
  * @throws {InvalidInputError} Thrown when the ability id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
- function checkAbility(abilityId){
+function checkAbility(abilityId) {
 
 }
 
 /* #endregion */
-module.exports = { 
-    isCharValid, 
-    checkSavingThrowProficiencies, 
-    checkAbilityScores, 
-    loadMostRecentValuesFromDatabase, 
-    checkCharacterId, 
-    checkSkillId, 
+module.exports = {
+    isCharValid,
+    checkSavingThrowProficiencies,
+    checkAbilityScores,
+    checkCharacterId,
+    checkSkillId,
     checkAbility,
     checkAbilityScores
 };

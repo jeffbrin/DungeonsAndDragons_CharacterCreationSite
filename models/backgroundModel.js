@@ -40,7 +40,6 @@ async function initialize(databaseName, reset) {
     await populateBackgroundAndFeaturesTable();
     // console.log(await getAllBackgrounds());
     // console.log(await getBackground(1));
-    
     // .catch(error => {throw error});
 }
 
@@ -50,7 +49,7 @@ async function initialize(databaseName, reset) {
  * @param {boolean} reset Indicates whether the tables should be if they already exist.
  * @throws {DatabaseError} Thrown when a table either failed to be dropped or failed to be created.
  */
- async function createBackgroundTable(reset) {
+async function createBackgroundTable(reset) {
 
     // Reset if the reset flag is true
     if (reset) {
@@ -101,7 +100,8 @@ async function initialize(databaseName, reset) {
 /**
  * Creates the BackgroundFeature table in the database. This should only be called if the Background table already exists.
  */
- async function createBackgroundFeatureTable() {
+async function createBackgroundFeatureTable() {
+
     const createTableQuery = `CREATE TABLE IF NOT EXISTS BackgroundFeature(BackgroundId INT, Name VARCHAR(200), Description TEXT, FOREIGN KEY (BackgroundId) REFERENCES Background(Id), PRIMARY KEY (BackgroundId, Name));`;
     try {
         await connection.execute(createTableQuery).then(logger.info(`BackgroundFeature table created / already exists.`))
@@ -122,6 +122,7 @@ async function populateBackgroundAndFeaturesTable() {
 
     // Read the json file
     let backgroundData;
+
     try{
         backgroundData = JSON.parse(await fs.readFile(dataFile));
     }
@@ -145,7 +146,6 @@ async function populateBackgroundAndFeaturesTable() {
              // Loop through each background in the file
              let backgroundId = 1;
              for(let i = 0; i < backgroundData.length; i++){
-                
                 
                  // Get the list of features for this background
                 //  const Backgrounds = BackgroundData;
@@ -180,7 +180,6 @@ async function populateBackgroundAndFeaturesTable() {
          logger.info('Successfully populated the Background and BackgroundFeature tables.')
      }
   
-    
 
 }
 
@@ -189,6 +188,7 @@ async function populateBackgroundAndFeaturesTable() {
  * @returns  with an array of all the Backgrounds in the database in with the following format {Id: #, Name: "", Description: "", Features: []}
  * @throws {DatabaseError} Thrown when there is an issue getting the Backgrounds from the database due to a connection issue.
  */
+
  async function getAllBackgrounds(){
     const getBackgroundsQuery = "SELECT * FROM Background;"
     let data;
@@ -201,7 +201,7 @@ async function populateBackgroundAndFeaturesTable() {
         throw new DatabaseError('BackgroundModel', 'getAllBackgrounds', `Failed to get all the Backgrounds in the database: ${error}`);
     }
     return data[0]; 
-    
+
 }
 
 /**
@@ -213,6 +213,7 @@ async function populateBackgroundAndFeaturesTable() {
  * @throws {InvalidInputError} Thrown if the id is invalid or if it was not found.
  * @throws {DatabaseError} Thrown is there is an issue getting the background from the database due to a connection issue.
  */
+
 async function getBackground(id){
 
     try{

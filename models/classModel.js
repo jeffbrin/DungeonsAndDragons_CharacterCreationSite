@@ -88,6 +88,7 @@ async function createClassTable(reset) {
             throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
         }
 
+
         // Drop the PlayerCharacter table since it contains foreign keys in the Class table
         dropCommand = `DROP TABLE IF EXISTS PlayerCharacter;`;
         try {

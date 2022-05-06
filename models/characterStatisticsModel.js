@@ -632,6 +632,105 @@ async function getSavingThrowBonuses(characterId){
 
 }
 
+/**
+ * Gets the skill proficiencies for a specific character.
+ * @param characterId The id of the character to get the skill proficiencies of.
+ * @returns A list of skill ids representing the skills the character is proficient in.
+ */
+async function getSkillProficiencies(characterId){
+
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSkillProficiencies', error.message);
+    }
+
+    let skillIdObjects;
+    try{
+        [skillIdObjects, columns] = await connection.query(`SELECT Id FROM SkillProficiency WHERE CharacterId = ${characterId}`);
+        return skillIdObjects.map(x => x.Id);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getSkillProficiencies', `Failed to get the skill proficiency ids from the database: ${error}`);
+    }
+
+}
+
+/**
+ * Gets the skill expertise for a specific character.
+ * @param characterId The id of the character to get the skill expertise of.
+ * @returns A list of skill ids representing the skills the character has expertise in.
+ */
+async function getSkillExpertise(characterId){
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSkillExpertise', error.message);
+    }
+
+    let skillIdObjects;
+    try{
+        [skillIdObjects, columns] = await connection.query(`SELECT Id FROM SkillExpertise WHERE CharacterId = ${characterId}`);
+        return skillIdObjects.map(x => x.Id);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getSkillExpertise', `Failed to get the skill expertise ids from the database: ${error}`);
+    }
+}
+
+/**
+ * Gets the saving throw proficiencies for a specific character.
+ * @param characterId The id of a character to get the proficiencies of.
+ * @returns A list of integers representing the ids of the abilities linked with the saving throws the character is proficient in.
+ */
+async function getSavingThrowProficiencies(characterId){
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowProficiencies', error.message);
+    }
+
+    let savingThrowIdObjects;
+    try{
+        [savingThrowIdObjects, columns] = await connection.query(`SELECT Id FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
+        return savingThrowIdObjects.map(x => x.Id);
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getSavingThrowProficiencies', `Failed to get the saving throw proficiency ids from the database: ${error}`);
+    }
+}
+
+/**
+ * Gets the saving throw bonuses for a specific character.
+ * @param characterId The id of a character to get the bonuses of.
+ * @returns A list of objects, each containing a saving throw id and the player's bonus in that saving throw - {Id: #AbilityId, Bonus: #}
+ */
+async function getSavingThrowBonuses(characterId){
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowBonuses', error.message);
+    }
+
+    let savingThrowBonusObjects;
+    try{
+        [savingThrowBonusObjects, columns] = await connection.query(`SELECT Id, Bonus FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
+        return savingThrowBonusObjects;
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getSavingThrowBonuses', `Failed to get the saving throw bonuses from the database: ${error}`);
+    }
+
+}
+
 module.exports = { 
     initialize,
     closeConnection,

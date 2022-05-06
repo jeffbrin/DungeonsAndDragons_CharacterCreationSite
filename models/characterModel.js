@@ -7,13 +7,6 @@ const errors = require('./errorModel');
 const characterStatsModel = require('./characterStatisticsModel');
 
 
-//## CharacterModel
-// * Ethics
-// * Morality
-// * PlayerCharacter (background, class, user, race, ethics, morality)
-// * Known Spell (PlayerCharacter, spell)
-// * Owned Item (PlayerCharacter)
-
 /**
  * Initializes the connection to the database. 
  * It also creates the tables needed and drops the tables if reset is true.
@@ -33,8 +26,12 @@ async function initialize(databaseNameTmp, reset) {
     //if reset true, drop all the tables in reverse creation order.
     if (reset) {
         const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality;`;
-        await connection.execute(deleteDbQuery).then(logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`))
-            .catch((error) => { throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`); });
+        try {
+            await connection.execute(deleteDbQuery);
+            logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
+        } catch (error) {
+            throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
+        }
     }
 
     await createEthicsTable();
@@ -43,7 +40,7 @@ async function initialize(databaseNameTmp, reset) {
     await createKnownSpellTable();
     await createOwnedItemTable();
 
-
+    await characterStatsModel.initialize(databaseNameTmp);
 }
 
 
@@ -54,13 +51,31 @@ async function initialize(databaseNameTmp, reset) {
  * @throws {DatabaseError} If there was an error on the database's side
  */
 async function closeConnection() {
-    await connection.end().then(logger.info(`Connection closed from closeConnection() in characterModel`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'closeConnection', "Couldn't close the database connection"); });
+    try {
+        await connection.end();
+        logger.info(`Connection closed from closeConnection() in characterModel`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'closeConnection', "Couldn't close the database connection");
+    }
 }
 
 /* #region  CRUD Operations */
+
 /**
- * Adds a Character to the PlayerCharacter table
+ * Helper method to make testing easier. Adds a character using the addCharacter method but takes in an object and splits it up once.
+ * @param {Character} character - The character as an object
+ * @returns uses the addCharacter function as a promise
+ */
+async function addCharacterObject(character) {
+    return await addCharacter(character.classId, character.raceId, character.name, character.maxHP,
+        character.background, character.ethicsId, character.moralityId, character.level, character.abilityScoreValues,
+        character.savingThrowProficienciesIds, character.proficiencyBonus, character.userId);
+}
+
+
+/**
+ * Adds a Character to the PlayerCharacter table by first assign them a unique Id, depending on what is available in the database.
+ * Then Validates all the inputs
  * @param {Integer} classId - The Id of the user's selected class - 1 Based
  * @param {Integer} raceId - The Id of the user's selected race - 1 Based
  * @param {String} name - The Name of the Character
@@ -83,31 +98,50 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     //select from character table and select the next highest available id top order by ID
     const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`
     let characterId = 1;
-    try{
+    try {
         let [rows, column_definitions] = await connection.query(idQuery);
-        if(rows.length != 0){
+        if (rows.length != 0) {
             characterId = parseInt(rows[0].Id);
         }
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHP,background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
     }
-    catch(error){
-        throw new errors.InvalidInputError("characterModel", "addCharacter", error.message);
+    catch (error) {
+        throw new errors.InvalidInputError("characterModel", "addCharacter", `Couldn't Validate the character: ${error.message}`);
     }
 
     //ADD CHAR TO DB
     let query = `insert into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
     (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name.toLowerCase()}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
 
-    await connection.execute(query).then(logger.info("Insert command executed in addCharacter")).catch((error) => { throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command'); });
-    
-    //Add To Character Statistics Table
-    //Add Saving Throw Proficiency for each in the array of Ids
-    for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
-        await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+    try {
+        await connection.execute(query);
+        logger.info("Insert command executed in addCharacter");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command');
     }
-    
-    //Add Ability Score Values
-    await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
+
+    try {
+
+        //Add To Character Statistics Table
+        //Add Saving Throw Proficiency for each in the array of Ids
+        for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
+            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+        }
+
+
+        //Add Ability Score Values
+        await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
+    } catch (error) {
+        if (error instanceof errors.InvalidInputError) {
+            throw new errors.InvalidInputError('characterModel', 'addCharacter', `Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+        else {
+            throw new errors.DatabaseError('characterModel', 'addCharacter', `Database connection or query error, Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+    }
+    return true;
 }
 
 /**
@@ -126,14 +160,26 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Character, cannot update character");
     }
     let selectQuery = `Select 1 from ${tableName} WHERE id = ${id}`;
-    let [rows, column_definitions] = await connection.query(selectQuery).then(logger.info("select Query before Update Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError('characterModel', 'updateCharacter', 'Couldn\'t execute the command'); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(selectQuery);
+        logger.info("select Query before Update Executed - updateCharacter()");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'updateCharacter', 'Couldn\'t execute the command');
+    }
 
     //Check if there is an ID that matches in the database
     if (rows.length == 0) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Id, character DOES NOT EXIST!");
     }
-    let query = `Update ${tableName} SET name = '${newName.toLowerCase()}', race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
-    await connection.execute(query).then(logger.info("Update Query Executed - updateCharacter()")).catch((error) => { throw new errors.DatabaseError(error.message); });
+    let query = `Update ${tableName} SET Name = '${newName.toLowerCase()}', Race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
+
+    try {
+        await connection.execute(query);
+        logger.info("Update Query Executed - updateCharacter()")
+    } catch (error) {
+        throw new errors.DatabaseError('characterModule', 'updateCharacter', `Update Failed, Database error: ${error.message}`);
+    }
 }
 
 
@@ -147,19 +193,28 @@ async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
  */
 async function addRemoveHp(id, hpValueChange) {
     let selectQ = `Select CurrentHp from ${tableName} WHERE Id = ${id};`;
-    let [rows, column_definitions] = await connection.query(selectQ).then(logger.info("select Query before CurrentHp change Executed - addRemoveHp"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp',`Database connection failed ${error.message}`); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(selectQ);
+        logger.info("select Query before CurrentHp change Executed - addRemoveHp");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed ${error.message}`);
+    }
+
 
     if (rows.length === 0) {
-        throw new errors.InvalidInputError('characterModel', 'addRemoveHp',`Character with id: ${id} was not found in the Database`);
+        throw new errors.InvalidInputError('characterModel', 'addRemoveHp', `Character with id: ${id} was not found in the Database`);
     }
 
     let newHp = rows[0].CurrentHp + hpValueChange;
 
-
     let query = `Update ${tableName} SET CurrentHp = ${newHp} WHERE Id = ${id};`;
-    await connection.execute(query).then(logger.info("Update CurrentHp Query Executed - addRemoveHp"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'addRemoveHp',`Database connection failed, couldn't update CurrentHp. ${error.message}`); });
+    try {
+        await connection.execute(query);
+        logger.info("Update CurrentHp Query Executed - addRemoveHp");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addRemoveHp', `Database connection failed, couldn't update CurrentHp. ${error.message}`);
+    }
 }
 
 
@@ -172,8 +227,13 @@ async function addRemoveHp(id, hpValueChange) {
  */
 async function getCharacter(id) {
     let query = `SELECT Id, Name, RaceId, ClassId, CurrentHp from ${tableName} WHERE Id = ${id};`;
-    let [rows, column_definitions] = await connection.query(query).then(logger.info("select Query before returning Character executed"))
-    .catch((error) => { throw new errors.DatabaseError('characterModel', 'getCharacter',`Database connection failed, couldn't get Character. ${error.message}`); });
+    let rows, column_definitions;
+    try {
+        [rows, column_definitions] = await connection.query(query);
+        logger.info("select Query before returning Character executed");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${error.message}`);
+    }
     if (rows.length === 0) {
         throw new errors.InvalidInputError('characterModel', 'getCharacter', `Character not found with id: ${id}`);
     }
@@ -187,20 +247,20 @@ async function getCharacter(id) {
  * @throws {InvalidInputError} - If the User does not exist OR the User has no Characters belonging to them.
  * @throws {DatabaseError} - If there is an error with the SELECT query while joining the PlayerCharacter and User Tables.
  */
-async function getUserCharacters(userId){
+async function getUserCharacters(userId) {
     const query = `SELECT c.Id from ${tableName} c, User u WHERE c.UserId = u.Id;`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info(`Select Query Success in getUserCharacter with userId: ${userId}`);
-        if (rows.length === 0){
+        if (rows.length === 0) {
             throw new errors.InvalidInputError();
         }
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'getUserCharacters', `User does not exists or has no characters`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'getUserCharacters', `Database connection or query error, couldn't get the Users Characters`);
         }
     }
@@ -213,27 +273,27 @@ async function getUserCharacters(userId){
  * @param {Integer} id 
  * @throws {InvalidInputError} If the character is not found 
  * @throws {DatabaseError} If there was an error on the database's side
+ * @returns {boolean} true if deleted, throws otherwise
  */
 async function removeCharacter(id) {
     let query = `DELETE FROM ${tableName} WHERE Id = ${id};`;
 
     //Select The Id of the user who's character this belongs to in order to remove that character from them as well
-    //ASK JEFF BOUT THIS
-    const userQ = `SELECT Id FROM UserId WHERE CharacterId = ${id};`;
 
     try {
         let checkingQ = `SELECT 1 from ${tableName} WHERE Id = ${id};`;
-        let [rows, column_definitions] = await connection.query(checkingQ).then(logger.info("Select query to check if Id exists has been executed"));
-
+        let [rows, column_definitions] = await connection.query(checkingQ);
+        logger.info("Select query to check if Id exists has been executed");
         if (rows.length === 0) {
-            throw new errors.InvalidInputError('characterModel', 'removeCharacter',`Character with Id: ${id} does not exist in the Database.`);
+            throw new errors.InvalidInputError('characterModel', 'removeCharacter', `Character with Id: ${id} does not exist in the Database.`);
         }
-        await connection.execute(query).then(logger.info(`Delete Query Executed Character with id: ${id}`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'removeCharacter',`Database connection failed, couldn't delete Character with id ${id}. ${error.message}`); });
+
+        await connection.execute(query);
+        logger.info(`Delete Query Executed Character with id: ${id}. About to return true`);
         return true;
     }
     catch (error) {
-        throw error;
+        throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${id}. ${error.message}`);
     }
 }
 
@@ -243,13 +303,13 @@ async function removeCharacter(id) {
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function levelUp(characterId){
+async function levelUp(characterId) {
     const query = `SELECT Level FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of levelUp function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         let currentLevel = parseInt(rows[0].Level);
         currentLevel += 1;
@@ -260,14 +320,14 @@ async function levelUp(characterId){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s level is now ${currentLevel}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'levelUp', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'levelUp', `Database connection or query error, couldn't level up the Character`);
         }
     }
-} 
+}
 
 /**
  * Updates a character with the given Id in order to increment by the passed in experience to their current Experience
@@ -276,13 +336,13 @@ async function levelUp(characterId){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateExp(characterId, experience){
+async function updateExp(characterId, experience) {
     const query = `SELECT Experience FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateExp function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         let currentExperience = parseInt(rows[0].Experience);
         currentExperience += experience;
@@ -293,10 +353,10 @@ async function updateExp(characterId, experience){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Experience is now ${currentExperience}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateExp', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateExp', `Database connection or query error, couldn't add experience to the Character`);
         }
     }
@@ -309,15 +369,15 @@ async function updateExp(characterId, experience){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateAC(characterId, armorClass){
+async function updateAC(characterId, armorClass) {
     const query = `SELECT ArmorClass FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateAC function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
-        
+
 
         const updateQuery = `UPDATE ${tableName} SET ArmorClass = ${armorClass} WHERE Id = ${characterId};`;
 
@@ -325,10 +385,10 @@ async function updateAC(characterId, armorClass){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s ArmorClass is now ${armorClass}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateAC', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateAC', `Database connection or query error, couldn't update ArmorClass of the Character`);
         }
     }
@@ -341,15 +401,13 @@ async function updateAC(characterId, armorClass){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateSpeed(characterId, speed){
+async function updateSpeed(characterId, speed) {
     const query = `SELECT Speed FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateSpeed function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
-
-        
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
         const updateQuery = `UPDATE ${tableName} SET Speed = ${speed} WHERE Id = ${characterId};`;
 
@@ -357,10 +415,10 @@ async function updateSpeed(characterId, speed){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Speed is now ${speed}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateSpeed', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateSpeed', `Database connection or query error, couldn't update speed of the Character`);
         }
     }
@@ -373,15 +431,15 @@ async function updateSpeed(characterId, speed){
  * @throws {InvalidInputError} - If the Character with the given Id does not exist
  * @throws {DatabaseError} - If there was an error with the Database Connection and the one of the queries didn't work
  */
-async function updateInitiative(characterId, initiative){
+async function updateInitiative(characterId, initiative) {
     const query = `SELECT Initiative FROM ${tableName} WHERE Id = ${characterId};`;
 
     try {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info('Select query executed inside of updateSpeed function');
-        if(rows.length === 0) throw new errors.InvalidInputError();
+        if (rows.length === 0) throw new errors.InvalidInputError();
 
-        
+
 
         const updateQuery = `UPDATE ${tableName} SET Initiative = ${initiative} WHERE Id = ${characterId};`;
 
@@ -389,10 +447,10 @@ async function updateInitiative(characterId, initiative){
         logger.info(`UPDATE query Success, character with id: ${characterId}'s Initiative is now ${initiative}.`);
 
     } catch (error) {
-        if (error instanceof errors.InvalidInputError){
+        if (error instanceof errors.InvalidInputError) {
             throw new errors.InvalidInputError('characterModel', 'updateInitiative', `Character does not exist`);
         }
-        else{
+        else {
             throw new errors.DatabaseError('characterModel', 'updateInitiative', `Database connection or query error, couldn't update Initiative of the Character`);
         }
     }
@@ -412,22 +470,74 @@ function getConnection() {
 /* #region  Create Table Methods */
 /**
  * Creates the Ethics table with an SQL Query
- * @throws {DatabaseError} if there was a problem with executing the SQL Query
+ * Inserts the 3 ethics to the table if they are not already there
+ * @throws {DatabaseError} if there was a problem with executing the SQL Queries
  */
 async function createEthicsTable() {
     const sqlQuery = "CREATE TABLE IF NOT EXISTS Ethics(Id INT, Name TEXT, PRIMARY KEY(Id));";
-    await connection.execute(sqlQuery).then(logger.info(`Table: Ethics Created/Exists - createEthicsTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`); });
+    try {
+        await connection.execute(sqlQuery);
+        logger.info(`Table: Ethics Created/Exists - createEthicsTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Couldn't connect to the database: ${error.message}.`);
+    }
+
+    const checkIfEthics = `SELECT Id from Ethics;`;
+    const ethics = ['lawful', 'chaotic', 'neutral'];
+    try {
+        let [rows, columns] = await connection.query(checkIfEthics);
+        if (!rows.length > 0) {
+            logger.info(`Ethics not there, will add them to the Ethics Table.`);
+            for (let i = 0; i < 3; i++) {
+                const ethicsQ = `INSERT INTO Ethics(Id, Name) VALUES (${i + 1}, ${ethics[i]});`;
+                await connection.execute(ethicsQ);
+                logger.info(`Added ${ethics[i]} to the Ethics Table with Id: ${i + 1}`);
+            }
+            return;
+        }
+        logger.info(`Ethics already there, will not add them.`)
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Database connection or query error, Couldn't Add or query from the Ethics table: ${error.message}`);
+    }
+
+
 }
 
 /**
  * Creates the Morality table with an SQL Query
+ * Adds the 3 moralities to the table if there are none in the Table (if they were added before)
  * @throws {DatabaseError} if there was a problem with executing the SQL Query
  */
 async function createMoralityTable() {
     const sql = `CREATE TABLE IF NOT EXISTS Morality(Id INT, Name TEXT, PRIMARY KEY(Id));`;
-    await connection.execute(sql).then(logger.info(`Table: Morality Created/Exists - createMoralityTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+
+        await connection.execute(sql);
+        logger.info(`Table: Morality Created/Exists - createMoralityTable()`);
+
+    } catch (error) {
+
+        throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Couldn't connect to the database: ${error.message}.`);
+
+    }
+    const checkIfMoralities = `SELECT Id from Morality;`;
+    const moralities = ['good', 'evil', 'neutral'];
+    try {
+        let [rows, columns] = await connection.query(checkIfMoralities);
+        if (!rows.length > 0) {
+            logger.info(`Moralities not there, will add them to the Morality Table.`);
+            for (let i = 0; i < 3; i++) {
+                const moralityQ = `INSERT INTO Morality(Id, Name) VALUES (${i + 1}, ${moralities[i]});`;
+                await connection.execute(moralityQ);
+                logger.info(`Added ${moralities[i]} to the Morality Table with Id: ${i + 1}`);
+            }
+            return;
+        }
+        logger.info(`Moralities already there, will not add them.`)
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Database connection or query error, Couldn't Add or query from the Morality table: ${error.message}`);
+    }
 }
 /**
  * Creates the PlayerCharacter table with an SQL Query
@@ -439,8 +549,13 @@ async function createPlayerCharacterTable() {
         Experience INT, PRIMARY KEY(Id), FOREIGN KEY (UserId) REFERENCES User(Id), FOREIGN KEY (ClassId) REFERENCES Class(Id), 
         FOREIGN KEY (RaceId) REFERENCES Race(Id), FOREIGN KEY (EthicsId) REFERENCES Ethics(Id), FOREIGN KEY (MoralityId) 
         REFERENCES Morality(Id), FOREIGN KEY (BackgroundId) REFERENCES Background(Id));`;
-    await connection.execute(sqlQueryC).then(logger.info(`Table: ${tableName} Created/Exists - createPlayerCharacterTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createPlayerCharacterTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+        await connection.execute(sqlQueryC);
+        logger.info(`Table: ${tableName} Created/Exists - createPlayerCharacterTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createPlayerCharacterTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 /**
  * Creates the KnownSpell table with an SQL Query
@@ -449,9 +564,13 @@ async function createPlayerCharacterTable() {
 async function createKnownSpellTable() {
     const sql = `CREATE TABLE IF NOT EXISTS KnownSpell(SpellId INT, CharacterId INT, FOREIGN KEY (SpellId) 
     REFERENCES Spell(Id), FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (SpellId, CharacterId));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createKnownSpellTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createKnownSpellTable', `Couldn't connect to the database: ${error.message}.`); });
 
+    try {
+        await connection.execute(sql);
+        logger.info(`Table: KnownSpell Created/Exists - createKnownSpellTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createKnownSpellTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 
 /**
@@ -461,8 +580,13 @@ async function createKnownSpellTable() {
 async function createOwnedItemTable() {
     const sql = `CREATE TABLE IF NOT EXISTS OwnedItem(CharacterId INT, Name VARCHAR(200), Count INT, 
     FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), PRIMARY KEY (CharacterId, Name));`;
-    await connection.execute(sql).then(logger.info(`Table: KnownSpell Created/Exists - createOwnedItemTable()`))
-        .catch((error) => { throw new errors.DatabaseError('characterModel', 'createOwnedItemTable', `Couldn't connect to the database: ${error.message}.`); });
+
+    try {
+        await connection.execute(sql);
+        logger.info(`Table: KnownSpell Created/Exists - createOwnedItemTable()`);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'createOwnedItemTable', `Couldn't connect to the database: ${error.message}.`);
+    }
 }
 /* #endregion */
 
@@ -480,5 +604,6 @@ module.exports = {
     updateExp,
     updateAC,
     updateSpeed,
-    updateInitiative
+    updateInitiative,
+    addCharacterObject
 };
