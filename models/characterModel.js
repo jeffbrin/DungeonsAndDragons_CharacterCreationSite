@@ -25,10 +25,12 @@ async function initialize(databaseNameTmp, reset) {
 
     //if reset true, drop all the tables in reverse creation order.
     if (reset) {
-        const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality;`;
+        const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality, Ethics;`;
         try {
+            await characterStatsModel.dropTables();
             await connection.execute(deleteDbQuery);
             logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
+            
         } catch (error) {
             throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
         }
@@ -41,6 +43,7 @@ async function initialize(databaseNameTmp, reset) {
     await createOwnedItemTable();
 
     await characterStatsModel.initialize(databaseNameTmp);
+    await characterStatsModel.createTables();
 }
 
 
@@ -165,12 +168,12 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
  */
 async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId) {
     try {
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrows, userId)
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilities, savingThrows, userId)
     } catch (error) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', `Invalid Character, cannot update character: ${error.message}`);
     }
 
-    let selectQuery = `Select 1 from ${tableName} WHERE id = ${id}`;
+    let selectQuery = `Select 1 from ${tableName} WHERE id = ${characterId}`;
     let rows, column_definitions;
 
     try {
@@ -208,13 +211,13 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 
         //Add To Character Statistics Table
         //Add Saving Throw Proficiency for each in the array of Ids
-        for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
-            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+        for (let i = 0; i < savingThrows.length; i++) {
+            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrows[i]);
         }
 
 
         //Add Ability Score Values
-        await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+        await characterStatsModel.setAbilityScores(characterId, abilities);
 
     } catch (error) {
         if (error instanceof errors.InvalidInputError) {

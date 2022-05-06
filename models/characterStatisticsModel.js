@@ -270,7 +270,7 @@ async function createTables() {
  * @throws {InvalidInputError} Thrown when the ability scores array doesn't contain 6 integers or when the character id is invalid.
  */
 async function setAbilityScores(characterId, abilityScores) {
-    await validationModel.loadMostRecentValuesFromDatabase(connection);
+    
 
     // Validate the ability scores
     try{
@@ -297,7 +297,7 @@ async function setAbilityScores(characterId, abilityScores) {
     // Add each ability score
     try{
         for (let i = 1; i < abilityScores.length; i++){
-            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]}}`);
+            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]});`);
         }
     }
     catch(error){
@@ -317,7 +317,6 @@ async function setAbilityScores(characterId, abilityScores) {
  */
 async function addSkillProficiency(characterId, skillId) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the skill id
     try{
@@ -362,7 +361,6 @@ async function addSkillProficiency(characterId, skillId) {
  */
 async function addSkillExpertise(characterId, skillId) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase();
 
     // Validate the skill id
     try{
@@ -405,12 +403,10 @@ async function addSkillExpertise(characterId, skillId) {
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
  */
 async function addSavingThrowProficiency(characterId, abilityId) {
-    // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the ability id
     try{
-        await validationModel.checkAbilityScores(abilityId);
+        await validationModel.checkAbility(abilityId);
     }catch(error){
         throw new InvalidInputError('characterStatisticsModel', 'addSavingThrowProficiency', error.message);
     }
@@ -452,7 +448,6 @@ async function addSavingThrowProficiency(characterId, abilityId) {
  */
 async function setSavingThrowBonus(characterId, abilityId, bonus) {
     // Let it throw
-    await validationModel.loadMostRecentValuesFromDatabase(connection);
 
     // Validate the ability id
     try{

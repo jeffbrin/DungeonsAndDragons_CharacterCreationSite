@@ -29,7 +29,8 @@ async function startup(){
     await raceModel.initialize(dbName, false);
     await spellModel.initialize(dbName, false);
     await characterModel.initialize(dbName, false);
-    // await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1)
+     await characterModel.addCharacter(1,1,'sam', 55, 2,2,2,2,[1,2,3,4,5,6], [1,2], 3, 1);
+     await characterModel.updateCharacter(1, 2, 3, 3, 3, 3, 'bob', 4, 5, [16,9,5,4,8,9], [2], 4, 1);
     }catch(error){
         throw error;
     }
