@@ -10,6 +10,7 @@ const { default: isAlpha } = require('validator/lib/isAlpha');
 
 class ValidationError extends errors.InvalidInputError {
     constructor(message) {
+        super();
         this.message = message;
     }
 }
@@ -284,7 +285,7 @@ function checkLevel(level) {
  * If any of the entries in the array are alpha.
  */
 function checkAbilityScores(abilityScoreValues) {
-    if (!abilityScoreValues.length != ABILITY_SCORE_LENGTH) {
+    if (abilityScoreValues.length != ABILITY_SCORE_LENGTH) {
         logger.error(`AbilityScores must have 6 entries in the array inside of validateCharacter module in checkAbilityScores`);
         throw new ValidationError(`\nAbility Scores MUST have 6 values.`);
     }
