@@ -282,7 +282,7 @@ async function getCharacter(id) {
     //First Check to see if the character exists
     try {
         const q = `Select 1 from ${tableName} where Id = ${id}`;
-        let [rows, cols] = connection.query(q);
+        let [rows, cols] = await connection.query(q);
         if (rows.length <= 0)
             throw new errors.InvalidInputError('characterModel', 'getCharacter', `Couldn't find character with Id: ${id}`);
     } catch (error) {
