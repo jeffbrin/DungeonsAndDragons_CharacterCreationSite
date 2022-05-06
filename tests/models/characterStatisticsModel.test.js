@@ -1,11 +1,5 @@
 const characterStatsModel = require('../../models/characterStatisticsModel');
-const characterModel = require('../../models/characterModel');
-const spellModel = require('../../models/spellModel');
-const backgroundModel = require('../../models/backgroundModel');
-const classModel = require('../../models/classModel');
-const raceModel = require('../../models/raceModel');
 const fs = require('fs/promises');
-const dbName = 'dnd_db_testing';
 
 async function getAbilityNamesFromJsonFile(){
     const abilities = JSON.parse(await fs.readFile('database-content-json/abilities.json'));
@@ -13,34 +7,48 @@ async function getAbilityNamesFromJsonFile(){
 }
 
 async function getSkillsFromJsonFile(){
-    
+    const skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
+    return skills;
 }
 
+const dbName = 'dnd_db_testing';
 // Initialize the database before each test.
 beforeEach(async () => {
-    await classModel.initialize(dbName, true);
-    await backgroundModel.initialize(dbName, true);
-    await raceModel.initialize(dbName, true);
-    await spellModel.initialize(dbName, true);
-    await characterModel.initialize(dbName, true);
+    try{
     await characterStatsModel.initialize(dbName);   
     await characterStatsModel.dropTables();
     await characterStatsModel.createTables();
+    }catch(error){
+        console.error(error);
+    }
 });
 
 // Close the database connection after each test to prevent open handles error.
 afterEach(async () => {
-    await classModel.closeConnection();
-    await raceModel.closeConnection();
-    await backgroundModel.closeConnection();
-    await spellModel.closeConnection();
     await characterStatsModel.closeConnection();
-    await characterModel.closeConnection();
 });
 
-test('getAllAbilities - Success - Returns all abilities in the json file.', async () => {
+test('getAllSkills - Success - Returns all skills in the json file in order.', async () => {
+
+    const skills = await getSkillsFromJsonFile();
+    const databaseSkills = await characterStatsModel.getAllSkills();
+
+    // Make sure each skill is the same in the right order
+    for(let i = 0; i < skills.length; i++){
+        expect(skills[i].Name).toBe(databaseSkills[i].Name);
+        expect(skills[i].Ability).toBe(databaseSkills[i].Ability.Name);
+    }
+
+})
+
+test('getAllAbilities - Success - Returns all abilities in the json file in order.', async () => {
 
     const abilities = await getAbilityNamesFromJsonFile();
-    console.log(abilities);
+    const databaseSkills = await characterStatsModel.getAllAbilities();
+
+    // Make sure each ability is the same in the right order
+    for(let i = 0; i < abilities.length; i++){
+        expect(abilities[i]).toBe(databaseSkills[i].Name);
+    }
 
 })

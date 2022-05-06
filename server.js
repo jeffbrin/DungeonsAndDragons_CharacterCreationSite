@@ -4,7 +4,6 @@ const spellModel = require('./models/spellModel');
 const raceModel = require('./models/raceModel');
 const classModel = require('./models/classModel');
 const characterModel = require('./models/characterModel');
-const backgroundModel = require('./models/backgroundModel');
 const userModel = require('./models/userModel');
 // const characterStatisticsModel = require('./models/characterStatisticsModel');
 const backgroundModel = require('./models/backgroundModel');
