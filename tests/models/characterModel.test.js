@@ -1,4 +1,4 @@
-const characterModel = require('../models/characterModel');
+const characterModel = require('../../models/characterModel');
 const dbName = 'dnd_db_testing';
 
 //PlayerCharacter(Id INT, UserId INT, ClassId INT, RaceId INT, EthicsId INT, MoralityId INT, BackgroundId INT, Name TEXT, ProficiencyBonus INT, 

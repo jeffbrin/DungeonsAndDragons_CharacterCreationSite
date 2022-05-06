@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise')
 const validationModel = require('./validateSpellUtils')
 const logger = require('../logger');
+const {DatabaseError} = require('./errorModel');
 
 let connection;
 const validSchools = [
@@ -34,21 +35,8 @@ async function initialize(databaseName, reset) {
         throw new InvalidDatabaseConnectionError(`Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
     }
 
-    // Create the Spell table
-    // Reset if selected
-    if (reset) {
-        const resetQuery = `DROP TABLE IF EXISTS Spell`;
-
-        // Try catch with await to make sure this is run before the next query is run
-        try {
-            await connection.execute(resetQuery)
-            logger.info(`Table Spell reset`);
-        }
-        catch (error) {
-            throw new DatabaseIOError(`Failed to reset table Spell in the database... check your connection to the database: ${error.message}`)
-        }
-
-    }
+    // Drop reliant tables
+    await dropReliantTables();
 
     // Create the SpellSchool's table
     // Reset if selected
@@ -101,6 +89,28 @@ async function initialize(databaseName, reset) {
     }
 
 
+}
+
+/**
+ * Drops all the tables that would cause a foreign key constraint if the User table was dropped.
+ */
+ async function dropReliantTables(){
+    try{
+        await connection.execute('DROP TABLE IF EXISTS AbilityScore;')
+        await connection.execute('DROP TABLE IF EXISTS SkillProficiency;')
+        await connection.execute('DROP TABLE IF EXISTS SkillExpertise;')
+        await connection.execute('DROP TABLE IF EXISTS SavingThrowProficiency;')
+        await connection.execute('DROP TABLE IF EXISTS SavingThrowBonus;')
+        await connection.execute('DROP TABLE IF EXISTS KnownSpell;')
+        await connection.execute('DROP TABLE IF EXISTS OwnedItem;')
+        await connection.execute('DROP TABLE IF EXISTS Spell;')
+        await connection.execute('DROP TABLE IF EXISTS SpellSchool;')
+        await connection.execute('DROP TABLE IF EXISTS PlayerCharacter;')
+        await connection.execute('DROP TABLE IF EXISTS Session;')
+    }
+    catch(error){
+        throw new DatabaseError('userModel', 'dropReliantTables', `Failed to drop the tables which are reliant on the User table: ${error}`)
+    }
 }
 
 /**

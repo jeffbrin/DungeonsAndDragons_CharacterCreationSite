@@ -1,6 +1,6 @@
-const classModel = require('../models/classModel');
+const classModel = require('../../models/classModel');
 const fs = require('fs/promises')
-const errorModel = require('../models/errorModel')
+const errorModel = require('../../models/errorModel')
 const dbName = 'dnd_db_testing'
 const classesArray = [];
 

@@ -1,4 +1,4 @@
-const { InvalidInputError } = require('./errorModel');
+const {InvalidInputError} = require('./errorModel');
 
 /**
  * Validates a background id. An id just means it's a possible id in the database, NOT that it exists.
@@ -6,7 +6,7 @@ const { InvalidInputError } = require('./errorModel');
  * @param {Number} id The id of a background to validate.
  * @throws {Error} Thrown if the id is invalid. The error will contain a message indicating the reason why the id was invalid.
  */
-function validateBackgroundId(id) {
+function validateBackgroundId(id){
 
     // Make sure the id is a number
     if (typeof id != 'number')

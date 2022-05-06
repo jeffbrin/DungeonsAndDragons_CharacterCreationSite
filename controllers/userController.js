@@ -4,8 +4,7 @@ const router = express.Router();
 const routeRoot = '/users';
 const userModel = require('../models/userModel');
 const logger = require('../logger');
-const errors = require('./errorController');
-const {InvalidPasswordError, InvalidUsernameError, DatabaseError, IncorrectPasswordError, UserNotFoundError, UserAlreadyExistsError} = require('../models/errorModel');
+const {InvalidPasswordError, InvalidUsernameError, DatabaseError, UserAlreadyExistsError} = require('../models/errorModel');
 
 
 async function createUser(request, response){
@@ -17,26 +16,26 @@ async function createUser(request, response){
     .then( async (newSession) => {
         // Set the cookie and render the home page
         response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate }); 
-        response.render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
+        response.status(201).render('home.hbs', {homeActive: true, username: await userModel.getUsernameFromSessionId(newSession.sessionId)})
     })
     .catch(error => {
         if (error instanceof UserAlreadyExistsError){
             logger.error(error.toString());
 
             response.status(400);
-            response.render('home.hbs', {homeActive: true, signupError: 'Username already exists.'});
+            response.render('home.hbs', {homeActive: true, signupError: error.message});
         }
         else if (error instanceof InvalidPasswordError){
             logger.error(error.toString());
 
             response.status(400);
-            response.render('home.hbs', {homeActive: true, signupError: `Invalid password.`});
+            response.render('home.hbs', {homeActive: true, signupError: error.message});
         }
         else if(error instanceof InvalidUsernameError){
             logger.error(error.toString());
 
             response.status(400);
-            response.render('home.hbs', {homeActive: true, signupError: 'Invalid username.'});
+            response.render('home.hbs', {homeActive: true, signupError: error.message});
         }
         else if(error instanceof DatabaseError){
             logger.error(error.toString());

@@ -529,12 +529,18 @@ async function getAllSkills(){
  * Closes the connection to the database.
  */
 async function closeConnection(){
-    connection.end();
+    try{
+        if(connection)
+            connection.end();
+    }
+    catch(error){
+        logger.error(error);
+    }
 }
 
 /**
  * Gets the skill proficiencies for a specific character.
- * @param characterId The id of the character to get the skill proficiencies of.
+ * @param {Integer} characterId The id of the character to get the skill proficiencies of.
  * @returns A list of skill ids representing the skills the character is proficient in.
  */
 async function getSkillProficiencies(characterId){
@@ -560,7 +566,7 @@ async function getSkillProficiencies(characterId){
 
 /**
  * Gets the skill expertise for a specific character.
- * @param characterId The id of the character to get the skill expertise of.
+ * @param {Integer} characterId The id of the character to get the skill expertise of.
  * @returns A list of skill ids representing the skills the character has expertise in.
  */
 async function getSkillExpertise(characterId){
@@ -584,7 +590,7 @@ async function getSkillExpertise(characterId){
 
 /**
  * Gets the saving throw proficiencies for a specific character.
- * @param characterId The id of a character to get the proficiencies of.
+ * @param {Integer} characterId The id of a character to get the proficiencies of.
  * @returns A list of integers representing the ids of the abilities linked with the saving throws the character is proficient in.
  */
 async function getSavingThrowProficiencies(characterId){
@@ -608,7 +614,7 @@ async function getSavingThrowProficiencies(characterId){
 
 /**
  * Gets the saving throw bonuses for a specific character.
- * @param characterId The id of a character to get the bonuses of.
+ * @param {Integer} characterId The id of a character to get the bonuses of.
  * @returns A list of objects, each containing a saving throw id and the player's bonus in that saving throw - {Id: #AbilityId, Bonus: #}
  */
 async function getSavingThrowBonuses(characterId){
@@ -631,6 +637,30 @@ async function getSavingThrowBonuses(characterId){
 
 }
 
+/**
+ * Gets all the ability scores of a character.
+ * @param {Integer} characterId The id of a character.
+ * @returns An object containing tha character's ability scores {Score: #, AbilityId: #, AbilityName: "..."}
+ */
+async function getAbilityScores(characterId){
+    // Validate the character id
+    try{
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch(error){
+        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowBonuses', error.message);
+    }
+
+    let abilityScores;
+    try{
+        [abilityScores, columns] = await connection.query(`SELECT Score, AbilityId, Name as AbilityName FROM AbilityScore AS, Ability A WHERE AbilityId = Id AND CharacterId = ${characterId};`);
+        return abilityScores;
+    }
+    catch(error){
+        throw new DatabaseError('characterStatisticsModel', 'getAbilityScores', `Failed to get the ability scores from the database: ${error}`);
+    }
+}
+
 module.exports = { 
     initialize,
     closeConnection,
@@ -646,5 +676,6 @@ module.exports = {
     getSkillProficiencies,
     getSavingThrowBonuses,
     getSavingThrowProficiencies,
-    getSkillExpertise
+    getSkillExpertise,
+    getAbilityScores
 }

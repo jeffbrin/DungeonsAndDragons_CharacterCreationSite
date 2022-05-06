@@ -1,6 +1,6 @@
-const backgroundModel = require('../models/backgroundModel');
+const backgroundModel = require('../../models/backgroundModel');
 const fs = require('fs/promises')
-const errorModel = require('../models/errorModel')
+const errorModel = require('../../models/errorModel')
 const dbName = 'dnd_db_testing'
 const backgroundsArray = []
 
