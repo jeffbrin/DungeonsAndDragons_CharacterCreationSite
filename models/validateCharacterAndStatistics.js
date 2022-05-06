@@ -128,17 +128,14 @@ async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpo
 /* #region  Check Functions */
 
 /**
- * Checks the name of the character in order to see if it is Alphabetized
+ * Checks the name of the character in order to see if it is Empty
  * @param {String} name 
  * @throws {ValidationError} If The name can't be validated
  */
 function checkName(name) {
-    names = name.split(' ');
-    for (let i = 0; i < names.length; i++) {
-        if (!validator.isAlpha(names[i] || names[i] === "")) {
-            logger.error("Name must be Alphanumeric and cannot be empty. Your input: " + name);
-            throw new ValidationError(`\nName, ${name}, must not have any special characters or numbers. `);
-        }
+    if (name === '') {
+        logger.error("Name cannot be empty.");
+        throw new ValidationError(`\nName, ${name}, must not have any special characters or numbers. `);
     }
     logger.info(`Name, ${name}, was validated inside of validateCharacter module in checkName.`);
 }
@@ -153,8 +150,8 @@ async function checkRace(raceId) {
     try {
         var [races, column_definitions] = await connection.query(racesQuery);
         logger.info("validateCharacter - select Query to retrieve races completed - checkRace");
-        
-        races = races.map( (race) => race.Id);
+
+        races = races.map((race) => race.Id);
 
 
     } catch (error) {
@@ -179,8 +176,8 @@ async function checkClass(charClassId) {
         var [classes, column_definitions] = await connection.query(classesQuery);
         logger.info("validateCharacter - select Query to retrieve classes completed - checkClass");
 
-        classes = classes.map( (thisClass) => thisClass.Id);
-        
+        classes = classes.map((thisClass) => thisClass.Id);
+
     } catch (error) {
         throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${error.message}`);
     }
@@ -214,7 +211,7 @@ async function checkBackground(backgroundId) {
         var [backgrounds, column_definitions] = await connection.query(backgroundsQuery);
         logger.info("validateCharacter - select Query to retrieve backgrounds completed - checkBackground");
 
-        backgrounds = backgrounds.map( (background) => background.Id);
+        backgrounds = backgrounds.map((background) => background.Id);
     } catch (error) {
         throw new errors.DatabaseError('validateCharacter', 'checkBackground', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
     }
@@ -237,7 +234,7 @@ async function checkEthics(ethicsId) {
         var [ethics, column_definitions] = await connection.query(ethicsQuery);
         logger.info("validateCharacter - select Query to retrieve ethics completed - checkEthics");
 
-        ethics = ethics.map( (ethic) => ethic.Id);
+        ethics = ethics.map((ethic) => ethic.Id);
     } catch (error) {
         throw new errors.DatabaseError('validateCharacter', 'checkEthics', `Couldn\`t execute the ethics select Query: ${error.message}`);
     }
@@ -258,7 +255,7 @@ async function checkMorality(moralityId) {
     try {
         var [moralities, column_definitions] = await connection.query(moralitiesQuery);
         logger.info("validateCharacter - select Query to retrieve moralities completed - checkMorality");
-        moralities = moralities.map( (morality) => morality.Id);
+        moralities = moralities.map((morality) => morality.Id);
     } catch (error) {
         throw new errors.DatabaseError('validateCharacter', 'checkMorality', `Couldn\`t execute the moralities select Query: ${error.message}`);
     }
