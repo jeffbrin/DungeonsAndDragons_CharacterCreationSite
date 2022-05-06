@@ -25,10 +25,12 @@ async function initialize(databaseNameTmp, reset) {
 
     //if reset true, drop all the tables in reverse creation order.
     if (reset) {
-        const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality;`;
+        const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality, Ethics;`;
         try {
+            await characterStatsModel.dropTables();
             await connection.execute(deleteDbQuery);
             logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
+            
         } catch (error) {
             throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
         }
@@ -41,6 +43,7 @@ async function initialize(databaseNameTmp, reset) {
     await createOwnedItemTable();
 
     await characterStatsModel.initialize(databaseNameTmp);
+    await characterStatsModel.createTables();
 }
 
 
@@ -165,12 +168,12 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
  */
 async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId) {
     try {
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrows, userId)
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilities, savingThrows, userId)
     } catch (error) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', `Invalid Character, cannot update character: ${error.message}`);
     }
 
-    let selectQuery = `Select 1 from ${tableName} WHERE id = ${id}`;
+    let selectQuery = `Select 1 from ${tableName} WHERE id = ${characterId}`;
     let rows, column_definitions;
 
     try {
@@ -208,13 +211,13 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 
         //Add To Character Statistics Table
         //Add Saving Throw Proficiency for each in the array of Ids
-        for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
-            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+        for (let i = 0; i < savingThrows.length; i++) {
+            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrows[i]);
         }
 
 
         //Add Ability Score Values
-        await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+        await characterStatsModel.setAbilityScores(characterId, abilities);
 
     } catch (error) {
         if (error instanceof errors.InvalidInputError) {
@@ -271,7 +274,7 @@ async function addRemoveHp(id, hpValueChange) {
  * Gets a specific character based off of the passed in ID
  * @param {Integer} id - the Id of the character that needs to be retrieved from the database
  * @returns An Object Containing the Character { Id: {Int}, Name: {String}, Class: {String}, Race: {String}, Ethics: {String}, Morality: {String}, Background:{String}, ProficiencyBonus: {Int}, 
- * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int} }
+ * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int}, OwnedItem: {Name, Count},  }
  * @throws {InvalidInputError} If the character is not found 
  */
 async function getCharacter(id) {
@@ -314,17 +317,73 @@ async function getCharacter(id) {
     try {
         let proficiencies = await characterStatsModel.getSavingThrowProficiencies(id);
         character.SavingThrowProficiencies = proficiencies;
-        logger.info("SavingThrowProficiencies have been gotten from the StatisticsModel.")
+        logger.info("SavingThrowProficiencies have been gotten from the StatisticsModel.");
     } catch (error) {
         throw error;
     }
 
 
 
-    
+    try {
+        let abilityScores = await characterStatsModel.getAbilityScores(id);
+        character.AbilityScores = abilityScores;
+        logger.info("AbilityScores have been gotten from the StatisticsModel.");
+    } catch (error) {
+        throw error;
+    }
+
+
+    //getting owned Items
+    try {
+        const ownedQ = `SELECT Name, Count FROM OwnedItem WHERE CharacterId = ${id};`;
+        let [rows, colum_definitions] = await connection.query(ownedQ);
+        character.OwnedItems = rows;
+        logger.info("OwnedItems have been gotten from the Database.");
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'getCharacter', `Database Error, couldn't get Owned Items: ${error.message}`);
+    }
     
 
+    //Get name of morality and ethics, race, class, background
+
     return character;
+}
+
+
+/**
+ * Gets all the moralities from the Morality Table
+ * @returns {Array} - An array of String Names for each of the three moralities
+ * @throws {DatabaseError} - If the query fails
+ */
+async function getAllMoralities(){
+    let query = `SELECT Name from Morality;`;
+
+    let rows;
+    try {
+        [rows, colum_definitions] = await connection.query(query);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'getAllMoralities', `Database Error: ${error.message}`);
+    }
+
+    return rows;
+}
+
+/**
+ * Gets all the Ethics from the Ethics Table
+ * @returns {Array} - An array of String Names for each of the three Ethics
+ * @throws {DatabaseError} - If the query fails
+ */
+ async function getAllEthics(){
+    let query = `SELECT Name from Ethics;`;
+
+    let rows;
+    try {
+        [rows, colum_definitions] = await connection.query(query);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'getAllEthics', `Database Error: ${error.message}`);
+    }
+
+    return rows;
 }
 
 /**
@@ -687,6 +746,8 @@ module.exports = {
     removeCharacter,
     getConnection,
     getUserCharacters,
+    getAllEthics,
+    getAllMoralities,
     levelUp,
     updateExp,
     updateAC,

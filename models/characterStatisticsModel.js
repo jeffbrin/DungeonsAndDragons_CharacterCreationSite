@@ -297,7 +297,7 @@ async function setAbilityScores(characterId, abilityScores) {
     // Add each ability score
     try{
         for (let i = 1; i < abilityScores.length; i++){
-            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]}}`);
+            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]});`);
         }
     }
     catch(error){
@@ -316,8 +316,6 @@ async function setAbilityScores(characterId, abilityScores) {
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database. 
  */
 async function addSkillProficiency(characterId, skillId) {
-    
-    
 
     // Validate the skill id
     try{
@@ -403,8 +401,6 @@ async function addSkillExpertise(characterId, skillId) {
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
  */
 async function addSavingThrowProficiency(characterId, abilityId) {
-    
-    
 
     // Validate the ability id
     try{
@@ -449,8 +445,6 @@ async function addSavingThrowProficiency(characterId, abilityId) {
  * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database, or when the bonus is not an integer. 
  */
 async function setSavingThrowBonus(characterId, abilityId, bonus) {
-    
-    
 
     // Validate the ability id
     try{

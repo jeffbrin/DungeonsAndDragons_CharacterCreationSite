@@ -289,13 +289,6 @@ function checkAbilityScores(abilityScoreValues) {
         logger.error(`AbilityScores must have 6 entries in the array inside of validateCharacter module in checkAbilityScores`);
         throw new ValidationError(`\nAbility Scores MUST have 6 values.`);
     }
-    for (let i = 0; i < ABILITY_SCORE_LENGTH; i++) {
-        if (isAlpha(abilityScoreValues[i])) {
-            logger.error(`AbilityScores must have 6 integers in the array inside of validateCharacter module in checkAbilityScores`);
-            throw new ValidationError(`\nAbility Scores MUST have 6 integers, not strings.`);
-        }
-
-    }
     logger.info(`AbilityScores Array was validated inside of validateCharacter module in checkAbilityScores`);
 }
 /**
@@ -309,6 +302,7 @@ async function checkSavingThrowProficiencies(savingThrowIds) {
     try {
         var [savingThrows, column_definitions] = await connection.query(savingThrowsQuery);
         logger.info("validateCharacter - select Query to retrieve savingThrows completed - checkSavingThrowProficiencies");
+        savingThrows = savingThrows.map((savingThrow) => savingThrow.Id);
     } catch (error) {
         throw new errors.DatabaseError('validateCharacter', 'checkSavingThrowProficiencies', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
     }
