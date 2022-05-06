@@ -72,10 +72,9 @@ async function closeConnection() {
  */
 async function addCharacterObject(character) {
     return await addCharacter(character.ClassId, character.RaceId, character.Name, character.MaxHP,
-        character.Background, character.EthicsId, character.MoralityId, character.Level, character.AbilityScoreValues,
+        character.BackgroundId, character.EthicsId, character.MoralityId, character.Level, character.AbilityScoreValues,
         character.SavingThrowProficienciesIds, character.ProficiencyBonus, character.UserId, character.ArmorClass);
 }
-
 
 /**
  * Adds a Character to the PlayerCharacter table by first assign them a unique Id, depending on what is available in the database.

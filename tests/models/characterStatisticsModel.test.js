@@ -322,8 +322,8 @@ test('getSkillProficiencies - Success - Gets all skill proficiencies for charact
     const savingThrowProficiency = await characterStatsModel.getSkillProficiencies(1);
 
     expect(savingThrowProficiency[0]).toBe(1);
-    expect(savingThrowProficiency[1]).toBe(5);
-    expect(savingThrowProficiency[2]).toBe(7);
+    expect(savingThrowProficiency[1]).toBe(3);
+    expect(savingThrowProficiency[2]).toBe(5);
 
 
 })
@@ -356,8 +356,8 @@ test('getSkillExpertise - Success - Gets all skill proficiencies for character',
     const skillExpertise = await characterStatsModel.getSkillExpertise(1);
 
     expect(skillExpertise[0]).toBe(1);
-    expect(skillExpertise[1]).toBe(5);
-    expect(skillExpertise[2]).toBe(7);
+    expect(skillExpertise[1]).toBe(3);
+    expect(skillExpertise[2]).toBe(5);
 
 
 })
@@ -443,5 +443,108 @@ test('getSavingThrowProficiencies - Failure - Closed database connection', async
 
     characterStatsModel.closeConnection();
     await expect(characterStatsModel.getSavingThrowProficiencies(1, 1)).rejects.toThrow(DatabaseError);
+
+})
+
+
+// remove skill proficiencies
+test('removeSkillProficiency - Success - removes all skill proficiencies for character', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await characterStatsModel.addSkillProficiency(1, 3);
+    await characterStatsModel.addSkillProficiency(1, 1);
+    await characterStatsModel.addSkillProficiency(1, 5);
+
+    await characterStatsModel.removeSkillProficiency(1, 3);
+    const savingThrowProficiency = await characterStatsModel.getSkillProficiencies(1);
+
+    expect(savingThrowProficiency[0]).toBe(1);
+    expect(savingThrowProficiency[1]).toBe(5);
+
+
+})
+
+test('removeSkillProficiency - Failure - Invalid character id', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await expect(characterStatsModel.removeSkillProficiency(-10)).rejects.toThrow(InvalidInputError);
+    await expect(characterStatsModel.removeSkillProficiency(100)).rejects.toThrow(InvalidInputError);
+
+})
+    
+test('removeSkillProficiency - Failure - Closed database connection', async () => {
+
+    characterStatsModel.closeConnection();
+    await expect(characterStatsModel.removeSkillProficiency(1, 1)).rejects.toThrow(DatabaseError);
+
+})
+
+// remove skill expertise
+test('removeSkillExpertise - Success - removes all skill proficiencies for character', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await characterStatsModel.addSkillExpertise(1, 3);
+    await characterStatsModel.addSkillExpertise(1, 1);
+    await characterStatsModel.addSkillExpertise(1, 5);
+
+    await characterStatsModel.removeSkillExpertise(1, 3);
+    const skillExpertise = await characterStatsModel.getSkillExpertise(1);
+
+    expect(skillExpertise[0]).toBe(1);
+    expect(skillExpertise[1]).toBe(5);
+
+
+})
+
+test('removeSkillExpertise - Failure - Invalid character id', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await expect(characterStatsModel.removeSkillExpertise(-10)).rejects.toThrow(InvalidInputError);
+    await expect(characterStatsModel.removeSkillExpertise(100)).rejects.toThrow(InvalidInputError);
+
+})
+    
+test('removeSkillExpertise - Failure - Closed database connection', async () => {
+
+    characterStatsModel.closeConnection();
+    await expect(characterStatsModel.removeSkillExpertise(1, 1)).rejects.toThrow(DatabaseError);
+
+})
+
+// remove saving throw proficiencies
+test('removeSavingThrowProficiency - Success - removes all saving throw proficiencies for character', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await characterStatsModel.addSavingThrowProficiency(1, 3);
+    await characterStatsModel.addSavingThrowProficiency(1, 1);
+    await characterStatsModel.addSavingThrowProficiency(1, 5);
+
+    await characterStatsModel.removeSavingThrowProficiency(1, 3);
+    const savingThrowBonuses = await characterStatsModel.getSavingThrowProficiencies(1);
+
+    expect(savingThrowBonuses[0]).toBe(1);
+    expect(savingThrowBonuses[1]).toBe(5);
+
+
+})
+
+test('removeSavingThrowProficiency - Failure - Invalid character id', async () => {
+
+    await userModel.addUser('username', 'Password1');
+    await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1, 13);
+    await expect(characterStatsModel.removeSavingThrowProficiency(-10)).rejects.toThrow(InvalidInputError);
+    await expect(characterStatsModel.removeSavingThrowProficiency(100)).rejects.toThrow(InvalidInputError);
+
+})
+    
+test('removeSavingThrowProficiency - Failure - Closed database connection', async () => {
+
+    characterStatsModel.closeConnection();
+    await expect(characterStatsModel.removeSavingThrowProficiency(1, 1)).rejects.toThrow(DatabaseError);
 
 })

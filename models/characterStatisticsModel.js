@@ -508,12 +508,8 @@ async function closeConnection(){
 async function getSkillProficiencies(characterId){
 
     // Validate the character id
-    try{
-        await validationModel.checkCharacterId(characterId);
-    }
-    catch(error){
-        throw new InvalidInputError('characterStatisticsModel', 'getSkillProficiencies', error.message);
-    }
+    await validationModel.checkCharacterId(characterId);
+
 
     let skillIdObjects;
     try{
@@ -535,12 +531,8 @@ async function getSkillProficiencies(characterId){
  */
 async function getSkillExpertise(characterId){
     // Validate the character id
-    try{
-        await validationModel.checkCharacterId(characterId);
-    }
-    catch(error){
-        throw new InvalidInputError('characterStatisticsModel', 'getSkillExpertise', error.message);
-    }
+    await validationModel.checkCharacterId(characterId);
+
 
     let skillIdObjects;
     try{
@@ -561,12 +553,8 @@ async function getSkillExpertise(characterId){
  */
 async function getSavingThrowProficiencies(characterId){
     // Validate the character id
-    try{
-        await validationModel.checkCharacterId(characterId);
-    }
-    catch(error){
-        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowProficiencies', error.message);
-    }
+    await validationModel.checkCharacterId(characterId);
+
 
     let savingThrowIdObjects;
     try{
@@ -587,16 +575,12 @@ async function getSavingThrowProficiencies(characterId){
  */
 async function getSavingThrowBonuses(characterId){
     // Validate the character id
-    try{
-        await validationModel.checkCharacterId(characterId);
-    }
-    catch(error){
-        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowBonuses', error.message);
-    }
+    await validationModel.checkCharacterId(characterId);
+
 
     let savingThrowBonusObjects;
     try{
-        [savingThrowBonusObjects, columns] = await connection.query(`SELECT AbilityId, Bonus FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
+        [savingThrowBonusObjects, columns] = await connection.query(`SELECT AbilityId, Bonus FROM SavingThrowBonus WHERE CharacterId = ${characterId}`);
         return savingThrowBonusObjects;
     }
     catch(error){
