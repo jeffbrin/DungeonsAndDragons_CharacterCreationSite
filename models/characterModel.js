@@ -24,6 +24,7 @@ async function initialize(databaseNameTmp, reset) {
     });
 
     //if reset true, drop all the tables in reverse creation order.
+    await characterStatsModel.initialize(databaseNameTmp);
     if (reset) {
         const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality, Ethics;`;
         try {
@@ -42,7 +43,7 @@ async function initialize(databaseNameTmp, reset) {
     await createKnownSpellTable();
     await createOwnedItemTable();
 
-    await characterStatsModel.initialize(databaseNameTmp);
+    
     await characterStatsModel.createTables();
 }
 

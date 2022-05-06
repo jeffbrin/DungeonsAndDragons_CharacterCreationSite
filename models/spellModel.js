@@ -105,8 +105,6 @@ async function initialize(databaseName, reset) {
         await connection.execute('DROP TABLE IF EXISTS OwnedItem;')
         await connection.execute('DROP TABLE IF EXISTS Spell;')
         await connection.execute('DROP TABLE IF EXISTS SpellSchool;')
-        await connection.execute('DROP TABLE IF EXISTS PlayerCharacter;')
-        await connection.execute('DROP TABLE IF EXISTS Session;')
     }
     catch(error){
         throw new DatabaseError('userModel', 'dropReliantTables', `Failed to drop the tables which are reliant on the User table: ${error}`)
