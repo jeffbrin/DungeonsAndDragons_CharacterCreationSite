@@ -1,4 +1,4 @@
-const spellModel = require('../models/spellModel');
+const spellModel = require('../../models/spellModel');
 const dbName = 'dnd_db_testing'
 
 const randomSpells = [
@@ -25,7 +25,7 @@ function getRandomSpell (){
 
 // Initialize the database before each test.
 beforeEach(async () => {
-    await spellModel.initialize(dbName, true);    
+    await spellModel.initialize(dbName, true);
 });
 
 // Close the database connection after each test to prevent open handles error.

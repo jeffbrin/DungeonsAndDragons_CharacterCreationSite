@@ -1,12 +1,17 @@
 
 
+{{#if error}}
+  <div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+    <h4>{{status}} Error</h4>
+    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+      <use xlink:href="#exclamation-triangle-fill" />
+    </svg>{{error}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {{/if}}
 <div class="container text-center" id="h1Main">
   <h1>Mind Flayer's Atheneum</h1>
 </div>
-
-
-
-
 <div class="container w-50" id="carouselDiv">
   <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">

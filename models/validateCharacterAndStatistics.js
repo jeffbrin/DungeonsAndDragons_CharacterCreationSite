@@ -3,14 +3,14 @@
  */
 
 const validator = require('validator');
-const races = [];
-const classes = [];
-const backgrounds = [];
-const ethics = [];
-const moralities = [];
+let races = [];
+let classes = [];
+let backgrounds = [];
+let ethics = [];
+let moralities = [];
 const ABILITY_SCORE_LENGTH = 6;
-const savingThrows = [];
-const users = [];
+let savingThrows = [];
+let users = [];
 const errors = require('./errorModel');
 const logger = require('../logger');
 const { default: isAlpha } = require('validator/lib/isAlpha');
@@ -31,7 +31,7 @@ class ValidationError extends errors.InvalidInputError {
  * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function loadMostRecentValuesFromDatabase(connection) {
-    const racesQuery = `SELECT Id FROM RACE;`;
+    const racesQuery = `SELECT Id FROM Race;`;
     try {
         let [rows, column_definitions] = await connection.query(racesQuery);
         logger.info("validateCharacter - select Query to retrieve races completed - loadMostRecentValuesFromDatabase");
@@ -42,7 +42,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const classesQuery = 'SELECT Id FROM CLASS;';
+    const classesQuery = 'SELECT Id FROM Class;';
     try {
         let [rows, column_definitions] = await connection.query(classesQuery);
         logger.info("validateCharacter - select Query to retrieve classes completed - loadMostRecentValuesFromDatabase");
@@ -52,7 +52,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const backgroundsQuery = 'SELECT Id FROM BACKGROUND;';
+    const backgroundsQuery = 'SELECT Id FROM Background;';
     try {
         let [rows, column_definitions] = await connection.query(backgroundsQuery);
         logger.info("validateCharacter - select Query to retrieve backgrounds completed - loadMostRecentValuesFromDatabase");
@@ -62,7 +62,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const ethicsQuery = 'SELECT Id FROM ETHICS;';
+    const ethicsQuery = 'SELECT Id FROM Ethics;';
     try {
         let [rows, column_definitions] = await connection.query(ethicsQuery);
         logger.info("validateCharacter - select Query to retrieve ethics completed - loadMostRecentValuesFromDatabase");
@@ -72,7 +72,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const moralitiesQuery = 'SELECT Id FROM MORALITY;';
+    const moralitiesQuery = 'SELECT Id FROM Morality;';
     try {
         let [rows, column_definitions] = await connection.query(moralitiesQuery);
         logger.info("validateCharacter - select Query to retrieve moralities completed - loadMostRecentValuesFromDatabase");
@@ -82,7 +82,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const savingThrowsQuery = 'SELECT Id FROM ABILITY;';
+    const savingThrowsQuery = 'SELECT Id FROM Ability;';
     try {
         let [rows, column_definitions] = await connection.query(savingThrowsQuery);
         logger.info("validateCharacter - select Query to retrieve savingThrows completed - loadMostRecentValuesFromDatabase");
@@ -92,7 +92,7 @@ async function loadMostRecentValuesFromDatabase(connection) {
     }
 
 
-    const usersQuery = 'SELECT Id FROM USER;';
+    const usersQuery = 'SELECT Id FROM User;';
     try {
         let [rows, column_definitions] = await connection.query(usersQuery);
         logger.info("validateCharacter - select Query to retrieve users completed - loadMostRecentValuesFromDatabase");
@@ -106,12 +106,12 @@ async function loadMostRecentValuesFromDatabase(connection) {
 /**
  * Validates a Character against a set of restrictions that are set in place.
  * If all the checks pass, then nothing is thrown.
- * if 1 more more cheks fail then an error message is built
+ * if 1 more more checks fail then an error message is built
  * @param {String} name - The Name of the character
  * @param {Integer} raceId - The Id of the Race chosen
  * @param {Integer} charClassId - The Id of the Class chosen
  * @param {Integer} maxHitpoints  - The Number of Max Hitpoints chosen
- * @param {Integer} backgroundId - The Integer Representation of the Characters Background in the Backgound Table
+ * @param {Integer} backgroundId - The Integer Representation of the Characters Background in the Background Table
  * @param {Integer} ethicsId - The Ethics of the Character - Foreign Key ID
  * @param {Integer} moralityId - The Morality of the Character
  * @param {Integer} level - The chosen Level of the Character
@@ -158,7 +158,7 @@ async function isCharValid(connection, name, raceId, charClassId, maxHitpoints, 
     }
 
     try {
-        checkBackgound(backgroundId);
+        checkBackground(backgroundId);
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
@@ -272,12 +272,12 @@ function checkMaxHitPoints(maxHitpoints) {
  * @param {Integer} backgroundId - The Background Id that needs to be validated.
  * @throws {ValidationError} If the backgroundId was not found in the database.
  */
-function checkBackgound(backgroundId) {
+function checkBackground(backgroundId) {
     if (!backgrounds.includes(backgroundId)) {
         logger.error(`Background with id ${backgroundId} was not found inside of validateCharacter module in checkBackground`);
         throw new ValidationError(`\nBackground  of id ${backgroundId}must be a valid background. There is no background that matches.`);
     }
-    logger.info(`Background with ID: ${backgroundId} was validated inside of validateCharacter module in checkBackgound`);
+    logger.info(`Background with ID: ${backgroundId} was validated inside of validateCharacter module in checkBackground`);
 }
 /**
  * Validates the Ethics Id against the database.
@@ -292,7 +292,7 @@ function checkEthics(ethicsId) {
     logger.info(`ethics with ID: ${ethicsId} was validated inside of validateCharacter module in checkEthics`);
 }
 /**
- * Validates the Morality Id agianst the database
+ * Validates the Morality Id against the database
  * @param {Integer} moralityId - The Morality Id that needs to be validated
  * @throws {ValidationError} If the moralityId was not found in the database.
  */
@@ -401,5 +401,6 @@ module.exports = {
     loadMostRecentValuesFromDatabase, 
     checkCharacterId, 
     checkSkillId, 
-    checkAbility 
+    checkAbility,
+    checkAbilityScores
 };
