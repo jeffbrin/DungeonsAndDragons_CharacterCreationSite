@@ -41,7 +41,7 @@ async function initialize(databaseName, reset) {
  * @param {boolean} reset Indicates whether the tables should be if they already exist.
  * @throws {DatabaseError} Thrown when a table either failed to be dropped or failed to be created.
  */
-async function createClassTable(connection, reset) {
+async function createClassTable(reset) {
 
     // Reset if the reset flag is true
     if (reset) {
@@ -67,6 +67,27 @@ async function createClassTable(connection, reset) {
         catch (error) {
             throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the ClassPermittedSpell table in the database... check your connection to the database: ${error.message}`)
         }
+
+        // Drop the OwnedItem table first
+        dropCommand = `DROP TABLE IF EXISTS OwnedItem;`;
+        try {
+            await connection.execute(dropCommand);
+            logger.info(`OwnedItem table dropped.`);
+        }
+        catch (error) {
+            throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the OwnedItem table in the database... check your connection to the database: ${error.message}`)
+        }
+
+        // Drop the KnownSpell table first
+        dropCommand = `DROP TABLE IF EXISTS KnownSpell;`;
+        try {
+            await connection.execute(dropCommand);
+            logger.info(`KnownSpell table dropped.`);
+        }
+        catch (error) {
+            throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
+        }
+
 
         // Drop the PlayerCharacter table since it contains foreign keys in the Class table
         dropCommand = `DROP TABLE IF EXISTS PlayerCharacter;`;

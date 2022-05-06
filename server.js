@@ -6,7 +6,8 @@ const classModel = require('./models/classModel');
 const characterModel = require('./models/characterModel');
 const backgroundModel = require('./models/backgroundModel');
 const userModel = require('./models/userModel');
-
+// const characterStatisticsModel = require('./models/characterStatisticsModel');
+const backgroundModel = require('./models/backgroundModel');
 const logger = require('./logger.js');
 
 let dbName = process.argv[2];
@@ -21,17 +22,16 @@ startup()
         logger.error(error);
     });
 
-async function startup() {
-    try {
-        await userModel.initialize(dbName, true);
-        await spellModel.initialize(dbName, false)
-        await backgroundModel.initialize(dbName, false);
-        await raceModel.initialize(dbName, false);
-        await classModel.initialize(dbName, false);
-        await characterModel.initialize(dbName, false);
-        await userModel.addUser('anderson', 'Anderson514');
-        await characterModel.addCharacter(1, 1, 'sam', 22, 1, 1, 1, 1, [0, 0, 0, 0, 0, 0], [1, 3], 2, 1);
-    } catch (error) {
+
+async function startup(){
+    try{
+    await userModel.initialize(dbName, false);
+    await backgroundModel.initialize(dbName, false);
+    await raceModel.initialize(dbName, false);
+    await spellModel.initialize(dbName, false);
+    await characterModel.initialize(dbName, false);
+    // await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1)
+    }catch(error){
         throw error;
     }
     // Always run the server even with failed initialization
