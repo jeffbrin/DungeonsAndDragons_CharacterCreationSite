@@ -1,3 +1,4 @@
+const userModel = require('../../models/userModel')
 const characterStatsModel = require('../../models/characterStatisticsModel');
 const characterModel = require('../../models/characterModel');
 const spellModel = require('../../models/spellModel');
@@ -20,6 +21,7 @@ async function getSkillsFromJsonFile(){
 
 // Initialize the database before each test.
 beforeEach(async () => {
+    await userModel.initialize(dbName, true);
     await classModel.initialize(dbName, true);
     await backgroundModel.initialize(dbName, true);
     await raceModel.initialize(dbName, true);
@@ -38,6 +40,7 @@ afterEach(async () => {
     await spellModel.closeConnection();
     await characterStatsModel.closeConnection();
     await characterModel.closeConnection();
+    await userModel.closeConnection();
 });
 
 // Get all skills
@@ -85,10 +88,9 @@ test('getAllAbilities - Failure - Closed database connection.', async () => {
 // Set ability scores
 test('setAbilityScores - Success - Sets ability scores for character', async () => {
 
+    await userModel.addUser('username', 'Password1');
     await characterModel.addCharacter(1, 1, 'Angongle', 10, 1, 1, 1, 1, [11, 12, 13, 14, 15, 16], [1, 3], 2, 1);
     const character = await characterModel.getCharacter(1);
-
-
 
 })
 

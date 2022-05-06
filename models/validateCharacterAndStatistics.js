@@ -8,7 +8,6 @@ const logger = require('../logger');
 const { default: isAlpha } = require('validator/lib/isAlpha');
 const ABILITY_SCORE_LENGTH = 6;
 
-
 class ValidationError extends errors.InvalidInputError {
     constructor(message) {
         super();
