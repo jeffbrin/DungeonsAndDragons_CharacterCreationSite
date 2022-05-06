@@ -71,9 +71,9 @@ async function closeConnection() {
  * @returns uses the addCharacter function as a promise
  */
 async function addCharacterObject(character) {
-    return await addCharacter(character.classId, character.raceId, character.name, character.maxHP,
-        character.background, character.ethicsId, character.moralityId, character.level, character.abilityScoreValues,
-        character.savingThrowProficienciesIds, character.proficiencyBonus, character.userId);
+    return await addCharacter(character.ClassId, character.RaceId, character.Name, character.MaxHP,
+        character.Background, character.EthicsId, character.MoralityId, character.Level, character.AbilityScoreValues,
+        character.SavingThrowProficienciesIds, character.ProficiencyBonus, character.UserId, character.ArmorClass);
 }
 
 
@@ -98,7 +98,7 @@ async function addCharacterObject(character) {
  * @throws {DatabaseError} - If there was an error connecting to the Database or with the Query
  * @returns {Integer} - The Character Id of the newly created character. If the Add fails, it throws and will not return.
  */
-async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, proficiencyBonus, userId) {
+async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, proficiencyBonus, userId, armorClass) {
 
     //select from character table and select the next highest available id top order by ID
     const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`
@@ -108,15 +108,15 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
         if (rows.length != 0) {
             characterId = parseInt(rows[0].Id);
         }
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId);
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId, armorClass);
     }
     catch (error) {
         throw new errors.InvalidInputError("characterModel", "addCharacter", `Couldn't Validate the character: ${error.message}`);
     }
 
     //ADD CHAR TO DB
-    let query = `INSERT into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
-    (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
+    let query = `INSERT into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus, ArmorClass) values 
+    (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus}, ${armorClass});`;
 
     try {
         await connection.execute(query);
@@ -134,7 +134,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
             await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
         }
 
-
+        
         //Add Ability Score Values
         await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
 
@@ -167,7 +167,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
  * @param {Integer} proficiencyBonus - The value of the proficiency bonus for a character in the Character Sheet
  * @returns {Integer} The Id of the Character that was just updated, throws otherwise.
  */
-async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId) {
+async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId, armorClass) {
     try {
         await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilities, savingThrows, userId)
     } catch (error) {
@@ -197,7 +197,7 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 
     let query = `Update ${tableName} SET Name = '${name.replace(/'/g, "''")}', RaceId = ${raceId}, 
         ClassId = ${classId}, MaxHp = ${maxHp}, EthicsId = ${ethicsId}, MoralityId = ${moralityId}, BackgroundId = ${backgroundId},
-        ProficiencyBonus = ${proficiencyBonus}, Level = ${level} where id = ${characterId};`;
+        ProficiencyBonus = ${proficiencyBonus}, Level = ${level}, ArmorClass = ${armorClass} where id = ${characterId};`;
 
 
     try {
@@ -283,7 +283,7 @@ async function getCharacter(id) {
     //First Check to see if the character exists
     try {
         const q = `Select 1 from ${tableName} where Id = ${id}`;
-        let [rows, cols] = connection.query(q);
+        let [rows, cols] = await connection.query(q);
         if (rows.length <= 0)
             throw new errors.InvalidInputError('characterModel', 'getCharacter', `Couldn't find character with Id: ${id}`);
     } catch (error) {
@@ -292,9 +292,9 @@ async function getCharacter(id) {
 
     //Now we know the character exists
     let query = `SELECT c.Id, c.Name, cl.Id, r.Id, e.Id, m.Id, b.Id, 
-    c.ProficiencyBonus, c.MaxHp, c.CurrentHp, c.Level, c.ArmorClass,
+    c.ProficiencyBonus, c.MaxHp, c.CurrentHp, c.Level, c.ArmorClass
     FROM PlayerCharacter c, Ethics e, Morality m, Race r, Class cl, Background b 
-    WHERE c.Id = ${id} and c.Id = e.CharacterId and c.Id = m.CharacterId and c.Id = r.CharacterId and c.Id = cl.CharacterId and c.Id = b.CharacterId;`;
+    WHERE c.Id = ${id} and c.EthicsId = e.Id and m.Id = c.MoralityId and c.RaceId = r.Id and c.ClassId = cl.Id and c.BackgroundId = b.Id;`;
 
     let rows, column_definitions;
 
@@ -428,12 +428,31 @@ async function removeCharacter(id) {
     //Select The Id of the user who's character this belongs to in order to remove that character from them as well
 
     try {
-        let checkingQ = `SELECT 1 from ${tableName} WHERE Id = ${id};`;
+        let checkingQ = `SELECT Id from ${tableName} WHERE Id = ${id};`;
         let [rows, column_definitions] = await connection.query(checkingQ);
         logger.info("Select query to check if Id exists has been executed");
         if (rows.length === 0) {
             throw new errors.InvalidInputError('characterModel', 'removeCharacter', `Character with Id: ${id} does not exist in the Database.`);
         }
+
+        let ownedItemsQ = `DELETE FROM OwnedItem where CharacterId = ${id};`;
+        await connection.execute(ownedItemsQ);
+
+        let knownSpellsQ = `DELETE FROM KnownSpell where CharacterId = ${id};`;
+        await connection.execute(knownSpellsQ);
+
+        let savingThrowQ = `DELETE FROM SavingThrowProficiency WHERE CharacterId = ${id};`;
+        await connection.execute(savingThrowQ);
+
+        let expertise = `DELETE FROM SkillExpertise WHERE CharacterId = ${id};`;
+        await connection.execute(expertise);
+
+        let abilityScoreQ = `DELETE FROM AbilityScore where CharacterId = ${id};`;
+        await connection.execute(abilityScoreQ);
+
+        let skillProfQ = `DELETE FROM SkillProficiency WHERE CharacterId = ${id};`;
+        await connection.execute(skillProfQ);
+
 
         await connection.execute(query);
         logger.info(`Delete Query Executed Character with id: ${id}. About to return true`);

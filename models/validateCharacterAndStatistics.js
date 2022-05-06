@@ -35,7 +35,7 @@ class ValidationError extends errors.InvalidInputError {
  * @param {Integer} userId - The Id of the user this character will belong to if created
  * @throws {InvalidInputError} If the Character is not valid, builds up an error message with all the things wrong with the Input.
  */
-async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId) {
+async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId, armorClass) {
 
     let bigErrorMessage = `Character is NOT valid: `
     let caught = false;
@@ -116,6 +116,9 @@ async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpo
     } catch (error) {
         caught = true;
         bigErrorMessage += error.message;
+    }
+    if(armorClass < 0){
+        throw new errors.InvalidInputError('validateCharacter', 'isCharValid', `Armor Class not valid, must be above 0: ${armorClass}`)
     }
 
     if (caught) {

@@ -596,8 +596,8 @@ async function getSavingThrowProficiencies(characterId){
 
     let savingThrowIdObjects;
     try{
-        [savingThrowIdObjects, columns] = await connection.query(`SELECT Id FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
-        return savingThrowIdObjects.map(x => x.Id);
+        [savingThrowIdObjects, columns] = await connection.query(`SELECT AbilityId FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
+        return savingThrowIdObjects.map(x => x.AbilityId);
     }
     catch(error){
         throw new DatabaseError('characterStatisticsModel', 'getSavingThrowProficiencies', `Failed to get the saving throw proficiency ids from the database: ${error}`);
@@ -645,7 +645,7 @@ async function getAbilityScores(characterId){
 
     let abilityScores;
     try{
-        [abilityScores, columns] = await connection.query(`SELECT Score, AbilityId, Name as AbilityName FROM AbilityScore AS, Ability A WHERE AbilityId = Id AND CharacterId = ${characterId};`);
+        [abilityScores, columns] = await connection.query(`SELECT Score, AbilityId, Name as AbilityName FROM AbilityScore, Ability A WHERE AbilityId = Id AND CharacterId = ${characterId};`);
         return abilityScores;
     }
     catch(error){

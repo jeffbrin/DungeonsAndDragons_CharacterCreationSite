@@ -22,16 +22,23 @@ startup()
     });
 
 
-async function startup(){
-    try{
-    await userModel.initialize(dbName, false);
-    await backgroundModel.initialize(dbName, false);
-    await raceModel.initialize(dbName, false);
-    await spellModel.initialize(dbName, false);
-    await characterModel.initialize(dbName, false);
-     await characterModel.addCharacter(1,1,'sam', 55, 2,2,2,2,[1,2,3,4,5,6], [1,2], 3, 1);
-     await characterModel.updateCharacter(1, 2, 3, 3, 3, 3, 'bob', 4, 5, [16,9,5,4,8,9], [2], 4, 1);
-    }catch(error){
+async function startup() {
+    try {
+        await userModel.initialize(dbName, false);
+        await backgroundModel.initialize(dbName, false);
+        await raceModel.initialize(dbName, false);
+        await spellModel.initialize(dbName, false);
+        await characterModel.initialize(dbName, false);
+        await characterModel.addCharacter(1, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
+        let character = await characterModel.getCharacter(1);
+        console.log(character);
+        await characterModel.updateCharacter(1, 2, 3, 3, 3, 3, 'bob', 4, 5, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
+        let character2 = await characterModel.getCharacter(1);
+        console.log(character2);
+
+        await characterModel.removeCharacter(1);
+        console.log('Deleted');
+    } catch (error) {
         throw error;
     }
     // Always run the server even with failed initialization
