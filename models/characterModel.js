@@ -84,14 +84,15 @@ async function addCharacterObject(character) {
  * @param {Integer} ethicsId - The Ethics of the Character - Foreign Key ID
  * @param {Integer} moralityId - The Morality of the Character
  * @param {Integer} level - The chosen Level of the Character
- * @param {Int32Array} abilityScoreValues - An array of size 6 of Ability Score IDs in order. Each index of the array is the ability score for that index's ability.
- * Ex. [1, 0, 1, 2, 0, 3] -> Starts at strength and ends with Charisma. Array is 0 based but Ability Ids are 1 based
+ * @param {Int32Array} abilityScoreValues - An array of size 6 of. Each index of the array is the ability score for that index's ability.
+ * Ex. [10, 8, 15, 12, 9, 9] -> Starts at Strength and ends with Charisma. Ability Score Modifier is calculated off of these values.
  * @param {Int32Array} savingThrowProficienciesIds - An array of Saving Throw Proficiencies IDs. Each index of the array is the Integer of the 
  * Saving Throw the Character is proficient in (1 based)
  * @param {Integer} proficiencyBonus - The value of the proficiency bonus for a character in the Character Sheet
  * @param {Integer} userId - The Id of the user this character will belong to if created
  * @throws {InvalidInputError} - If the Input does not match up with the restrictions set
  * @throws {DatabaseError} - If there was an error connecting to the Database or with the Query
+ * @returns {Integer} - The Character Id of the newly created character. If the Add fails, it throws and will not return.
  */
 async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, proficiencyBonus, userId) {
 
@@ -110,8 +111,8 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     }
 
     //ADD CHAR TO DB
-    let query = `insert into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
-    (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name.toLowerCase()}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
+    let query = `INSERT into ${tableName} (Id, UserId, ClassId, RaceId, EthicsId, MoralityId, BackgroundId, Name, MaxHp, CurrentHp, Level, ProficiencyBonus) values 
+    (${characterId}, ${userId}, ${classId}, ${raceId}, ${ethicsId}, ${moralityId}, ${background}, '${name}', ${maxHP}, ${maxHP}, ${level}, ${proficiencyBonus});`;
 
     try {
         await connection.execute(query);
@@ -141,45 +142,90 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
             throw new errors.DatabaseError('characterModel', 'addCharacter', `Database connection or query error, Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
         }
     }
-    return true;
+    return characterId;
 }
 
 /**
  * 
- * @param {Integer} id - The id of the character to update.
- * @param {String} newName - The new name of the character to update.
- * @param {String} newRace - The new race of the character to update.
- * @param {String} newClass - The new Class of the character to update.
- * @param {Integer} newHitpoints - The new hitpoints of the character to update
- * @description - This function updates a character in the database after validating the inputs. Stores strings into the Database as lower case.
- * @throws {InvalidInputError} If the character is not found 
- * @throws {DatabaseError} If there was an error on the database's side
+ * @param {Integer} characterId - The Id of the character that will be updated
+ * @param {Integer} classId - The Id of the user's selected class - 1 Based
+ * @param {Integer} raceId The Id of the user's selected race - 1 Based
+ * @param {Integer} ethicsId - The Ethics of the Character - Foreign Key ID
+ * @param {Integer} moralityId - The Morality of the Character
+ * @param {Integer} backgroundId - The Integer representation of the Characters Background in the Background Table - 1 Based
+ * @param {String} name - The Name of the Character
+ * @param {Integer} maxHp - The Maximum amount of Hit Points the character has
+ * @param {Integer} level - The chosen Level of the Character
+ * @param {Int32Array} abilities - An array of size 6. Each index of the array is the ability score for that index's ability.
+ * Ex. [15, 9, 8, 12, 14, 10] -> Starts at Strength and ends with Charisma.
+ * @param {Int32Array} savingThrows - An array of Saving Throw Proficiencies IDs. Each index of the array is the Integer of the 
+ * Saving Throw the Character is proficient in (1 based)
+ * @param {Integer} proficiencyBonus - The value of the proficiency bonus for a character in the Character Sheet
+ * @returns {Integer} The Id of the Character that was just updated, throws otherwise.
  */
-async function updateCharacter(id, newName, newRace, newClass, newHitpoints) {
-    if (! await valUtils.isCharValid(newName, newRace, newClass, newHitpoints)) {
-        throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Character, cannot update character");
+async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId) {
+    try {
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrows, userId)
+    } catch (error) {
+        throw new errors.InvalidInputError('characterModel', 'updateCharacter', `Invalid Character, cannot update character: ${error.message}`);
     }
+
     let selectQuery = `Select 1 from ${tableName} WHERE id = ${id}`;
     let rows, column_definitions;
+
     try {
+
         [rows, column_definitions] = await connection.query(selectQuery);
         logger.info("select Query before Update Executed - updateCharacter()");
+
     } catch (error) {
-        throw new errors.DatabaseError('characterModel', 'updateCharacter', 'Couldn\'t execute the command');
+
+        throw new errors.DatabaseError('characterModel', 'updateCharacter', `Couldn\`t execute the command: ${error.message}`);
+
     }
+
 
     //Check if there is an ID that matches in the database
     if (rows.length == 0) {
+
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', "Invalid Id, character DOES NOT EXIST!");
     }
-    let query = `Update ${tableName} SET Name = '${newName.toLowerCase()}', Race = '${newRace.toLowerCase()}', class = '${newClass.toLowerCase()}', hitpoints = ${newHitpoints} where id = ${id};`;
+
+    let query = `Update ${tableName} SET Name = '${name.replace(/'/g, "''")}', RaceId = ${raceId}, 
+        ClassId = ${classId}, MaxHp = ${maxHp}, EthicsId = ${ethicsId}, MoralityId = ${moralityId}, BackgroundId = ${backgroundId},
+        ProficiencyBonus = ${proficiencyBonus}, Level = ${level} where id = ${characterId};`;
+
 
     try {
         await connection.execute(query);
-        logger.info("Update Query Executed - updateCharacter()")
+        logger.info("Update Query Executed - updateCharacter(), will update characterStatistics in a sec...")
     } catch (error) {
         throw new errors.DatabaseError('characterModule', 'updateCharacter', `Update Failed, Database error: ${error.message}`);
     }
+
+    //Character Statistics Table
+    try {
+
+        //Add To Character Statistics Table
+        //Add Saving Throw Proficiency for each in the array of Ids
+        for (let i = 0; i < savingThrowProficienciesIds.length; i++) {
+            await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
+        }
+
+
+        //Add Ability Score Values
+        await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
+
+    } catch (error) {
+        if (error instanceof errors.InvalidInputError) {
+            throw new errors.InvalidInputError('characterModel', 'addCharacter', `Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+        else {
+            throw new errors.DatabaseError('characterModel', 'addCharacter', `Database connection or query error, Couldn't Add saving throw proficiency or ability score from within the Character statistics model: ${error.message}`);
+        }
+    }
+
+    return characterId;
 }
 
 
@@ -218,26 +264,67 @@ async function addRemoveHp(id, hpValueChange) {
 }
 
 
-
+//Id INT, UserId INT, ClassId INT, RaceId INT, EthicsId INT, 
+//MoralityId INT, BackgroundId INT, Name TEXT, ProficiencyBonus INT, MaxHp INT, CurrentHp INT, Level INT, ArmorClass INT, Speed INT, Initiative INT, 
+//Experience INT
 /**
  * Gets a specific character based off of the passed in ID
- * @param {Integer} id 
- * @returns an object containing the character
+ * @param {Integer} id - the Id of the character that needs to be retrieved from the database
+ * @returns An Object Containing the Character { Id: {Int}, Name: {String}, Class: {String}, Race: {String}, Ethics: {String}, Morality: {String}, Background:{String}, ProficiencyBonus: {Int}, 
+ * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int} }
  * @throws {InvalidInputError} If the character is not found 
  */
 async function getCharacter(id) {
-    let query = `SELECT Id, Name, RaceId, ClassId, CurrentHp from ${tableName} WHERE Id = ${id};`;
-    let rows, column_definitions;
+
+    //First Check to see if the character exists
     try {
+        const q = `Select 1 from ${tableName} where Id = ${id}`;
+        let [rows, cols] = connection.query(q);
+        if (rows.length <= 0)
+            throw new errors.InvalidInputError('characterModel', 'getCharacter', `Couldn't find character with Id: ${id}`);
+    } catch (error) {
+        throw error;
+    }
+
+    //Now we know the character exists
+    let query = `SELECT c.Id, c.Name, cl.Id, r.Id, e.Id, m.Id, b.Id, 
+    c.ProficiencyBonus, c.MaxHp, c.CurrentHp, c.Level, c.ArmorClass,
+    FROM PlayerCharacter c, Ethics e, Morality m, Race r, Class cl, Background b 
+    WHERE c.Id = ${id} and c.Id = e.CharacterId and c.Id = m.CharacterId and c.Id = r.CharacterId and c.Id = cl.CharacterId and c.Id = b.CharacterId;`;
+
+    let rows, column_definitions;
+
+
+    try {
+
         [rows, column_definitions] = await connection.query(query);
-        logger.info("select Query before returning Character executed");
+        logger.info("select Query of PlayerCharacter, Ethics, Morality, Race, Class, and Background tables..");
+
+
     } catch (error) {
         throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${error.message}`);
     }
     if (rows.length === 0) {
         throw new errors.InvalidInputError('characterModel', 'getCharacter', `Character not found with id: ${id}`);
     }
-    return rows[0];
+
+    character = rows[0];
+    //Character now has the fields queried
+
+    try {
+        let proficiencies = await characterStatsModel.getSavingThrowProficiencies(id);
+        character.SavingThrowProficiencies = proficiencies;
+        logger.info("SavingThrowProficiencies have been gotten from the StatisticsModel.")
+    } catch (error) {
+        throw error;
+    }
+
+
+
+    
+    
+
+    return character;
 }
 
 /**
@@ -489,7 +576,7 @@ async function createEthicsTable() {
         if (!rows.length > 0) {
             logger.info(`Ethics not there, will add them to the Ethics Table.`);
             for (let i = 0; i < 3; i++) {
-                const ethicsQ = `INSERT INTO Ethics(Id, Name) VALUES (${i + 1}, ${ethics[i]});`;
+                const ethicsQ = `INSERT INTO Ethics(Id, Name) VALUES (${i + 1}, '${ethics[i]}');`;
                 await connection.execute(ethicsQ);
                 logger.info(`Added ${ethics[i]} to the Ethics Table with Id: ${i + 1}`);
             }
@@ -528,7 +615,7 @@ async function createMoralityTable() {
         if (!rows.length > 0) {
             logger.info(`Moralities not there, will add them to the Morality Table.`);
             for (let i = 0; i < 3; i++) {
-                const moralityQ = `INSERT INTO Morality(Id, Name) VALUES (${i + 1}, ${moralities[i]});`;
+                const moralityQ = `INSERT INTO Morality(Id, Name) VALUES (${i + 1}, '${moralities[i]}');`;
                 await connection.execute(moralityQ);
                 logger.info(`Added ${moralities[i]} to the Morality Table with Id: ${i + 1}`);
             }
