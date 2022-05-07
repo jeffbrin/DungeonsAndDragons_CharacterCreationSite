@@ -6,6 +6,8 @@ const router = express.Router();
 const routeRoot = '/characters';
 const model = require('../models/characterModel');
 const logger = require('../logger');
+const authenticator = require('./authenticationHelperController')
+const userModel = require('../models/userModel')
 
 const errors = require('../models/errorModel');
 
@@ -104,10 +106,12 @@ async function getCharacter(request, response) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getAllUserCharacters(request, response) {
+async function getAllUserCharacters(request, response, sessionId) {
     try {
-        let found = await model.getUserCharacters(request.params.userId);
-        response.status(201).render('characters.hbs', { charactersActive: true, character: found });
+        const userId = await userModel.getUserIdFromSessionId(sessionId);
+        let userCharacters = await model.getUserCharacters(userId);
+        // Get all the characters
+        response.status(201).render('characters.hbs', { charactersActive: true, characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId) });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -117,6 +121,11 @@ async function getAllUserCharacters(request, response) {
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: "Input Error, Couldn't get all Characters" });
             logger.error('input error - from getAllCharacters in characterController');
+        }
+        else if (error instanceof errors.InvalidSessionError) {
+            response.clearCookie('sessionId');
+            response.status(400).render('home.hbs', {homeActive: true});
+            logger.error('tried to access /characters with an invalid session');
         }
         else{
             logger.error(error.message);
@@ -198,7 +207,7 @@ router.post('/', sendCharacter);
 router.post('/forms', formRoute)
 router.delete('/:id', deleteCharacter);
 router.get('/:id', getCharacter);
-router.get('/', getAllUserCharacters);
+router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id/hp', updateHitpoints);
 
 module.exports = {

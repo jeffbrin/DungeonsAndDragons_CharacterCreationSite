@@ -5,6 +5,9 @@ const tableName = 'PlayerCharacter';
 const logger = require('../logger');
 const errors = require('./errorModel');
 const characterStatsModel = require('./characterStatisticsModel');
+const raceModel = require('./raceModel')
+const backgroundModel = require('./backgroundModel')
+const classModel = require('./classModel')
 
 
 /**
@@ -105,7 +108,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     try {
         let [rows, column_definitions] = await connection.query(idQuery);
         if (rows.length != 0) {
-            characterId = parseInt(rows[0].Id);
+            characterId = parseInt(rows[0].Id + 1);
         }
         await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId, armorClass);
     }
@@ -290,7 +293,7 @@ async function getCharacter(id) {
     }
 
     //Now we know the character exists
-    let query = `SELECT c.Id, c.Name, cl.Id, r.Id, e.Id, m.Id, b.Id, 
+    let query = `SELECT c.Id, c.Name, cl.Id as classId, r.Id as raceId, e.Name as Ethics, m.Name as Morality, b.Id as backgroundId, 
     c.ProficiencyBonus, c.MaxHp, c.CurrentHp, c.Level, c.ArmorClass
     FROM PlayerCharacter c, Ethics e, Morality m, Race r, Class cl, Background b 
     WHERE c.Id = ${id} and c.EthicsId = e.Id and m.Id = c.MoralityId and c.RaceId = r.Id and c.ClassId = cl.Id and c.BackgroundId = b.Id;`;
@@ -344,7 +347,15 @@ async function getCharacter(id) {
     }
     
 
-    //Get name of morality and ethics, race, class, background
+    //Get race, class, background
+    character.Race = await raceModel.getRace(character.raceId);
+    delete character.raceId;
+
+    character.Class = await classModel.getClass(character.classId);
+    delete character.classId;
+
+    character.Background = await backgroundModel.getBackground(character.backgroundId);
+    delete character.backgroundId
 
     return character;
 }
@@ -411,7 +422,12 @@ async function getUserCharacters(userId) {
         }
     }
 
-    return rows;
+    characters = []
+    for (row of rows){
+        characters.push(await getCharacter(row.Id));
+    }
+
+    return characters
 }
 
 /**
