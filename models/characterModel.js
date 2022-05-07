@@ -105,7 +105,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     try {
         let [rows, column_definitions] = await connection.query(idQuery);
         if (rows.length != 0) {
-            characterId = parseInt(rows[0].Id);
+            characterId = parseInt(rows[0].Id + 1);
         }
         await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId, armorClass);
     }
@@ -121,7 +121,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
         await connection.execute(query);
         logger.info("Insert command executed in addCharacter");
     } catch (error) {
-        throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command');
+        throw new errors.DatabaseError('characterModel', 'addCharacter', `Couldn't execute the command: ${error}`);
     }
 
 
