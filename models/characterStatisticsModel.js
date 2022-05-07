@@ -289,7 +289,7 @@ async function setAbilityScores(characterId, abilityScores) {
 
     // Add each ability score
     try{
-        for (let i = 1; i < abilityScores.length; i++){
+        for (let i = 1; i <= abilityScores.length; i++){
             await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]});`);
         }
     }

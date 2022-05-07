@@ -12,8 +12,10 @@
             class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
         <li><a id="spellsHeaderLink" href="/spells"
             class="nav-link px-2 {{#if spellsActive}}text-secondary{{else}}text-white{{/if}}">Spells</a></li>
+            {{#if username}}
         <li><a href="/characters"
             class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
+            {{/if}}
       </ul>
 
       <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
