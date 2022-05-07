@@ -16,6 +16,18 @@
         <li><a href="/characters"
             class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
             {{/if}}
+
+        <li class="dropdown">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if backgorundsActive}}Backgrounds{{else}}Other{{/if}}
+          </a>
+
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            <li><a class="dropdown-item" href="/races">Races</a></li>
+            <li><a class="dropdown-item" href="#">Classes</a></li>
+            <li><a class="dropdown-item" href="#">Backgrounds</a></li>
+          </ul>
+      </li>
       </ul>
 
       <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">

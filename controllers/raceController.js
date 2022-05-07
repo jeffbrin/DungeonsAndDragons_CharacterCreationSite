@@ -2,25 +2,41 @@ const express = require('express');
 const router = express.Router();
 const routeRoot = '/races';
 const raceModel = require('../models/raceModel');
+const hbs = require('express-handlebars').create();
 const logger = require('../logger');
 const {DatabaseError, InvalidInputError} = require('../models/errorModel')
 const userModel = require('../models/userModel');
+const classModel = require('../models/classModel');
 
+let allClasses;
+
+hbs.handlebars.registerHelper('randomClass', () => {
+    return allClasses[Math.floor(Math.random() * allClasses.length)].Name;
+});
 
 // Get all races
 async function showAllRaces(request, response){
+
     try{
+
+        // On the first request, get all the classes
+        if(!allClasses)
+            allClasses = await classModel.getAllClasses();
+
+
         // Check if the user is logged in
         let username = null;
         try{
-            username = await userModel.getUsernameFromSessionId(request.cookie.sessionId);
+            const newSession = await userModel.refreshSession(request.cookies.sessionId);
+            username = await userModel.getUsernameFromSessionId(newSession.sessionId);
         }
         catch(error){
             // Not logged in
+            response.clearCookie('sessionId');
         }
 
         const allRaces = await raceModel.getAllRaces();
-        response.status(200).render('raceList.hbs', {races: allRaces, username: username})
+        response.status(200).render('raceList.hbs', {races: allRaces, username: username, racesActive: true})
     }
     catch(error){
         if (error instanceof DatabaseError){
