@@ -111,7 +111,7 @@ async function getAllUserCharacters(request, response, sessionId) {
         const userId = await userModel.getUserIdFromSessionId(sessionId);
         let userCharacters = await model.getUserCharacters(userId);
         // Get all the characters
-        response.status(201).render('characters.hbs', { charactersActive: true, characters: userCharacters });
+        response.status(201).render('characters.hbs', { charactersActive: true, characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId) });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
