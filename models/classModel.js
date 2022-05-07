@@ -383,6 +383,8 @@ async function getClass(id){
     if (Class.length == 0)
         throw new InvalidInputError('ClassModel', 'getClass', 'A Class with the provided id could not be found.')
     
+    Class = Class[0]
+
     // Get the class Features
     const getClassFeaturesQuery = `SELECT Name, Description, Level FROM ClassFeature WHERE ClassId = ${id}`;
     let features;

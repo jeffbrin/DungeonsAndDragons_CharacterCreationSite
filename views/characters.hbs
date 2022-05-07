@@ -1,12 +1,12 @@
-<div class="d-flex flex-wrap justify-content-center">
+<div class="d-flex flex-wrap flex-column justify-content-center">
 {{#each characters}}
 <form class="card bg-card m-4" style="max-width: 300px">
-    {{!-- <img class="card-img-top" src="/images/other/{{Race}}_{{Class}}.png" alt="Card image" style="width:100%"> --}}
-    <img class="card-img-top" src="/images/other/Human_Barbarian.png" alt="Card image" style="width:100%">
+    <img class="card-img-top" src="/images/other/{{Race.Name}}_{{Class.Name}}.png" alt="Card image" style="width:100%">
+    {{!-- <img class="card-img-top" src="/images/other/Human_Barbarian.png" alt="Card image" style="width:100%"> --}}
     <div class="card-body">
       <h4 class="card-title">{{Name}}</h4>
-      <h5 class="card-subtitle">Human Barbarian</h5>
-      {{!-- <h5 class="card-subtitle">{{Race.Name}} {{Class.Name}}</h5> --}}
+      {{!-- <h5 class="card-subtitle">Human Barbarian</h5> --}}
+      <h5 class="card-subtitle">{{Race.Name}} {{Class.Name}}</h5>
       <h5 class="card-subtitle">{{Ethics}}/{{Morality}}</h5>
       <input type="text" value="{{id}}" hidden>
     </div>
