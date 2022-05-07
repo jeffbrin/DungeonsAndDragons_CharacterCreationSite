@@ -6,6 +6,7 @@ const validator = require('validator');
 const errors = require('./errorModel');
 const logger = require('../logger');
 const { default: isAlpha } = require('validator/lib/isAlpha');
+const { removeSpellsWithMatchingName } = require('./spellModel');
 const ABILITY_SCORE_LENGTH = 6;
 
 class ValidationError extends errors.InvalidInputError {
@@ -117,7 +118,7 @@ async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpo
         caught = true;
         bigErrorMessage += error.message;
     }
-    if(armorClass < 0){
+    if (armorClass < 0) {
         throw new errors.InvalidInputError('validateCharacter', 'isCharValid', `Armor Class not valid, must be above 0: ${armorClass}`)
     }
 
@@ -347,7 +348,20 @@ async function checkUserID(userId) {
  * @throws {InvalidInputError} Thrown when the character id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-function checkCharacterId(characterId) {
+async function checkCharacterId(characterId) {
+
+    if (characterId < 1)
+        throw new errors.InvalidInputError('Character id must be greater than 0.')
+        
+    let rows, columns;
+    try {
+        [rows, columns] = await connection.query(`SELECT 1 FROM PlayerCharacter WHERE Id = ${characterId};`);
+    } catch (error) {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkCharacterId', `Could not query for character id: ${error}`);
+    }
+
+    if (rows.length == 0)
+        throw new errors.InvalidInputError('Character id does not exist.');
 
 }
 
@@ -357,7 +371,20 @@ function checkCharacterId(characterId) {
  * @throws {InvalidInputError} Thrown when the skill id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-function checkSkillId(skillId) {
+async function checkSkillId(skillId) {
+
+    if (skillId < 1)
+        throw new errors.InvalidInputError('Character id must be greater than 0.')
+
+    let rows, columns;
+    try {
+        [rows, columns] = await connection.query(`SELECT 1 FROM Skill WHERE Id = ${skillId};`);
+    } catch (error) {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkSkillId', `Could not query for character id: ${error}`);
+    }
+
+    if (rows.length == 0)
+        throw new errors.InvalidInputError('Skill id does not exist.');
 
 }
 
@@ -367,7 +394,20 @@ function checkSkillId(skillId) {
  * @throws {InvalidInputError} Thrown when the ability id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-function checkAbility(abilityId) {
+async function checkAbility(abilityId) {
+
+    if (abilityId < 1)
+        throw new errors.InvalidInputError('Character id must be greater than 0.')
+
+    let rows, columns;
+    try {
+        [rows, columns] = await connection.query(`SELECT 1 FROM Ability WHERE Id = ${abilityId};`);
+    } catch (error) {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkAbility', `Could not query for character id: ${error}`);
+    }
+
+    if (rows.length == 0)
+        throw new errors.InvalidInputError('Ability id does not exist.');
 
 }
 
