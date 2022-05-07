@@ -2,6 +2,7 @@ const app = require('./app.js');
 const port = 1339;
 const spellModel = require('./models/spellModel');
 const raceModel = require('./models/raceModel');
+const classModel = require('./models/classModel');
 const characterModel = require('./models/characterModel');
 const userModel = require('./models/userModel');
 // const characterStatisticsModel = require('./models/characterStatisticsModel');
@@ -11,28 +12,37 @@ const logger = require('./logger.js');
 let dbName = process.argv[2];
 if (!dbName) {
     dbName = 'dnd_db';
-} 
+}
 
 
 startup()
-.catch(error => {
-    console.error(error.message);
-    logger.error(error);
-});
+    .catch(error => {
+        console.error(error.message);
+        logger.error(error);
+    });
 
-async function startup(){
-    try{
-    await userModel.initialize(dbName, false);
-    await backgroundModel.initialize(dbName, false);
-    await raceModel.initialize(dbName, false);
-    await spellModel.initialize(dbName, false);
-    await characterModel.initialize(dbName, false);
-    // await characterModel.addCharacter(1,1, 'sam',22,1,1,1,1,[0,0,0,0,0,0],[1,3],2,1)
-    }catch(error){
+
+async function startup() {
+    try {
+        await userModel.initialize(dbName, false);
+        await backgroundModel.initialize(dbName, false);
+        await raceModel.initialize(dbName, false);
+        await spellModel.initialize(dbName, false);
+        await characterModel.initialize(dbName, false);
+        await characterModel.addCharacter(1, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
+        let character = await characterModel.getCharacter(1);
+        console.log(character);
+        await characterModel.updateCharacter(1, 2, 3, 3, 3, 3, 'bob', 4, 5, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
+        let character2 = await characterModel.getCharacter(1);
+        console.log(character2);
+
+        await characterModel.removeCharacter(1);
+        console.log('Deleted');
+    } catch (error) {
         throw error;
     }
     // Always run the server even with failed initialization
-    finally{
-        app.listen(port)
+    finally {
+        app.listen(port);
     }
 }
