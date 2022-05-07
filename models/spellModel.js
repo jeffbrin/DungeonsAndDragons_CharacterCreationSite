@@ -35,12 +35,11 @@ async function initialize(databaseName, reset) {
         throw new InvalidDatabaseConnectionError(`Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
     }
 
-    // Drop reliant tables
-    await dropReliantTables();
-
     // Create the SpellSchool's table
     // Reset if selected
     if (reset) {
+        // Drop reliant tables
+        await dropReliantTables();
         const resetQuery = `DROP TABLE IF EXISTS SpellSchool`;
 
         // Try catch with await to make sure this is run before the next query is run

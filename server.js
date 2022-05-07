@@ -24,9 +24,10 @@ startup()
 
 async function startup() {
     try {
-        await userModel.initialize(dbName, false);
+         await userModel.initialize(dbName, false);
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
+        await classModel.initialize(dbName, false);
         await spellModel.initialize(dbName, false);
         await characterModel.initialize(dbName, false);
         await characterModel.addCharacter(1, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
