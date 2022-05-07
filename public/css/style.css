@@ -32,6 +32,10 @@ h1 {
     list-style: none;
 }
 
+.bg-card{
+    background: #3E505B;
+}
+
 .hyperlink {
     text-decoration: none;
     color: inherit;

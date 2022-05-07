@@ -105,7 +105,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     try {
         let [rows, column_definitions] = await connection.query(idQuery);
         if (rows.length != 0) {
-            characterId = parseInt(rows[0].Id);
+            characterId = parseInt(rows[0].Id + 1);
         }
         await valUtils.isCharValid(connection, name, raceId, classId, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, userId, armorClass);
     }
@@ -290,7 +290,7 @@ async function getCharacter(id) {
     }
 
     //Now we know the character exists
-    let query = `SELECT c.Id, c.Name, cl.Id, r.Id, e.Id, m.Id, b.Id, 
+    let query = `SELECT c.Id, c.Name, cl.Id, r.Id, e.Name as Ethics, m.Name as Morality, b.Id, 
     c.ProficiencyBonus, c.MaxHp, c.CurrentHp, c.Level, c.ArmorClass
     FROM PlayerCharacter c, Ethics e, Morality m, Race r, Class cl, Background b 
     WHERE c.Id = ${id} and c.EthicsId = e.Id and m.Id = c.MoralityId and c.RaceId = r.Id and c.ClassId = cl.Id and c.BackgroundId = b.Id;`;
