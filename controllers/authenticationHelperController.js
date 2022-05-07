@@ -6,6 +6,8 @@ const { InvalidSessionError, DatabaseError } = require('../models/errorModel');
  * Authorizes a request and refreshes the user's session. 
  * If the user is logged in, the callback function is called, otherwise the user is redirected to the home page with an error.
  * The callbacks is called with the request and response objects.
+ * The new session id is passed to the callback as the third argument.
+ * request.cookie.sessionId will not be up to date after this method so using it will cuase invalid session errors
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
  * @param {Promise} callback The asynchronous callback function to be called once the user is authenticated.
@@ -23,7 +25,7 @@ async function gateAccess(request, response, callback) {
                 response.status(200);
                 response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
                 // Verify authentication
-                await callback(request, response);
+                await callback(request, response, newSession.sessionId);
             })
             .catch(error => {
                 if (error instanceof InvalidSessionError) {

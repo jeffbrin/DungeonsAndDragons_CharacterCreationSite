@@ -411,7 +411,12 @@ async function getUserCharacters(userId) {
         }
     }
 
-    return rows;
+    characters = []
+    for (row of rows){
+        characters.push(await getCharacter(row.Id));
+    }
+
+    return characters
 }
 
 /**

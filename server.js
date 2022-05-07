@@ -35,10 +35,7 @@ async function startup() {
         console.log(character);
         await characterModel.updateCharacter(1, 2, 3, 3, 3, 3, 'bob', 4, 5, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
         let character2 = await characterModel.getCharacter(1);
-        console.log(character2);
-
-        await characterModel.removeCharacter(1);
-        console.log('Deleted');
+        console.log(character2)
     } catch (error) {
         throw error;
     }
