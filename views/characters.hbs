@@ -1,13 +1,14 @@
-<div class="d-flex flex-wrap flex-column justify-content-center">
+<div class="d-flex flex-wrap justify-content-center">
 {{#each characters}}
-<form class="card bg-card m-4" style="max-width: 300px">
-    <img class="card-img-top" src="/images/other/{{Race.Name}}_{{Class.Name}}.png" alt="Card image" style="width:100%">
+<form class="card bg-card m-4" style="width: 300px">
+    <img class="card-img-top h-75 cardImage" src="/images/other/{{Race.Name}}_{{Class.Name}}.png" alt="Card image" style="width:100%">
     {{!-- <img class="card-img-top" src="/images/other/Human_Barbarian.png" alt="Card image" style="width:100%"> --}}
-    <div class="card-body">
-      <h4 class="card-title">{{Name}}</h4>
+    <div class="card-body h-25">
+      <h4 class="card-title capitalize">{{Name}}</h4>
       {{!-- <h5 class="card-subtitle">Human Barbarian</h5> --}}
-      <h5 class="card-subtitle">{{Race.Name}} {{Class.Name}}</h5>
-      <h5 class="card-subtitle">{{Ethics}}/{{Morality}}</h5>
+      <h5 class="card-subtitle capitalize">{{Race.Name}} {{Class.Name}}</h5>
+      <h5 class="card-subtitle capitalize">{{Ethics}} / {{Morality}}</h5>
+      <h5 class="card-subtitle capitalize">Level: {{Level}}</h5>
       <input type="text" value="{{id}}" hidden>
     </div>
 </form>
