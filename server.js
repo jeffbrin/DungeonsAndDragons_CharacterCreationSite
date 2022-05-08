@@ -24,7 +24,7 @@ startup()
 
 async function startup() {
     try {
-         await userModel.initialize(dbName, false);
+        await userModel.initialize(dbName, false);
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
         await classModel.initialize(dbName, false);

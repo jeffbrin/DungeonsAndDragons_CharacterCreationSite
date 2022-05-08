@@ -36,6 +36,93 @@ async function initialize(databaseName, reset) {
 }
 
 /**
+ * Drops the tables that needs to be dropped in order to reset the class table.
+ */
+ async function dropTables(){
+    
+    // Drop the OwnedItem table first
+    dropCommand = `DROP TABLE IF EXISTS OwnedItem;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`OwnedItem table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the OwnedItem table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the KnownSpell table first
+    dropCommand = `DROP TABLE IF EXISTS KnownSpell;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`KnownSpell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the AbilityScore table first
+    dropCommand = `DROP TABLE IF EXISTS AbilityScore;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`AbilityScore table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the AbilityScore table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SavingThrowProficiency table first
+    dropCommand = `DROP TABLE IF EXISTS SavingThrowProficiency;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SavingThrowProficiency table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SavingThrowProficiency table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SavingThrowBonus table first
+    dropCommand = `DROP TABLE IF EXISTS SavingThrowBonus;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SavingThrowBonus table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SavingThrowBonus table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SkillProficiency table first
+    dropCommand = `DROP TABLE IF EXISTS SkillProficiency;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SkillProficiency table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SkillProficiency table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SkillExpertise table first
+    dropCommand = `DROP TABLE IF EXISTS SkillExpertise;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SkillExpertise table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SkillExpertise table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the PlayerCharacter table since it contains foreign keys in the Class table
+    dropCommand = `DROP TABLE IF EXISTS PlayerCharacter;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`PlayerCharacter table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
+    }
+
+}
+
+/**
  * Creates the race table. If the reset flag is set to true, the RacialTrait table will be dropped but not recreated.
  * This functionality is required because the RacialTrait table contains foreign keys from the Race table.
  * @param {boolean} reset Indicates whether the tables should be if they already exist.
@@ -45,6 +132,7 @@ async function createRaceTable(reset) {
 
     // Reset if the reset flag is true
     if (reset) {
+        await dropTables();
         let dropCommand = `DROP TABLE IF EXISTS RacialTrait;`;
 
         // Drop the RacialTrait table first
