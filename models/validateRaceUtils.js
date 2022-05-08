@@ -10,7 +10,7 @@ const validator = require('validator')
 function validateRaceId(id){
     
     // Make sure the id is a number
-    if (!validator.isNumeric(id))
+    if (!validator.isNumeric(String(id)))
         throw new Error("race id is not a number.");
 
     id = Number(id);
