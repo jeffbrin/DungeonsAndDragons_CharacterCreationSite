@@ -106,7 +106,7 @@ test('getClass - Success', async () =>{
     const randomClass = classesArray[index]
 
     // Classes should be the same, with the same traits
-    expect(classesEqual(randomClass, randomClassFromDB[0], true)).toBe(true);
+    expect(classesEqual(randomClass, randomClassFromDB, true)).toBe(true);
     
 })
 

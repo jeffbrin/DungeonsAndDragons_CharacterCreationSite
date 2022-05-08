@@ -1,11 +1,10 @@
 <div class="d-flex flex-wrap  justify-content-center">
 {{#each races}}
-<form class="d-flex bg-card m-4" style="border-radius: 20px">
+<form action="/races/{{Id}}" class="d-flex bg-card m-4" style="border-radius: 20px">
     <img class="card-img-top" src="/images/other/{{Name}}_{{randomClass}}.png" alt="Card image" style="height: 300px;">
     {{!-- <img class="card-img-top" src="/images/other/Human_Barbarian.png" alt="Card image" style="width:100%"> --}}
     <div class="card-body">
       <h4 class="card-title">{{Name}}</h4>
-      <input type="text" value="{{id}}" hidden>
     </div>
 </form>
 {{/each}}
@@ -20,3 +19,4 @@
 
     }
 </style>
+<script src="/scripts/cardPicker.js"></script>

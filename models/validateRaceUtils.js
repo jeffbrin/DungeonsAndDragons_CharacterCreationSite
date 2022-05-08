@@ -1,4 +1,5 @@
 const {InvalidInputError} = require('./errorModel');
+const validator = require('validator')
 
 /**
  * Validates a race id. An id just means it's a possible id in the database, NOT that it exists.
@@ -9,8 +10,10 @@ const {InvalidInputError} = require('./errorModel');
 function validateRaceId(id){
     
     // Make sure the id is a number
-    if (typeof id != 'number')
+    if (!validator.isNumeric(id))
         throw new Error("race id is not a number.");
+
+    id = Number(id);
 
     // Make sure the id is an integer
     if(Math.floor(id) != id)

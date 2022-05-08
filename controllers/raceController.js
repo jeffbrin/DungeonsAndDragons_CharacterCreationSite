@@ -50,6 +50,35 @@ async function showAllRaces(request, response){
 router.get('/', showAllRaces)
 
 // Focus on a specific race
+async function showSpecificRace(request, response){
+
+    try{
+
+        // Check if the user is logged in
+        let username = null;
+        try{
+            const newSession = await userModel.refreshSession(request.cookies.sessionId);
+            username = await userModel.getUsernameFromSessionId(newSession.sessionId);
+        }
+        catch(error){
+            // Not logged in
+            response.clearCookie('sessionId');
+        }
+
+        const race = await raceModel.getRace(request.params.id);
+        response.status(200).render('raceFocus.hbs', {race: race, username: username, racesActive: true})
+    }
+    catch(error){
+        if (error instanceof DatabaseError){
+            response.status(500).render('home.hbs', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500});
+        }
+        else{
+            response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong', status: 500});
+        }
+    }
+}
+router.get('/:id', showSpecificRace)
+
 
 module.exports = {
     router,
