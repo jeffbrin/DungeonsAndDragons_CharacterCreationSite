@@ -124,7 +124,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
         await connection.execute(query);
         logger.info("Insert command executed in addCharacter");
     } catch (error) {
-        throw new errors.DatabaseError('characterModel', 'addCharacter', 'Couldn\'t execute the command');
+        throw new errors.DatabaseError('characterModel', 'addCharacter', `Couldn't execute the command: ${error}`);
     }
 
 
