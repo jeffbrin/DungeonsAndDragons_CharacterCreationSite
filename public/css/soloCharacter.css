@@ -26,6 +26,7 @@ body {
     --popColorHover: #3E505B;
     --brightGreen: #80EAAF;
     --midGreen: #4BC087;
+    --midRed: #E96049;
 }
 
 .containerGrid {  display: grid;
@@ -120,7 +121,13 @@ body {
 }
 
 .experience { 
-    grid-area: 2 / 3 / 3 / 6; 
+    grid-area: 2 / 4 / 3 / 6;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+
 }
 
 .health { 
@@ -128,8 +135,17 @@ body {
     margin-left: 1rem;
 }
 .expLogo{
+    grid-area: 2 / 3 / 3 / 4;
+    margin-left: 1rem;
+}
+.proficiency{
     grid-area: 2 / 2 / 3 / 3;
     margin-left: 1rem;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+}
+.proficiency h5{
+    font-size: small;
 }
 .hpLogo{
     grid-area: 3 / 2 / 4 / 3;
@@ -176,6 +192,10 @@ body {
 
 .green{
     color: var(--midGreen);
+    font-weight: bold;
+}
+.red{
+    color: var(--midRed);
     font-weight: bold;
 }
 .abilityBonus{
@@ -226,4 +246,13 @@ body {
 }
 #hpImg{
 
+}
+.abilityScore{
+    font-size: 2rem;
+}
+td{
+    color: var(--textColor);
+}
+tr{
+    color: var(--textColor);
 }
