@@ -47,6 +47,17 @@ h1 {
     cursor: pointer;
 }
 
+.card-btn-wide:hover{
+    transform: scale3d(1.02, 1.05, 1);
+    cursor: pointer;
+    box-shadow: inset 0 0 0 2000px rgb(0 0 0 / 67%);
+}
+
+.card-btn-wide:active{
+    transform: scale(1);
+    cursor: pointer;
+}
+
 .hyperlink {
     text-decoration: none;
     color: inherit;
