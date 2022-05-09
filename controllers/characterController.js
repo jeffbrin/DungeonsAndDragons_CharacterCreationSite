@@ -83,7 +83,7 @@ async function getCharacter(request, response) {
     try {
         var id = request.params.id;
         // let found = await model.getCharacter(id);
-        response.status(201).render('characterSheet.hbs', { charactersActive: true, soloCharacter: 'soloCharacter.css'});
+        response.status(201).render('sheet.hbs', { charactersActive: true, soloCharacter: 'soloCharacter.css'});
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {

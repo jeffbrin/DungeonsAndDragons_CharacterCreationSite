@@ -6,13 +6,15 @@ body {
 }
 
 body {
-    height: 100vh;
-    width: 100vw;
+
 }
 
-* {
-    box-sizing: border-box;
-}
+* , *:before, *:after{ 
+    box-sizing:border-box; 
+    -moz-box-sizing:border-box; 
+    -webkit-box-sizing:border-box; 
+    -ms-box-sizing:border-box;
+  }
 
 :root {
     --backgroundColor: #313431;
@@ -22,6 +24,8 @@ body {
     --darkGreen: #26413C;
     --popColor: #7FB3C8;
     --popColorHover: #3E505B;
+    --brightGreen: #80EAAF;
+    --midGreen: #4BC087;
 }
 
 .containerGrid {  display: grid;
@@ -29,131 +33,197 @@ body {
   grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 0px 0px;
   grid-auto-flow: row;
+  padding: 2rem;
 }
 
-.charName { grid-area: 1 / 1 / 2 / 2; }
-
-.level { grid-area: 1 / 2 / 2 / 3; }
-
-.class { grid-area: 1 / 3 / 2 / 4; }
-
-.race { grid-area: 1 / 4 / 2 / 5; }
-
-.AC { grid-area: 1 / 5 / 2 / 6; }
-
-.initiative { grid-area: 1 / 6 / 2 / 7; }
-
-.speed { grid-area: 1 / 7 / 2 / 8; }
-
-.Abilities { grid-area: 2 / 1 / 8 / 2; }
-
-.strength { grid-area: 2 / 1 / 3 / 2; }
-
-.dexterity { grid-area: 3 / 1 / 4 / 2; }
-
-.constitution { grid-area: 4 / 1 / 5 / 2; }
-
-.intelligence { grid-area: 5 / 1 / 6 / 2; }
-
-.wisdom { grid-area: 6 / 1 / 7 / 2; }
-
-.charisma { grid-area: 7 / 1 / 8 / 2; }
-
-.experience { grid-area: 2 / 2 / 3 / 5; }
-
-.health { grid-area: 3 / 2 / 4 / 5; }
-
-.hpbtn { grid-area: 3 / 5 / 4 / 6; }
-
-.skills { grid-area: 4 / 2 / 8 / 4; }
-
-.items { grid-area: 4 / 4 / 8 / 6; }
-
-.savingthrows { grid-area: 8 / 1 / 9 / 2; }
-
-.img { grid-area: 2 / 6 / 8 / 8; }
-
-.spells { grid-area: 8 / 2 / 9 / 8; }
-
-
-#mainContainer {
-    background-color: #1f201f;
-    height: 100%;
-    width: 100%;
+.charName { 
+    grid-area: 1 / 1 / 2 / 2; 
 }
 
-.ability {
+.level { 
+    grid-area: 1 / 2 / 2 / 3; 
+}
+
+.class { 
+    grid-area: 1 / 3 / 2 / 4;
+}
+
+.race { 
+    grid-area: 1 / 4 / 2 / 5; 
+}
+
+.AC { 
+    grid-area: 1 / 5 / 2 / 6; 
+}
+
+.initiative { 
+    grid-area: 1 / 6 / 2 / 7; 
+}
+
+.speed { 
+    grid-area: 1 / 7 / 2 / 8; 
+}
+
+.Abilities { 
+    grid-area: 2 / 1 / 8 / 2; 
     background-color: var(--elevationColor);
-}
-
-.abilities {
-    background-color: var(--elevation2Color);
-    height: 50%;
-    width: 50%;
-}
-.col{
-    width: 100%;
-}
-#hpSkills {
-    background-color: var(--elevationColor);
-}
-
-#savingThrows {
-    width: 100%;
-    height: 100%;
-    background-color: var(--elevationColor);
-}
-
-#logoCol {
-    width: 100%;
-    background-color: var(--elevationColor);
-}
-
-.skills {
-    background-color: var(--elevationColor);
-}
-
-.items {
-    background-color: var(--elevationColor);
-}
-
-.savingThrows {
-    background-color: var(--elevationColor);
-    border: 2px solid black;
     border-radius: 1rem;
 }
 
-.fs-5rem {
-    font-size: 5rem;
-    color: var(--popColor);
+.strength { 
+    grid-area: 2 / 1 / 3 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
 }
 
-.fs-1-5rem {
-    font-size: 1.5rem;
-    color: var(--popColor);
+.dexterity { 
+    grid-area: 3 / 1 / 4 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
 }
 
-.h-10{
-    height: 10%;
+.constitution { 
+    grid-area: 4 / 1 / 5 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
 }
-.h-20{
-    height: 20%;
+
+.intelligence { 
+    grid-area: 5 / 1 / 6 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
 }
-.h-33{
-    height: 33%;
+
+
+.wisdom { 
+    grid-area: 6 / 1 / 7 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.charisma { 
+    grid-area: 7 / 1 / 8 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.experience { 
+    grid-area: 2 / 3 / 3 / 6; 
+}
+
+.health { 
+    grid-area: 3 / 2 / 4 / 5; 
+    margin-left: 1rem;
+}
+.expLogo{
+    grid-area: 2 / 2 / 3 / 3;
+    margin-left: 1rem;
+}
+.hpLogo{
+    grid-area: 3 / 2 / 4 / 3;
+    margin-left: 1rem;
+}
+
+.hpbtn { 
+    grid-area: 3 / 5 / 4 / 6; 
+}
+
+.skills { 
+    grid-area: 4 / 2 / 8 / 4; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+}
+
+.items { 
+    grid-area: 4 / 4 / 8 / 6; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+}
+
+.savingthrows { 
+    grid-area: 8 / 1 / 9 / 2; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-top: 1rem;
+}
+
+.img { 
+    grid-area: 2 / 6 / 8 / 8; 
+    position: relative;
+}
+
+.spells { 
+    grid-area: 8 / 2 / 9 / 8; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.green{
+    color: var(--midGreen);
+    font-weight: bold;
+}
+.abilityBonus{
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: .5rem;
+    margin: auto;
 }
 .w-33{
     width: 33%;
 }
-.block{
-    width: 18%;
-    display: block;
+.iconImg{
+    width: 50%;
+  margin: auto;
+  display: block;
+}
+.iconDiv{
+    background-color: var(--elevationColor);
+    margin: 1rem;
+    margin-top: 0;
+    border-radius: 1rem;
+}
+.characterImg{
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     margin: auto;
 }
-.mtop-1rem{
-    margin-top: 0.8rem;
+#expImg{
+    display: inline;
+    width: 20%;
 }
-.fs-3rem{
-    font-size: 3rem;
-    color: var(--popColor);
+#expDiv{
+    margin-left: 1rem;
+}
+.inline{
+    display: inline;
+}
+#expText{
+    font-size: 2rem;
+    margin-left: 6rem;
+}
+#hpImg{
+
 }
