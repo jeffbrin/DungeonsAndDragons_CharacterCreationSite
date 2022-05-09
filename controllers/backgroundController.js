@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const routeRoot = '/backgrounds';
 const model = require('../models/backgroundModel');
-
+const authenticator = require('./authenticationHelperController')
 const errors = require('../models/errorModel');
 
 /**
@@ -11,12 +11,12 @@ const errors = require('../models/errorModel');
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
- async function getAllBackgrounds(request, response) {
+ async function getAllBackgrounds(request, response, username) {
     try {
         let found = await model.getAllBackgrounds();
         console.log(found);
         console.log(found[0])
-        response.status(201).render('backgrounds.hbs', { backgroundsActive: true, backgrounds: found });
+        response.status(201).render('backgrounds.hbs', { backgroundsActive: true, backgrounds: found, username });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -33,7 +33,8 @@ const errors = require('../models/errorModel');
     }
 }
 
-router.get('/', getAllBackgrounds);
+// Using loadDifferentPagePerLoginStatus to automatically refresh the session
+router.get('/', (request, response) => {authenticator.loadDifferentPagePerLoginStatus(request, response, getAllBackgrounds, getAllBackgrounds)});
 
 module.exports = {
     router,
