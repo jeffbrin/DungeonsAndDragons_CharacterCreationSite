@@ -32,8 +32,16 @@ h1 {
     list-style: none;
 }
 
+.card-body{
+    max-height: 100vh;
+}
+
 .bg-card{
     background: #3E505B;
+}
+
+.long_card{
+    max-height: 100vh !important;
 }
 
 .card-btn:hover{
