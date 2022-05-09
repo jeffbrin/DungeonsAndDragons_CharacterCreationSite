@@ -4,6 +4,7 @@
  */
 
 const mysql = require('mysql2/promise')
+const validationModel = require('./validateBackgroundUtils.js')
 const logger = require('../logger');
 const fs = require('fs/promises');
 const { InvalidInputError, DatabaseError } = require('./errorModel');
@@ -39,7 +40,6 @@ async function initialize(databaseName, reset) {
     await populateBackgroundAndFeaturesTable();
     // console.log(await getAllBackgrounds());
     // console.log(await getBackground(1));
-
     // .catch(error => {throw error});
 }
 
@@ -101,6 +101,7 @@ async function createBackgroundTable(reset) {
  * Creates the BackgroundFeature table in the database. This should only be called if the Background table already exists.
  */
 async function createBackgroundFeatureTable() {
+
     const createTableQuery = `CREATE TABLE IF NOT EXISTS BackgroundFeature(BackgroundId INT, Name VARCHAR(200), Description TEXT, FOREIGN KEY (BackgroundId) REFERENCES Background(Id), PRIMARY KEY (BackgroundId, Name));`;
     try {
         await connection.execute(createTableQuery).then(logger.info(`BackgroundFeature table created / already exists.`))
@@ -121,65 +122,64 @@ async function populateBackgroundAndFeaturesTable() {
 
     // Read the json file
     let backgroundData;
-    try {
+
+    try{
         backgroundData = JSON.parse(await fs.readFile(dataFile));
     }
-    catch (error) {
+    catch(error){
         throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeaturesTable', `There was an issue reading the Backgrounds json file: ${error}`)
     }
-    // Check if the table already has data in it
-    let backgroundTableHasData = false;
-    try {
-        [rows, columnData] = await connection.query('SELECT * from Background;');
-        backgroundTableHasData = rows.length > 0;
-    }
-    catch (error) {
-        throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to read from the Background table: ${error}`);
-    }
-
-    // Only add the data if the background table doesn't already have data in it
-    if (!backgroundTableHasData) {
-        try {
-
-            // Loop through each background in the file
-            let backgroundId = 1;
-            for (let i = 0; i < backgroundData.length; i++) {
-
-
-                // Get the list of features for this background
+     // Check if the table already has data in it
+     let backgroundTableHasData = false;
+     try {
+         [rows, columnData] = await connection.query('SELECT * from Background;');
+         backgroundTableHasData = rows.length > 0
+     }
+     catch (error) {
+         throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to read from the Background table: ${error}`);
+     }
+ 
+     // Only add the data if the background table doesn't already have data in it
+     if (!backgroundTableHasData) {
+         try {
+ 
+             // Loop through each background in the file
+             let backgroundId = 1;
+             for(let i = 0; i < backgroundData.length; i++){
+                
+                 // Get the list of features for this background
                 //  const Backgrounds = BackgroundData;
                 let name = backgroundData[i].Name;
                 let desc = backgroundData[i].Description;
                 let features = backgroundData[i].Features;
 
-                // Add the background to the background table
-                const addBackgroundCommand = `INSERT INTO Background (Id, Name, Description) values(${backgroundId}, '${name}', '${desc.replace(/'/g, "''")}');`;
-                await connection.execute(addBackgroundCommand);
-                logger.info(`Added ${name} to the Background table.`);
-
-                // Add all the features
-                for (let j = 0; j < features.length; j++) {
-
-                    // features
-                    let fName = features[j].Name;
-                    let fDesc = features[j].Description;
-
-                    // Add the background feature for the specific background
-                    addFeatureCommand = `INSERT INTO BackgroundFeature (BackgroundId, Name, Description) values(${backgroundId}, '${fName.replace(/'/g, "''")}', '${fDesc.replace(/'/g, "''")}');`;
-                    await connection.execute(addFeatureCommand);
+                 // Add the background to the background table
+                 const addBackgroundCommand = `INSERT INTO Background (Id, Name, Description) values(${backgroundId}, '${name}', '${desc.replace(/'/g, "''")}');`;
+                 await connection.execute(addBackgroundCommand);
+                 logger.info(`Added ${name} to the Background table.`);
+ 
+                 // Add all the features
+                 for (let j = 0; j < features.length; j++){
+                    
+                     // features
+                     let fName = features[j].Name;
+                     let fDesc = features[j].Description;
+                     
+                     // Add the background feature for the specific background
+                     addFeatureCommand = `INSERT INTO BackgroundFeature (BackgroundId, Name, Description) values(${backgroundId}, '${fName.replace(/'/g, "''")}', '${fDesc.replace(/'/g, "''")}');`;
+                     await connection.execute(addFeatureCommand);
                     //  logger.info(`Added the background feature ${fname} for ${name}`);
-                }
-                backgroundId++;
-            }
-
-        } catch (error) {
-            throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to add a background to the Background table or a feature to the BackgroundFeature table in the database... Check the database connection: ${error}`)
-        }
-
-        logger.info('Successfully populated the Background and BackgroundFeature tables.')
-    }
-
-
+                 }
+                 backgroundId++;
+            } 
+             
+         } catch (error) {
+             throw new DatabaseError('backgroundModel', 'populateBackgroundAndFeatureTables', `Failed to add a background to the Background table or a feature to the BackgroundFeature table in the database... Check the database connection: ${error}`)
+         }
+ 
+         logger.info('Successfully populated the Background and BackgroundFeature tables.')
+     }
+  
 
 }
 
@@ -188,18 +188,19 @@ async function populateBackgroundAndFeaturesTable() {
  * @returns  with an array of all the Backgrounds in the database in with the following format {Id: #, Name: "", Description: "", Features: []}
  * @throws {DatabaseError} Thrown when there is an issue getting the Backgrounds from the database due to a connection issue.
  */
-async function getAllBackgrounds() {
+
+ async function getAllBackgrounds(){
     const getBackgroundsQuery = "SELECT * FROM Background;"
     let data;
-    try {
+    try{
         data = await connection.query(getBackgroundsQuery);
-
-
+       
+        
     }
-    catch (error) {
+    catch(error){
         throw new DatabaseError('BackgroundModel', 'getAllBackgrounds', `Failed to get all the Backgrounds in the database: ${error}`);
     }
-    return data[0];
+    return data[0]; 
 
 }
 
@@ -212,36 +213,37 @@ async function getAllBackgrounds() {
  * @throws {InvalidInputError} Thrown if the id is invalid or if it was not found.
  * @throws {DatabaseError} Thrown is there is an issue getting the background from the database due to a connection issue.
  */
-async function getBackground(id) {
 
-    try {
+async function getBackground(id){
+
+    try{
         validationModel.validateBackgroundId(id);
     }
-    catch (error) {
+    catch(error){
         throw new InvalidInputError('backgroundModel', 'getBackground', `Invalid input: ${error.message}`);
     }
 
     // Get the background details
     const getBackgroundQuery = `SELECT Id, Name, Description FROM Background WHERE Id = ${id};`;
     let background;
-    try {
+    try{
         [background, columnData] = await connection.query(getBackgroundQuery);
     }
-    catch (error) {
+    catch(error){
         throw new DatabaseError('backgroundModel', 'getBackground', `Failed to get the background with id ${id} from the database: ${error}`);
     }
-
+    
     // Check to make sure a background was found
     if (background.length == 0)
         throw new InvalidInputError('backgroundModel', 'getBackground', 'A background with the provided id could not be found.')
-
+    
     // Get the racial Features
     const getBackgroundFeaturesQuery = `SELECT Name, Description FROM BackgroundFeature WHERE BackgroundId = ${id}`;
     let Features;
-    try {
+    try{
         [Features, columnData] = await connection.query(getBackgroundFeaturesQuery);
     }
-    catch (error) {
+    catch(error){
         throw new DatabaseError('backgroundModel', 'getBackground', `Failed to get the racial Features of the background with id ${id} from the database: ${error}`)
     }
 
@@ -255,12 +257,12 @@ async function getBackground(id) {
 /**
  * Closes the connection to the database.
  */
-async function closeConnection() {
-    try {
+ async function closeConnection(){
+    try{
         connection.end()
     }
-    catch (error) {
-        throw new DatabaseError('backgroundModel', 'closeConnection', `Failed to close the connection: ${error}`);
+    catch(error){
+        throw new DatabaseError('backgroundModel', 'closeConnection',`Failed to close the connection: ${error}`);
     }
 }
 module.exports = { initialize, getAllBackgrounds, getBackground, closeConnection }

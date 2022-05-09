@@ -1,7 +1,5 @@
 const mysql = require('mysql2/promise');
-// const uuid = require('uuid');
-const crypto = require('crypto');
-const uuid = {v4: crypto.randomUUID};
+const uuid = require('uuid');
 const bcrypt = require('bcrypt');
 const logger = require('../logger');
 const userValidation = require('./validateUserUtils');
@@ -52,6 +50,7 @@ async function initialize(databaseName, reset) {
     // Create the session table
     try{
         await connection.execute('CREATE TABLE IF NOT EXISTS Session (Id VARCHAR(200), UserId INT, ExpiryDate DATETIME, PRIMARY KEY(Id), FOREIGN KEY (UserId) REFERENCES User(Id));');
+        console.log('SESSION TABLE MADE')
     }
     catch(error){
         throw new DatabaseError('userModel', 'initialize', `Failed to create the Session table: ${error};`);
@@ -63,12 +62,13 @@ async function initialize(databaseName, reset) {
  */
 async function dropReliantTables(){
     try{
-        await connection.execute('DROP TABLE IF EXISTS AbilityScore;');
-        await connection.execute('DROP TABLE IF EXISTS SkillProficiency;');
-        await connection.execute('DROP TABLE IF EXISTS SkillExpertise;');
-        await connection.execute('DROP TABLE IF EXISTS SavingThrowProficiency;');
-        await connection.execute('DROP TABLE IF EXISTS SavingThrowBonus;');
-        await connection.execute('DROP TABLE IF EXISTS KnownSpell;');
+        await connection.execute('DROP TABLE IF EXISTS AbilityScore;')
+        await connection.execute('DROP TABLE IF EXISTS SkillProficiency;')
+        await connection.execute('DROP TABLE IF EXISTS SkillExpertise;')
+        await connection.execute('DROP TABLE IF EXISTS SavingThrowProficiency;')
+        await connection.execute('DROP TABLE IF EXISTS SavingThrowBonus;')
+        await connection.execute('DROP TABLE IF EXISTS KnownSpell;')
+        await connection.execute('DROP TABLE IF EXISTS OwnedItem;')
         await connection.execute('DROP TABLE IF EXISTS Spell;');
         await connection.execute('DROP TABLE IF EXISTS SpellSchool;');
         await connection.execute('DROP TABLE IF EXISTS OwnedItem;');
@@ -79,17 +79,6 @@ async function dropReliantTables(){
         throw new DatabaseError('userModel', 'dropReliantTables', `Failed to drop the tables which are reliant on the User table: ${error}`)
     }
 }
-
-// class Session {
-//     constructor(userId, expiresAt) {
-//         this.userId = username
-//         this.expiresAt = expiresAt
-//     }
-//     // We'll use this method later to determine if the session has expired
-//     isExpired() {
-//         this.expiresAt < (new Date())
-//     }
-// }
 
 /**
  * Adds a user to the database. If a user with the provided name is already in the database, a UserAlreadyExistsError is thrown.
@@ -127,7 +116,7 @@ async function addUser(username, password) {
 
     // Check if the user exists
     if (rows.length > 0)
-        throw new UserAlreadyExistsError('userModel', 'addUser', `The user with the username ${username} already exists.`);
+        throw new UserAlreadyExistsError('userModel', 'addUser', `A user with the username ${username} already exists.`);
 
     // Get the new user id
     let userId = 1;
@@ -267,11 +256,12 @@ function hashPassword(password){
 /**
  * Refreshes a user session. If the session is invalid or expired, an InvalidSessionError will be thrown.
  * @param {Integer} sessionId The id of a user session.
+ * @param {Integer} time The number of minutes this session should remain valid for.
  * @returns The new session id and expiry date {sessionId, expiryDate} to provide the user as a cookie.
  * @throws {InvalidSessionError} Thrown when an invalid session was provided. (Expired, non-existant, null).
  * @throws {DatabaseError} Thrown when there is an issue removing an old session from the database or adding the new one.
  */
-async function refreshSession(sessionId) {
+async function refreshSession(sessionId, time = 15) {
 
     // Throw if the session is invalid
     const sessionIsAuthenticated = await authenticateSession(sessionId);
@@ -280,7 +270,7 @@ async function refreshSession(sessionId) {
     }
 
     // Create and store a new Session object that will expire in 15 minutes.
-    const newSession = await createSession(await getUserIdFromSessionId(sessionId), 15);
+    const newSession = await createSession(await getUserIdFromSessionId(sessionId), time);
     // Delete the old entry in the database
     try{
         await connection.execute(`DELETE FROM Session WHERE Id = '${sessionId}'`);
@@ -318,18 +308,6 @@ async function authenticateSession(sessionId) {
     catch(error){
         throw new DatabaseError('userModel', 'authenticateSession', `Failed to query the database to find a matching session id: ${error}`);
     }
-
-    // Old way with no database
-    // // We then get the session of the user from our session map
-    // userSession = sessions[sessionId]
-    // if (!userSession) {
-    //     return null;
-
-    // }// If the session has expired, delete the session from our map and return null
-    // if (userSession.isExpired()) {
-    //     delete sessions[sessionId];
-    //     return null;
-    // }
 
 }
 
@@ -410,7 +388,8 @@ async function getUsernameFromSessionId(sessionId){
  * Closes the connection to the database.
  */
 async function closeConnection(){
-    await connection.end();
+    if(connection)
+        connection.end();
 }
 
 module.exports = {

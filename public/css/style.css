@@ -32,6 +32,10 @@ h1 {
     list-style: none;
 }
 
+.bg-card{
+    background: #3E505B;
+}
+
 .hyperlink {
     text-decoration: none;
     color: inherit;
@@ -191,4 +195,31 @@ input[type="search"]::-webkit-search-cancel-button {
 .minHeightDiv{
     min-height: 300px;
     margin-top: 2rem;
+.card-img-top{
+    background-color: var(--elevationColor) !important;
+    border: 1px solid black;
+}
+.card-body{
+    background-color: var(--elevationColor) !important;
+    border: 1px solid black;
+}
+.bg-card{
+    background-color: transparent !important;
+    max-height: 500px !important;
+}
+.capitalize{
+    text-transform: capitalize;
+}
+.cardImage{
+    object-fit: contain;
+}
+.linkText{
+    color: var(--popColor);
+}
+.linkText:hover{
+    color: var(--popColorHover);
+}
+.myUL{
+    font-size: 1.5rem;
+    list-style: none;
 }

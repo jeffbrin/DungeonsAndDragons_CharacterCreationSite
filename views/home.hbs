@@ -2,10 +2,10 @@
 
 {{#if error}}
   <div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
-    <h4>{{title}}</h4>
+    <h4>{{status}} Error</h4>
     <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
       <use xlink:href="#exclamation-triangle-fill" />
-    </svg>{{message}}
+    </svg>{{error}}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
   {{/if}}
@@ -43,19 +43,28 @@
       <div class="icon-square text-light flex-shrink-0 me-3">
         <img src="./images/icons/wizardW.png">
       </div>
+      {{#if username}}
       <div>
         <h2>Create your own Character</h2>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and
-          probably just keep going until we run out of words.</p>
-        <a href="#" class="btn btn-primary">
+        <p>Build your own Dungeons and Dragons character before delving into the wonderous worlds you and your friends create.</p>
+        <a href="/characters" class="btn btn-primary">
           Characters
         </a>
       </div>
+      {{else}}
+      <div>
+        <h2>Signup to create your own Character</h2>
+        <p>Create as many characters as your heart desires from Wizards of the Coasts' Player's Handbook rules.</p>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#modalSignup" id="signupButtonHomePage">Sign-up</button>
+      </div>
+      {{/if}}
     </div>
     <div class="col d-flex align-items-start">
       <div class="icon-square text-light flex-shrink-0 me-3">
         <img src="./images/icons/spellbook.png">
       </div>
+      {{#if username}}
       <div>
         <h2>Add a Spell to your Arsenal</h2>
         <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and
@@ -64,9 +73,18 @@
           Spells
         </a>
       </div>
+      {{else}}
+      <div>
+        <h2>Learn the ways of Magic</h2>
+        <p>Read through the Player's Handbook spells to enhance your understanding of the arcane. Will you be a wizard, a druid, a sorcerer?</p>
+        <a href="/spells" id="spellsFeaturesLink" class="btn btn-primary">
+          Spells
+        </a>
+      </div>
+      {{/if}}
     </div>
     <div class="col d-flex align-items-start">
-      <div class="icon-square text-light flex-shrink-0 me-3">
+      {{!-- <div class="icon-square text-light flex-shrink-0 me-3">
         <img src="./images/icons/cart.png">
       </div>
       <div>
@@ -76,7 +94,7 @@
         <a href="#" class="btn btn-primary">
           Shop
         </a>
-      </div>
+      </div> --}}
     </div>
   </div>
 </div>
