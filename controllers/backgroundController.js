@@ -13,8 +13,10 @@ const errors = require('../models/errorModel');
  */
  async function getAllBackgrounds(request, response) {
     try {
-        let found = await model.getAllBackgrounds;
-        response.status(201).render('backgrounds.hbs', { backgroundsActive: true, background: found });
+        let found = await model.getAllBackgrounds();
+        console.log(found);
+        console.log(found[0])
+        response.status(201).render('backgrounds.hbs', { backgroundsActive: true, backgrounds: found });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -32,3 +34,8 @@ const errors = require('../models/errorModel');
 }
 
 router.get('/', getAllBackgrounds);
+
+module.exports = {
+    router,
+    routeRoot
+}
