@@ -1,6 +1,6 @@
 # Time Spent Working
 
-## Chase - 11 hrs
+## Chase - 14 hrs
 
 ## Jeffrey - 22 hours
 
