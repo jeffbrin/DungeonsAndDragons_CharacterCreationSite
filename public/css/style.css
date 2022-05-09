@@ -195,6 +195,7 @@ input[type="search"]::-webkit-search-cancel-button {
 .minHeightDiv{
     min-height: 300px;
     margin-top: 2rem;
+}
 .card-img-top{
     background-color: var(--elevationColor) !important;
     border: 1px solid black;
