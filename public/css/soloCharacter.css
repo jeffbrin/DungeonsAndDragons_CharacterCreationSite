@@ -1,0 +1,258 @@
+/* override browser default */
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+
+}
+
+* , *:before, *:after{ 
+    box-sizing:border-box; 
+    -moz-box-sizing:border-box; 
+    -webkit-box-sizing:border-box; 
+    -ms-box-sizing:border-box;
+  }
+
+:root {
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #26413C;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+    --brightGreen: #80EAAF;
+    --midGreen: #4BC087;
+    --midRed: #E96049;
+}
+
+.containerGrid {  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  padding: 2rem;
+}
+
+.charName { 
+    grid-area: 1 / 1 / 2 / 2; 
+}
+
+.level { 
+    grid-area: 1 / 2 / 2 / 3; 
+}
+
+.class { 
+    grid-area: 1 / 3 / 2 / 4;
+}
+
+.race { 
+    grid-area: 1 / 4 / 2 / 5; 
+}
+
+.AC { 
+    grid-area: 1 / 5 / 2 / 6; 
+}
+
+.initiative { 
+    grid-area: 1 / 6 / 2 / 7; 
+}
+
+.speed { 
+    grid-area: 1 / 7 / 2 / 8; 
+}
+
+.Abilities { 
+    grid-area: 2 / 1 / 8 / 2; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+}
+
+.strength { 
+    grid-area: 2 / 1 / 3 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.dexterity { 
+    grid-area: 3 / 1 / 4 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.constitution { 
+    grid-area: 4 / 1 / 5 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.intelligence { 
+    grid-area: 5 / 1 / 6 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+
+.wisdom { 
+    grid-area: 6 / 1 / 7 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.charisma { 
+    grid-area: 7 / 1 / 8 / 2; 
+    background-color: var(--elevation2Color);
+    margin: 1rem;
+    border: 1px solid black;
+    padding: .25rem;
+}
+
+.experience { 
+    grid-area: 2 / 4 / 3 / 6;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+
+}
+
+.health { 
+    grid-area: 3 / 2 / 4 / 5; 
+    margin-left: 1rem;
+}
+.expLogo{
+    grid-area: 2 / 3 / 3 / 4;
+    margin-left: 1rem;
+}
+.proficiency{
+    grid-area: 2 / 2 / 3 / 3;
+    margin-left: 1rem;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+}
+.proficiency h5{
+    font-size: small;
+}
+.hpLogo{
+    grid-area: 3 / 2 / 4 / 3;
+    margin-left: 1rem;
+}
+
+.hpbtn { 
+    grid-area: 3 / 5 / 4 / 6; 
+}
+
+.skills { 
+    grid-area: 4 / 2 / 8 / 4; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+}
+
+.items { 
+    grid-area: 4 / 4 / 8 / 6; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+}
+
+.savingthrows { 
+    grid-area: 8 / 1 / 9 / 2; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-top: 1rem;
+}
+
+.img { 
+    grid-area: 2 / 6 / 8 / 8; 
+    position: relative;
+}
+
+.spells { 
+    grid-area: 8 / 2 / 9 / 8; 
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.green{
+    color: var(--midGreen);
+    font-weight: bold;
+}
+.red{
+    color: var(--midRed);
+    font-weight: bold;
+}
+.abilityBonus{
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: .5rem;
+    margin: auto;
+}
+.w-33{
+    width: 33%;
+}
+.iconImg{
+    width: 50%;
+  margin: auto;
+  display: block;
+}
+.iconDiv{
+    background-color: var(--elevationColor);
+    margin: 1rem;
+    margin-top: 0;
+    border-radius: 1rem;
+}
+.characterImg{
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+#expImg{
+    display: inline;
+    width: 20%;
+}
+#expDiv{
+    margin-left: 1rem;
+}
+.inline{
+    display: inline;
+}
+#expText{
+    font-size: 2rem;
+    margin-left: 6rem;
+}
+#hpImg{
+
+}
+.abilityScore{
+    font-size: 2rem;
+}
+td{
+    color: var(--textColor);
+}
+tr{
+    color: var(--textColor);
+}
