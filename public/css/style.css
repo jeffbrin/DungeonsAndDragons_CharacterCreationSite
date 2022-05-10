@@ -37,7 +37,6 @@ h1 {
 }
 
 .bg-card{
-    background: #3E505B;
 }
 
 .long_card{
@@ -47,7 +46,8 @@ h1 {
 .card-btn:hover{
     transform: scale(1.1);
     cursor: pointer;
-    box-shadow: inset 0 0 0 2000px rgb(0 0 0 / 67%);
+    box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.315);
+    
 }
 
 .card-btn:active{
@@ -226,11 +226,11 @@ input[type="search"]::-webkit-search-cancel-button {
     margin-top: 2rem;
 }
 .card-img-top{
-    background-color: var(--elevationColor) !important;
+    background-color: transparent !important;
     border: 1px solid black;
 }
 .card-body{
-    background-color: var(--elevationColor) !important;
+    background-color: transparent !important;
     border: 1px solid black;
 }
 .bg-card{
@@ -252,4 +252,17 @@ input[type="search"]::-webkit-search-cancel-button {
 .myUL{
     font-size: 1.5rem;
     list-style: none;
+}
+.characterForm{
+    display: block !important;
+    background-color: var(--elevationColor) !important;
+}
+.characterForm:hover{
+    background-color: var(--popColor) !important;
+}
+.h-85{
+    height: 85%;
+}
+.h-15{
+    height: 15%;
 }
