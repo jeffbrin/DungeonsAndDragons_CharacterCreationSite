@@ -266,3 +266,12 @@ input[type="search"]::-webkit-search-cancel-button {
 .h-15{
     height: 15%;
 }
+.dropdown-menu{
+    background-color: #212529;
+}
+.dropdown-item{
+    color: var(--textColor);
+}
+.dropdown-item:hover{
+    background-color: var(--popColor);
+}
