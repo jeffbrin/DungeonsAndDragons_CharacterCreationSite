@@ -1,0 +1,15 @@
+{{#with race}}
+
+<h1 class="text-center">{{Name}}</h1>
+<h3 class="text-center">{{Description}}</h3>
+
+{{#each Traits}}
+<div class="d-flex bg-card m-4" style="border-radius: 20px">
+    <div class="card-body">
+      <h4 class="card-title">{{Name}}</h4>
+      <p class="card-title">{{Description}}</p>
+    </div>
+</div>
+{{/each}}
+
+{{/with}}

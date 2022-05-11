@@ -16,13 +16,13 @@
   <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
       <div class="carousel-item active gradient">
-        <img src="./images/hero/modelhero.jpg" class="d-block w-100" alt="DND Model">
+        <img src="/images/hero/modelhero.jpg" class="d-block w-100" alt="DND Model">
       </div>
       <div class="carousel-item gradient">
-        <img src="./images/hero/dicehero.jpg" class="d-block w-100" alt="DND Dice">
+        <img src="/images/hero/dicehero.jpg" class="d-block w-100" alt="DND Dice">
       </div>
       <div class="carousel-item gradient">
-        <img src="./images/hero/spectrehero.jpg" class="d-block w-100" alt="DND Spectre">
+        <img src="/images/hero/spectrehero.jpg" class="d-block w-100" alt="DND Spectre">
       </div>
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
@@ -41,33 +41,50 @@
   <div class="row g-4 py-5 row-cols-1 d-flex align-items-center row-cols-lg-3">
     <div class="col d-flex align-items-start">
       <div class="icon-square text-light flex-shrink-0 me-3">
-        <img src="./images/icons/wizardW.png">
+        <img src="/images/icons/wizardW.png">
       </div>
+      {{#if username}}
       <div>
         <h2>Create your own Character</h2>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and
-          probably just keep going until we run out of words.</p>
-        <a href="#" class="btn btn-primary">
+        <p>Build your own Dungeons and Dragons character before delving into the wonderous worlds you and your friends create.</p>
+        <a href="/characters" class="btn btn-primary">
           Characters
         </a>
       </div>
+      {{else}}
+      <div>
+        <h2>Signup to create your own Character</h2>
+        <p>Create as many characters as your heart desires from Wizards of the Coasts' Player's Handbook rules.</p>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+            data-bs-target="#modalSignup" id="signupButtonHomePage">Sign-up</button>
+      </div>
+      {{/if}}
     </div>
     <div class="col d-flex align-items-start">
       <div class="icon-square text-light flex-shrink-0 me-3">
-        <img src="./images/icons/spellbook.png">
+        <img src="/images/icons/spellbook.png">
       </div>
+      {{#if username}}
       <div>
         <h2>Add a Spell to your Arsenal</h2>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and
-          probably just keep going until we run out of words.</p>
+        <p>Create as many characters as your heart desires from Wizards of the Coasts' Player's Handbook rules.</p>
         <a href="/spells" id="spellsFeaturesLink" class="btn btn-primary">
           Spells
         </a>
       </div>
+      {{else}}
+      <div>
+        <h2>Learn the ways of Magic</h2>
+        <p>Read through the Player's Handbook spells to enhance your understanding of the arcane. Will you be a wizard, a druid, a sorcerer?</p>
+        <a href="/spells" id="spellsFeaturesLink" class="btn btn-primary">
+          Spells
+        </a>
+      </div>
+      {{/if}}
     </div>
     <div class="col d-flex align-items-start">
-      <div class="icon-square text-light flex-shrink-0 me-3">
-        <img src="./images/icons/cart.png">
+      {{!-- <div class="icon-square text-light flex-shrink-0 me-3">
+        <img src="/images/icons/cart.png">
       </div>
       <div>
         <h2>Shop for Your Own 3D Models</h2>
@@ -76,7 +93,7 @@
         <a href="#" class="btn btn-primary">
           Shop
         </a>
-      </div>
+      </div> --}}
     </div>
   </div>
 </div>

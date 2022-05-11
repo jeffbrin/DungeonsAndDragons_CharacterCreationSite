@@ -1,0 +1,15 @@
+<h1 class="text-center mt-0">Backgrounds</h1>
+<div class="d-flex flex-wrap  justify-content-center">
+{{#each backgrounds}}
+<form action="/background/{{Id}}" class="long-card d-flex card-btn-wide m-4 bg-card" style="border-radius: 20px">
+        <div class="card-body">
+            <h4 class="card-title">{{Name}}</h4>
+            <h6 class="card-subtitle mb-2 text-muted">Description</h6>
+             <p class="card-text">{{Description}}</p>
+        </div>
+</form>
+{{/each}}
+</div>
+
+
+{{!-- <script src="/scripts/cardPicker.js"></script> --}}

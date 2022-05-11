@@ -7,18 +7,29 @@
         </svg>
       </a>
 
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+      <ul style="gap: 10px;" class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
         <li><a id="homeHeaderLink" href="/"
             class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
         <li><a id="spellsHeaderLink" href="/spells"
             class="nav-link px-2 {{#if spellsActive}}text-secondary{{else}}text-white{{/if}}">Spells</a></li>
+            {{#if username}}
         <li><a href="/characters"
             class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
+            {{/if}}
+
+        <li class="dropdown">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if backgroundsActive}}Backgrounds{{else}}More{{/if}}
+          </a>
+
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            <li><a class="dropdown-item" href="/races">Races</a></li>
+            <li><a class="dropdown-item" href="#">Classes</a></li>
+            <li><a class="dropdown-item" href="/backgrounds">Backgrounds</a></li>
+          </ul>
+      </li>
       </ul>
 
-      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
-        <input type="search" id="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
-      </form>
       <div class="text-end d-flex" style="gap: 8px;">
         {{#if username}}
           <h2 id="usernameDisplay">{{username}}</h2>
@@ -75,7 +86,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-5 pt-0 d-flex" id="modalBody">
-          <form class="" id="signUpForm" action="/sessions" method="post">
+          <form class="" id="loginForm" action="/sessions" method="post">
             <div class="form-floating mb-3">
               <input type="text" class="form-control rounded-4" name="username" id="usernameLogin" placeholder="username">
               <label for="usernameLogin">Username</label>

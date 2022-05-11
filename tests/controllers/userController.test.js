@@ -32,7 +32,7 @@ afterEach(async () => {
     }
 });
 
-// Singing Up
+// Signing Up
 test("POST /users success", async () => {
     const testResponse = await testRequest.post('/users').send(validUser);
     expect(testResponse.status).toBe(201);
