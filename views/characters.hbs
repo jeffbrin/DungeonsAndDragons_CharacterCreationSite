@@ -15,7 +15,7 @@
 </svg>
 <div class="d-flex flex-wrap justify-content-center">
   {{#each characters}}
-  <form class="card bg-card m-4" style="width: 300px">
+  <form action="/characters/{{id}}" class="d-flex bg-card card-btn m-4 characterForm" style="width: 300px">
     <img class="card-img-top h-75 cardImage" src="/images/other/{{Race.Name}}_{{Class.Name}}.png" alt="Card image"
       style="width:100%">
     {{!-- <img class="card-img-top" src="/images/other/Human_Barbarian.png" alt="Card image" style="width:100%"> --}}
