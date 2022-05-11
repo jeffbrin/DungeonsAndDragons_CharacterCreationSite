@@ -72,7 +72,7 @@ body {}
     border-radius: 1rem;
 }
 
-.strength {
+.Strength {
     grid-area: 2 / 1 / 3 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -80,7 +80,7 @@ body {}
     padding: .25rem;
 }
 
-.dexterity {
+.Dexterity {
     grid-area: 3 / 1 / 4 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -88,7 +88,7 @@ body {}
     padding: .25rem;
 }
 
-.constitution {
+.Constitution {
     grid-area: 4 / 1 / 5 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -96,7 +96,7 @@ body {}
     padding: .25rem;
 }
 
-.intelligence {
+.Intelligence {
     grid-area: 5 / 1 / 6 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -105,7 +105,7 @@ body {}
 }
 
 
-.wisdom {
+.Wisdom {
     grid-area: 6 / 1 / 7 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -113,7 +113,7 @@ body {}
     padding: .25rem;
 }
 
-.charisma {
+.Charisma {
     grid-area: 7 / 1 / 8 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
@@ -383,4 +383,7 @@ input[type=number]::-webkit-outer-spin-button {
 .btnhp:hover{
     background-color: var(--popColorHover);
     border-radius: 1rem;
+}
+.d20Skill{
+    max-height: 25px;
 }

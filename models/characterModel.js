@@ -34,7 +34,7 @@ async function initialize(databaseNameTmp, reset) {
             await characterStatsModel.dropTables();
             await connection.execute(deleteDbQuery);
             logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
-            
+
         } catch (error) {
             throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
         }
@@ -46,7 +46,7 @@ async function initialize(databaseNameTmp, reset) {
     await createKnownSpellTable();
     await createOwnedItemTable();
 
-    
+
     await characterStatsModel.createTables();
 }
 
@@ -136,7 +136,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
             await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
         }
 
-        
+
         //Add Ability Score Values
         await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
 
@@ -325,8 +325,6 @@ async function getCharacter(id) {
         throw error;
     }
 
-
-
     try {
         let abilityScores = await characterStatsModel.getAbilityScores(id);
         character.AbilityScores = abilityScores;
@@ -345,7 +343,19 @@ async function getCharacter(id) {
     } catch (error) {
         throw new errors.DatabaseError('characterModel', 'getCharacter', `Database Error, couldn't get Owned Items: ${error.message}`);
     }
-    
+
+    //Initiative and Speed
+    try {
+        const initiativeQ = `SELECT Initiative FROM PlayerCharacter WHERE Id = ${id};`;
+        let [rows, col] = await connection.query(initiativeQ);
+        character.Initiative = rows[0].Initiative;
+
+        const speedQ = `SELECT Speed FROM PlayerCharacter WHERE Id = ${id};`;
+        let [rowsSpeed, cols] = await connection.query(speedQ);
+        character.Speed = rowsSpeed[0].Speed;
+    } catch (error) {
+        throw error;
+    }
 
     //Get race, class, background
     character.Race = await raceModel.getRace(character.raceId);
@@ -366,7 +376,7 @@ async function getCharacter(id) {
  * @returns {Array} - An array of String Names for each of the three moralities
  * @throws {DatabaseError} - If the query fails
  */
-async function getAllMoralities(){
+async function getAllMoralities() {
     let query = `SELECT Name from Morality;`;
 
     let rows;
@@ -384,7 +394,7 @@ async function getAllMoralities(){
  * @returns {Array} - An array of String Names for each of the three Ethics
  * @throws {DatabaseError} - If the query fails
  */
- async function getAllEthics(){
+async function getAllEthics() {
     let query = `SELECT Name from Ethics;`;
 
     let rows;
@@ -397,6 +407,136 @@ async function getAllMoralities(){
     return rows;
 }
 
+
+/**
+ * Adds an item to the OwnedItem table. Checks if user is valid and if item already exists
+ * If already exists then calls the helper function to increase the number of that item in the table
+ * @param {Integer} characterId - The Id of the character that will owned this item
+ * @param {String} itemName - The name of the Item
+ * @param {Integer} itemCount - The amount of this item
+ * @throws {DatabaseError} - Thrown when there is a database error and one of the queries wasn't completed
+ * @throws {InvalidInputError} - Thrown if there was an error with the User ID not being in the Database
+ */
+async function addItem(characterId, itemName, itemCount) {
+    //check characterId
+    const characterS = `SELECT * FROM ${tableName} WHERE Id = ${characterId};`;
+    let characters, columns;
+    try {
+        [characters, columns] = await connection.query(characterS);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    if(characters.length === 0){
+        throw new errors.InvalidInputError('characterModel', 'addItem', `Invalid character Id.`);
+    }
+    
+
+    //check to see if there already is this item
+    itemName = itemName.toLowerCase();
+    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName}';`;
+    let rows, cols;
+    try {
+        [rows, cols] = await connection.query(selectQ);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    
+    if (rows.length != 0) {
+        try {
+            itemCount += parseInt(rows[0].Count);
+            await changeQuantityItem(characterId, itemName, itemCount);
+        } catch (error) {
+            throw error;
+        }
+        
+    }
+    else{
+        const insertQ = `INSERT INTO OwnedItem (CharacterId, Name, Count) VALUES (${characterId}, '${itemName}', ${itemCount});`;
+        try {
+            await connection.execute(insertQ);
+        } catch (error) {
+            throw new errors.DatabaseError('characterModel', 'addItem', `Couldn't insert the item: ${error.message}`);
+        }
+    }
+}
+
+/**
+ * Updates the Owned Item Table with the new values
+ * @param {*} characterId - The Id of the Character who owns the item
+ * @param {*} itemName - The name of the item (lowercased already)
+ * @param {*} itemCount - The new count of the item (calculated inside last function)
+ * @throws {DatabaseError} Thrown when there is a database error and the query wasn't executed properly
+ */
+async function changeQuantityItem(characterId, itemName, itemCount) {
+
+    let query;
+    if(itemCount <= 0){
+        //delete
+        query = `DELETE FROM OwnedItem WHERE CharacterID = ${characterId} AND Name = '${itemName}';`;
+    }
+    else{
+        //update to new value that is > 0
+        query = `UPDATE OwnedItem SET Count = ${itemCount} WHERE CharacterID = ${characterId} AND Name = '${itemName}';`;
+    }
+    
+
+    try {
+        await connection.execute(query);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'changeQuantityItem', `Error while updating or deleting the item to its new Count value: ${error.message}`);
+    }
+
+}
+
+
+/**
+ * Removes a specific amount of an item from the table
+ * @param {Integer} characterId - The character Id 
+ * @param {String} itemName - The name of the 
+ * @param {Integer} itemCount - A negative number to remove from the table
+ * @throws {InvalidInputError} - Thrown when the itemCount is not negative OR
+ * The Character Id is invalid
+ * @throws {DatabaseError} - Thrown if there is an error with the queries to the database
+ */
+async function removeItem(characterId, itemName, itemCount){
+    if(itemCount >= 0){
+        throw new errors.InvalidInputError('characterModel', 'removeItem', 'Item count must be negative!');
+    }
+    //check characterId
+    const characterS = `SELECT * FROM ${tableName} WHERE Id = ${characterId};`;
+    let characters, columns;
+    try {
+        [characters, columns] = await connection.query(characterS);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    if(characters.length === 0){
+        throw new errors.InvalidInputError('characterModel', 'addItem', `Invalid character Id.`);
+    }
+    
+
+    //check to see if there already is this item
+    itemName = itemName.toLowerCase();
+    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName}';`;
+    let rows, cols;
+    try {
+        [rows, cols] = await connection.query(selectQ);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    
+    if (rows.length != 0) {
+        try {
+            itemCount += parseInt(rows[0].Count);
+            await changeQuantityItem(characterId, itemName, itemCount);
+        } catch (error) {
+            throw error;
+        }
+    }
+    else{
+        throw new errors.InvalidInputError('characterModel', 'removeItem', `Couldn't remove Item because there is no item that exists with that name.`)
+    }
+}
 /**
  * Gets all the Characters corresponding to a given User's Id.
  * @param {Integer} userId - The Id of the user whose characters will be retrieved
@@ -423,7 +563,7 @@ async function getUserCharacters(userId) {
     }
 
     characters = []
-    for (row of rows){
+    for (row of rows) {
         characters.push(await getCharacter(row.Id));
     }
 
@@ -788,5 +928,7 @@ module.exports = {
     updateAC,
     updateSpeed,
     updateInitiative,
-    addCharacterObject
+    addCharacterObject,
+    addItem,
+    removeItem
 };

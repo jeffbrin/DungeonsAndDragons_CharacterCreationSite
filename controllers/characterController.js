@@ -8,6 +8,7 @@ const model = require('../models/characterModel');
 const logger = require('../logger');
 const authenticator = require('./authenticationHelperController')
 const userModel = require('../models/userModel')
+const charStatsModel = require('../models/characterStatisticsModel');
 
 const errors = require('../models/errorModel');
 
@@ -76,16 +77,18 @@ async function updateHitpoints(request, response) {
 
 
 /**
- * on a get request, the getCharacter method from the model is called
+ * On a get request, the getCharacter method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getCharacter(request, response) {
+async function getCharacter(request, response, sessionId) {
     try {
-        var id = request.params.id;
-        // let found = await model.getCharacter(id);
-        response.status(201).render('sheet.hbs', { charactersActive: true, soloCharacter: 'soloCharacter.css'});
+        const id = request.params.id;
+        const userId = await userModel.getUserIdFromSessionId(sessionId);
+        let found = await model.getCharacter(id);
+        let allSkills = await charStatsModel.getAllSkills();
+        response.status(201).render('sheet.hbs', { charactersActive: true, soloCharacter: 'soloCharacter.css', character: found, skills: allSkills});
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -211,7 +214,7 @@ router.put('/:id', updateCharacter);
 router.post('/', sendCharacter);
 router.post('/forms', formRoute)
 router.delete('/:id', deleteCharacter);
-router.get('/:id', getCharacter);
+router.get('/:id', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id/hp', updateHitpoints);
 

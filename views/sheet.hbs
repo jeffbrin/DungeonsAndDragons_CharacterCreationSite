@@ -1,76 +1,55 @@
 {{#with character}}
 <div class="containerGrid">
   <div class="charName iconDiv">
-    <h5 class="text-center">Kate the Great</h5>
+    <h5 class="text-center">{{Name}}</h5>
   </div>
   <div class="level iconDiv">
     <img class="iconImg" src="/images/icons/swords.png">
-    <h5 class="text-center">Level: 5</h5>
+    <h5 class="text-center">Level: {{Level}}</h5>
   </div>
   <div class="class iconDiv">
-    <img class="iconImg" src="/images/icons/class/barbarian.png">
+    <img class="iconImg" src="/images/icons/class/{{Class.Name}}.png">
     <h5 class="text-center">Class: Barbarian</h5>
   </div>
   <div class="race iconDiv">
-    <img class="iconImg" src="/images/icons/race/elf.png">
-    <h5 class="text-center">Race: Elf</h5>
+    <img class="iconImg" src="/images/icons/race/{{Race.Name}}.png">
+    <h5 class="text-center">Race: {{Race.Name}}</h5>
   </div>
   <div class="AC iconDiv">
     <img class="iconImg" src="/images/icons/shield.png">
-    <h5 class="text-center">AC: 20</h5>
+    <h5 class="text-center">AC: {{ArmorClass}}</h5>
   </div>
   <div class="initiative iconDiv">
     <img class="iconImg" src="/images/icons/initiative.png">
-    <h5 class="text-center">Initiative: 2</h5>
+    <h5 class="text-center">Initiative: {{Initiative}}</h5>
   </div>
   <div class="speed iconDiv">
     <img class="iconImg" src="/images/icons/speed.png">
-    <h5 class="text-center">Speed: 25</h5>
+    <h5 class="text-center">Speed: {{Speed}}</h5>
   </div>
   <div class="Abilities">
 
   </div>
-  <div class="strength">
-    <h6>Strength</h6>
-    <h5 class="text-center abilityScore">14</h5>
-    <h6 class="text-center abilityBonus green w-33">+2</h6>
+  {{#each AbilityScores}}
+  <div class="{{AbilityName}}">
+    <h6>{{AbilityName}}</h6>
+    <h5 class="text-center abilityScore">{{Score}}</h5>
+    <h6 class="text-center abilityBonus green w-33">FE</h6>
   </div>
-  <div class="dexterity">
-    <h6>Dexterity</h6>
-    <h5 class="text-center abilityScore">10</h5>
-    <h6 class="text-center abilityBonus w-33">0</h6>
-  </div>
-  <div class="constitution">
-    <h6>Constitution</h6>
-    <h5 class="text-center abilityScore">8</h5>
-    <h6 class="text-center abilityBonus w-33 red">-1</h6>
-  </div>
-  <div class="intelligence">
-    <h6>Intelligence</h6>
-    <h5 class="text-center abilityScore">12</h5>
-    <h6 class="text-center abilityBonus w-33 green">+1</h6>
-  </div>
-  <div class="wisdom">
-    <h6>Wisdom</h6>
-    <h5 class="text-center abilityScore">9</h5>
-    <h6 class="text-center abilityBonus w-33">0</h6>
-  </div>
-  <div class="charisma">
-    <h6>Charisma</h6>
-    <h5 class="text-center abilityScore">14</h5>
-    <h6 class="text-center abilityBonus w-33 green">+2</h6>
-  </div>
+  {{/each}}
+
+
   <div class="proficiency iconDiv">
     <img class="iconImg" src="/images/icons/proficiency.png">
-    <h5 class="text-center">Proficiency Bonus: +3</h5>
+    <h5 class="text-center">Proficiency Bonus: {{ProficiencyBonus}}</h5>
   </div>
   <div class="experience">
     <img class="iconImg" src="/images/icons/xp.png">
-    <h5 class="text-center">EXP: 300</h5>
+    <h5 class="text-center">EXP: {{Experience}}</h5>
   </div>
   <div class="health">
-
   </div>
+  {{/with}}
 
   <div class="skills">
     <table class="table">
@@ -82,113 +61,36 @@
         </tr>
       </thead>
       <tbody>
+        {{#each skills}}
         <tr>
-          <th scope="row">&#10003;</th>
-          <td>Acrobatics</td>
-          <td>DEX</td>
+          <th scope="row">&#10003; FE</th>
+          <td>{{Name}}</td>
+          <td>{{Ability.Name}}</td>
         </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Animal Handling</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Arcana</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Athletics</td>
-          <td>STR</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Deception</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>History</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Insight</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Intimidation</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Investigation</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Medicine</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Nature</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Perception</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Performance</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Persuasion</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Religion</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Sleight of Hand</td>
-          <td>DEX</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Stealth</td>
-          <td>DEX</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Survival</td>
-          <td>WIS</td>
-        </tr>
+        {{/each}}
       </tbody>
     </table>
   </div>
   <div class="items">
-    <ul class="itemUl">
-      <li class="item">Great-Axe</li>
-      <li class="item">Healing Potion</li>
-      <li class="item">Amulet</li>
-      <li class="item">Club</li>
-      <li class="item">Goggles of Night</li>
-      <li class="item">Ladder</li>
-      <li class="item">Jug</li>
-      <li class="item">Net</li>
-      <li class="item">Orb of Dragonkind</li>
-      <li class="item">Paper</li>
-    </ul>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each character.OwnedItems}}
+        <tr>
+          <td>{{Name}}</td>
+          <td>{{Count}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
+
+  {{#with character}}
   <div class="savingthrows">
     <h5 class="text-center">Saving Throws</h5>
     <table class="table" id="savingThrowTable">
@@ -200,57 +102,36 @@
         </tr>
       </thead>
       <tbody>
+        {{#each AbilityScores}}
         <tr>
-          <th scope="row">Dice</th>
-          <td>Strength</td>
-          <td>+2</td>
+          <th scope="row"><img class="d20Skill" src="/images/icons/dice/d20.png"></th>
+          <td>{{AbilityName}}</td>
+          <td>FE</td>
         </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Dexterity</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Constitution</td>
-          <td>-1</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Intelligence</td>
-          <td>+1</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Wisdom</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Charisma</td>
-          <td>+2</td>
-        </tr>
+        {{/each}}
       </tbody>
     </table>
   </div>
+  {{/with}}
+  {{#with character}}
   <div class="img">
-    <img class="characterImg" src="/images/icons/characters/elf_barbarian.png">
+    <img class="characterImg" src="/images/icons/characters/{{Race.Name}}_{{Class.Name}}.png">
   </div>
   <div class="spells">
     <h5 class="text-center">Spells</h5>
   </div>
   <div class="hpValues myContainer">
     <div class="verticalCenter">
-      <h4 class="text-center textSizeBigger">19</h4>
+      <h4 class="text-center textSizeBigger">{{CurrentHp}}</h4>
       <hr id="hrhp">
-      <h4 class="text-center textSizeBigger">19</h4>
+      <h4 class="text-center textSizeBigger">{{MaxHp}}</h4>
     </div>
   </div>
-  <form class="hpform myContainer">
+  <form action="/characters/{{Id}}" class="hpform myContainer" id="hitpointsForm">
     <button type="submit" id="btnAdd" class="plusIcon iconImg btnhp">
       <img id="addHp" src="/images/icons/plus.png">
     </button>
-    <input placeholder="Custom Number" type="number" class="inputNumber">
+    <input placeholder="Custom Number" type="number" class="inputNumber" id="hpValueInput">
     <button id="btnRemove" type="submit" class="minusIcon iconImg btnhp">
       <img id="removeHp" src="/images/icons/minus.png">
     </button>
@@ -267,3 +148,4 @@
     <h5 class="text-center">Background Features</h5>
   </div>
 </div>
+{{/with}}

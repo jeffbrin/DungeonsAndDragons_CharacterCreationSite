@@ -33,6 +33,10 @@ async function startup() {
         await characterModel.addCharacter(3, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
         let character = await characterModel.getCharacter(1);
         console.log(character);
+        await characterModel.updateInitiative(1, 4);
+        await characterModel.updateSpeed(1, 30);
+        await characterModel.addItem(1, 'boots', 3);
+        await characterModel.addItem(1, 'boots', 4);
         await characterModel.addCharacter(1, 2, "bob", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
         let character2 = await characterModel.getCharacter(1);
         console.log(character2)
