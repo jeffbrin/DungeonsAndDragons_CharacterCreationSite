@@ -1,5 +1,5 @@
 const app = require('./app.js');
-const port = 1339;
+const port = 1330;
 const spellModel = require('./models/spellModel');
 const raceModel = require('./models/raceModel');
 const classModel = require('./models/classModel');

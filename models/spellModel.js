@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise')
 const validationModel = require('./validateSpellUtils')
 const logger = require('../logger');
-const {DatabaseError} = require('./errorModel');
+const {DatabaseError, InvalidInputError} = require('./errorModel');
 
 let connection;
 const validSchools = [
@@ -40,22 +40,11 @@ async function initialize(databaseName, reset) {
     if (reset) {
         // Drop reliant tables
         await dropReliantTables();
-        const resetQuery = `DROP TABLE IF EXISTS SpellSchool`;
-
-        // Try catch with await to make sure this is run before the next query is run
-        try {
-            await connection.execute(resetQuery)
-            logger.info(`Table SpellSchool reset`);
-        }
-        catch (error) {
-            throw new DatabaseIOError(`Failed to reset table SpellSchool in the database... check your connection to the database: ${error.message}`)
-        }
-
     }
 
     // Create and populate the SpellSchool table even if the db isn't reset
     // But catch in case it isn't the first time the db is made
-    let sqlQuery = `CREATE TABLE IF NOT EXISTS SpellSchool (id int, name VARCHAR(50), PRIMARY KEY(id));`;
+    let sqlQuery = `CREATE TABLE IF NOT EXISTS SpellSchool (Id INT, Name TEXT, PRIMARY KEY(Id));`;
     try {
         await connection.execute(sqlQuery).then(logger.info(`Table SpellSchool created/exists`))
     }
@@ -63,28 +52,47 @@ async function initialize(databaseName, reset) {
         throw new DatabaseIOError(`Failed to create table (SpellSchool)... check your connection to the database: ${error.message}`)
     }
 
-    let schoolAddFailed = false;
-    for (let i = 0; i < validSchools.length; i++) {
-        try {
-            await connection.execute(`INSERT INTO SpellSchool values (${i + 1}, '${validSchools[i].toLowerCase()}');`);
-        }
-        catch (error) {
-            schoolAddFailed = true;
-        }
-    }
-
-    // Log if one of the schools failed to be added.
-    if (schoolAddFailed)
-        logger.info('Failed to add at least one spell school to the database. This is likely because the database already contains the schools being added. Make sure the database is reset when a new school is added to the array of schools.');
-
-
-    // Create / Recreate
-    sqlQuery = `CREATE TABLE IF NOT EXISTS Spell (id int, level TINYINT, name VARCHAR(50), schoolId int, description TEXT, PRIMARY KEY(id), FOREIGN KEY (schoolId) REFERENCES SpellSchool(id))`;
+    let spellSchoolTableHasData = false;
     try {
-        await connection.execute(sqlQuery).then(logger.info(`Table Spell created/exists`))
+        [rows, columnData] = await connection.query('SELECT * from SpellSchool;');
+        spellSchoolTableHasData = rows.length > 0
     }
     catch (error) {
-        throw new DatabaseIOError(`Failed to create table (Spell)... check your connection to the database: ${error.message}`)
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
+    }
+
+    if(!spellSchoolTableHasData){
+        for (let i = 0; i < validSchools.length; i++) {
+            try {
+                await connection.execute(`INSERT INTO SpellSchool values (${i + 1}, '${validSchools[i].toLowerCase()}');`);
+            }
+            catch (error) {
+                throw new DatabaseError('spellModel', 'initialize', `Failed to insert spell schools into the SpellSchool table: ${error}`)
+            }
+        }
+    }
+
+    // Create / Recreate
+    let spellTableHasData = false;
+    try {
+        [rows, columnData] = await connection.query('SELECT * from Spell;');
+        spellTableHasData = rows.length > 0
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
+    }
+    if(!spellTableHasData){
+        sqlQuery = `CREATE TABLE IF NOT EXISTS Spell CREATE TABLE IF NOT EXISTS Spell(Id INT, SchoolId INT,
+            UserId INT, Level INT, Description TEXT, Name TEXT, CastingTime TEXT, Target TEXT, Range TEXT, Verbal BOOLEAN, 
+            Somatic BOOLEAN, Material BOOLEAN, Materials TEXT NULL, Duration TEXT, Damage TEXT NULL, Concentration BOOLEAN
+            PRIMARY KEY(Id), 
+            FOREIGN KEY (SchoolId) REFERENCES SpellSchool(Id), FOREIGN KEY (UserId) REFERENCES User(Id));`;
+        try {
+            await connection.execute(sqlQuery).then(logger.info(`Table Spell created/exists`))
+        }
+        catch (error) {
+            throw new DatabaseIOError(`Failed to create table (Spell)... check your connection to the database: ${error.message}`)
+        }
     }
 
 
@@ -126,20 +134,32 @@ async function closeConnection() {
  * @returns The spell added to the database. If a similar spell is in the db already, that one is returned.
  */
 async function addSpell(spell) {
-    return addSpellFromValues(spell.level, spell.name, spell.schoolId, spell.description);
+    return addSpellFromValues(Spell.Level, Spell.SchoolId);
 }
 
 /**
  * Validates the spell's information and adds it to the database table.
+ * No value can be empty besides materials and damage.
  * If a spell with the same level, name and schoolId is already present in the table, the table will remain unchanged.
- * @param {Number} level The level of the spell, must be an integer from 0 - 9
- * @param {String} name The name of the spell must not contain any numbers.
- * @param {String} schoolId The id of the school the spell belongs to, must not contain any numbers.
- * @param {String} description The description of the spell.
- * @returns True if the spell was added, false if a spell with the same details already exists.
- * @throws If the input is invalid or the spell could not be added to the database.
+  * @param {Integer} level The level of the spell, must be an integer from 0 - 9
+  * @param {Integer} schoolId The Id of the school the spell belongs to, must not contain any numbers.
+  * @param {Integer} userId The id of the user who created this spell, 0 by default.
+  * @param {String} description The description of the spell.
+  * @param {String} name The name of the spell must not contain any numbers.
+  * @param {String} castingTime The casting time of the spell in string form Ex. "1 Action"
+  * @param {String} target The target of the spell in string form Ex. "Self" or "Touched creature"
+  * @param {String} range The range of the spell Ex. "60 feet" or "Self"
+  * @param {Boolean} verbal Indicates whether the spell requires verbal components.
+  * @param {Boolean} somatic Indicates whether the spell requires somatic components.
+  * @param {Boolean} material Indicates whether the spell requires material components.
+  * @param {String} materials The materials needed to cast the spell - null if material is false
+  * @param {String} duration The duration of the spell. Ex. "1 minute" or "instantaneous".
+  * @param {String} damage The damage of the spell, can be null.
+ * @returns The spell that was added to the database.
+ * @throws {InvalidInputError} Thrown when the input is invalid.
+ * @throws {DatabaseError} Thrown when the spell could not be added to the database.
  */
-async function addSpellFromValues(level, name, schoolId, description) {
+async function addSpellFromValues(level, schoolId, userId, level, description, name, castingTime, target, verbal, somatic, material, materials, duration, damage) {
 
     // Validate the spell, this will throw if the spell is invalid
     let allSchools;
@@ -175,21 +195,21 @@ async function addSpellFromValues(level, name, schoolId, description) {
     // If this spell isn't already present in the table, add it
     if (matchedSpellRows.length == 0) {
 
-        // Find next highest id
-        [highestIndexRow, columnDefinitions] = await connection.query('SELECT id from Spell order by id desc limit 1');
+        // Find next highest Id
+        [highestIndexRow, columnDefinitions] = await connection.query('SELECT Id from Spell order by Id desc limit 1');
 
         // Imitate auto increment
         let newId = 1;
         if (highestIndexRow.length > 0)
-            newId = highestIndexRow[0].id + 1;
+            newId = highestIndexRow[0].Id + 1;
 
         // replacing single quotes with 2 single quotes to escape them in sql.
         // /'/g indicates that all the single quotes should be replaced (g as in "global")
         let schoolName;
-        const insertQuery = `INSERT INTO Spell (id, level, name, schoolId, description) VALUES (${newId}, ${level}, '${name.replace(/'/g, "''")}', ${schoolId}, '${description.replace(/'/g, "''")}')`;
+        const insertQuery = `INSERT INTO Spell (Id, level, name, schoolId, description) VALUES (${newId}, ${level}, '${name.replace(/'/g, "''")}', ${schoolId}, '${description.replace(/'/g, "''")}')`;
         try {
             await connection.execute(insertQuery)
-            schoolName = await connection.execute(`SELECT name from SpellSchool where id = ${schoolId}`)
+            schoolName = await connection.execute(`SELECT name from SpellSchool where Id = ${schoolId}`)
         } catch (err) {
             throw new DatabaseIOError(`Failed to write to table (Spell): ${err.message}`);
         }
@@ -202,7 +222,7 @@ async function addSpellFromValues(level, name, schoolId, description) {
     // Return whether the spell was successfully added in the table
     // If the added spell's description is different than the one passed, it means 
     // there was another one that would have been overriden
-    delete matchedSpellRows.id
+    delete matchedSpellRows.Id
     addedSpell = matchedSpellRows[0];
     return addedSpell.description == description;
 
@@ -239,24 +259,24 @@ async function removeSpellsWithMatchingName(name) {
 }
 
 /**
- * Deletes all spells which have the same id as the argument passed.
- * If an invalid spell id is passed, the function returns false since
- * no spell with that id could be deleted.
- * @param {Number} id A positive integer indicating the id of the spell to delete.
- * @returns Whether a spell with the passed id was deleted.
- * @throws If an invalid id was provided or there was a database issue.
+ * Deletes all spells which have the same Id as the argument passed.
+ * If an invalid spell Id is passed, the function returns false since
+ * no spell with that Id could be deleted.
+ * @param {Number} Id A positive integer indicating the Id of the spell to delete.
+ * @returns Whether a spell with the passed Id was deleted.
+ * @throws If an invalid Id was provided or there was a database issue.
  */
-async function removeSpellById(id) {
+async function removeSpellById(Id) {
 
-    // Return right away if the spell id is invalid
+    // Return right away if the spell Id is invalid
     try {
-        await validationModel.validateSqlTableId(id)
+        await validationModel.validateSqlTableId(Id)
     }
     catch (error) {
-        throw new InvalidInputError(`Failed to remove spell with id (${id}): ${error}`)
+        throw new InvalidInputError(`Failed to remove spell with Id (${Id}): ${error}`)
     }
 
-    const deleteQuery = `DELETE FROM Spell WHERE id = ${id}`;
+    const deleteQuery = `DELETE FROM Spell WHERE Id = ${Id}`;
     let executionRowsData;
     try {
         [executionRowsData] = await connection.execute(deleteQuery)
@@ -277,7 +297,7 @@ async function getAllSpells() {
     let columnDefinitions;
 
     try {
-        [rows, columnDefinitions] = await connection.query(`select S.id, S.level, S.name, S.description, SS.name as "school" from Spell S, SpellSchool SS WHERE S.schoolId = SS.id;`)
+        [rows, columnDefinitions] = await connection.query(`select S.Id, S.level, S.name, S.description, SS.name as "school" from Spell S, SpellSchool SS WHERE S.schoolId = SS.Id;`)
     } catch (error) {
         throw new DatabaseIOError(`Failed to read from table Spell ... Try resetting the database : ${error.message}`)
     }
@@ -292,7 +312,7 @@ async function getAllSpells() {
  * At least one value must be provided (all 3 arguments can not be null at the same time).
  * @param {Number} level The level all the spells should be
  * @param {String} name The name all the spells should have
- * @param {String} schoolId The school id all the spells should be in
+ * @param {String} schoolId The school Id all the spells should be in
  * @returns An array containing the spells which match the specifications passed.
  */
 async function getSpellsWithSpecifications(level, name, schoolId) {
@@ -327,7 +347,7 @@ async function getSpellsWithSpecifications(level, name, schoolId) {
 
 
     // Update
-    let tempSelectQuery = `SELECT S.id, level, S.name, SS.name as 'school', description FROM Spell S, SpellSchool SS WHERE S.schoolId = SS.id AND`;
+    let tempSelectQuery = `SELECT S.Id, level, S.name, SS.name as 'school', description FROM Spell S, SpellSchool SS WHERE S.schoolId = SS.Id AND`;
 
     // Add each column where applicable
     if (level != null)
@@ -356,24 +376,24 @@ async function getSpellsWithSpecifications(level, name, schoolId) {
 }
 
 /**
- * Gets a spell that matches the id.
- * @param {Number} id The id of the spell to get.
- * @returns A spell that matches the id, null if no spell contains the id.
+ * Gets a spell that matches the Id.
+ * @param {Number} Id The Id of the spell to get.
+ * @returns A spell that matches the Id, null if no spell contains the Id.
  */
-async function getSpellById(id) {
+async function getSpellById(Id) {
 
-    // Validate the id
+    // Validate the Id
     try {
-        await validationModel.validateSqlTableId(id)
+        await validationModel.validateSqlTableId(Id)
     } catch (error) {
         throw new InvalidInputError(error.message)
     };
 
-    // Get all spells with specified id
+    // Get all spells with specified Id
     let rows;
     let columnDefinitions;
     try {
-        [rows, columnDefinitions] = await connection.execute(`SELECT S.id, level, S.name, SS.name as 'school', description FROM Spell S, SpellSchool SS where S.id = ${id} and S.schoolId = SS.id`)
+        [rows, columnDefinitions] = await connection.execute(`SELECT S.Id, level, S.name, SS.name as 'school', description FROM Spell S, SpellSchool SS where S.Id = ${Id} and S.schoolId = SS.Id`)
     } catch (error) {
         throw new DatabaseIOError(`Failed to get spell from database: ${error.message}`)
     };
@@ -385,26 +405,26 @@ async function getSpellById(id) {
 }
 
 /**
- * Changes the spell whose id matches to now have the values passed in as arguments.
+ * Changes the spell whose Id matches to now have the values passed in as arguments.
  * If a field should remain unchanged, pass null in the parameter that should remain unchanged.
  * If the changed spell would be a duplicate, the spell is deleted instead.
- * @param {Number} id The id of the spell to update.
+ * @param {Number} Id The Id of the spell to update.
  * @param {String} newLevel The new level to set the spell's level to.
  * @param {String} newName The new name to set the spell's name to.
- * @param {String} newSchoolId The spell's new schoolId id.
+ * @param {String} newSchoolId The spell's new schoolId Id.
  * @param {String} newDescription the spell's new description.
  * @returns Whether a spell was successfully updated.
- * @throws If an invalid value is passed in newName, newSchoolId or newDescription and isn't equal to null, or an invalid id is passed. Or if all passed values are null.
+ * @throws If an invalid value is passed in newName, newSchoolId or newDescription and isn't equal to null, or an invalid Id is passed. Or if all passed values are null.
  */
-async function updateSpellById(id, newLevel, newName, newSchoolId, newDescription) {
+async function updateSpellById(Id, newLevel, newName, newSchoolId, newDescription) {
 
     if (newLevel == null && newName == null && newSchoolId == null && newDescription == null) {
         throw new InvalidInputError('At least one field should be changed (not null).')
     }
 
-    if (id <= 0)
+    if (Id <= 0)
         throw new InvalidInputError("Id can not be a negative value.")
-    if (id % 1 != 0)
+    if (Id % 1 != 0)
         throw new InvalidInputError("Id must be an integer.")
 
     // Get all the schools for validation
@@ -442,7 +462,7 @@ async function updateSpellById(id, newLevel, newName, newSchoolId, newDescriptio
         try{
             // Make sure the spell is in the database before deleting potential duplicates
             let rows, columnDefinitions;
-            [rows, columnDefinitions] = await connection.query(`SELECT * FROM Spell where id = ${id}`);
+            [rows, columnDefinitions] = await connection.query(`SELECT * FROM Spell where Id = ${Id}`);
             if (rows.length == 0)
                 return false;
         }
@@ -453,10 +473,10 @@ async function updateSpellById(id, newLevel, newName, newSchoolId, newDescriptio
         let rows;
         try{
             // Get all rows that will be a duplicate if they change
-            [rows, columnDefinitions] = await connection.query(`SELECT * FROM Spell S WHERE id != ${id} 
-            AND name = ${newName == null ? `(select name from Spell where id = ${id})` : `'${newName.replace(/'/g, "''").toLowerCase()}'`} 
-            AND level = ${newLevel == null ? `(select level from Spell where id = ${id})` : `${newLevel}`} 
-            AND schoolId = ${newSchoolId == null ? `(select schoolId from Spell where id = ${id})` : `${newSchoolId}`}`
+            [rows, columnDefinitions] = await connection.query(`SELECT * FROM Spell S WHERE Id != ${Id} 
+            AND name = ${newName == null ? `(select name from Spell where Id = ${Id})` : `'${newName.replace(/'/g, "''").toLowerCase()}'`} 
+            AND level = ${newLevel == null ? `(select level from Spell where Id = ${Id})` : `${newLevel}`} 
+            AND schoolId = ${newSchoolId == null ? `(select schoolId from Spell where Id = ${Id})` : `${newSchoolId}`}`
             );
         }
         catch(error){
@@ -466,7 +486,7 @@ async function updateSpellById(id, newLevel, newName, newSchoolId, newDescriptio
         // Delete the spells that would be a duplicate
         try {
             rows.forEach(async (spell) => {
-                await connection.execute(`DELETE FROM Spell WHERE id = ${spell.id}`);
+                await connection.execute(`DELETE FROM Spell WHERE Id = ${spell.Id}`);
             })
         }
         catch (error) {
@@ -492,7 +512,7 @@ async function updateSpellById(id, newLevel, newName, newSchoolId, newDescriptio
 
 
     // Add where clause
-    updateQuery += ` WHERE id = ${id}`;
+    updateQuery += ` WHERE Id = ${Id}`;
     let executionData;
     try {
         [executionData] = await connection.execute(updateQuery)
@@ -535,7 +555,7 @@ async function updateSpellNames(oldName, newName) {
     // Delete the spells that would be a duplicate
     try {
         rows.forEach(async (spell) => {
-            await connection.execute(`DELETE FROM Spell WHERE id = ${spell.id}`);
+            await connection.execute(`DELETE FROM Spell WHERE Id = ${spell.Id}`);
         })
     }
     catch (error) {
@@ -559,7 +579,7 @@ async function updateSpellNames(oldName, newName) {
  */
 async function getAllSchools() {
     try {
-        [schoolObjects, columnDefinitions] = await connection.query('SELECT id, name FROM SpellSchool')
+        [schoolObjects, columnDefinitions] = await connection.query('SELECT Id, name FROM SpellSchool')
 
         for (let i = 0; i < schoolObjects.length; i++){
 
@@ -577,7 +597,7 @@ async function getAllSchools() {
  * @returns A list of all school ids in the database.
  */
 async function getAllSchoolIds() {
-    return (await getAllSchools()).map(object => object.id);
+    return (await getAllSchools()).map(object => object.Id);
 }
 
 class InvalidInputError extends Error { };
