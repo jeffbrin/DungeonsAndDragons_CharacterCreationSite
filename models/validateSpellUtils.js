@@ -9,7 +9,7 @@ const {DatabaseError} = require('./errorModel')
  */
 async function validateSpellLevel(level){
 
-    if (!validator.isNumeric(level))
+    if (typeof level != 'number' && !validator.isNumeric(level))
         throw new Error("spell level is not a number.");
 
     if (level % 1 != 0)
@@ -45,12 +45,12 @@ async function validateSpellLevel(level){
  */
  async function validateSpellSchool(schoolId, connection){
 
-    if(!validator.isNumeric(level))
+    if(typeof schoolId != 'number' && !validator.isNumeric(schoolId))
         throw new Error("spell school is not a number.")
     
         let spellSchoolIds;
     try{
-        [spellSchoolIds, cols] = connection.query('SELECT Id from SpellSchool');
+        [spellSchoolIds, cols] = await connection.query('SELECT Id from SpellSchool');
         spellSchoolIds = spellSchoolIds.map(obj => obj.Id);
     } 
     catch(error){
@@ -72,12 +72,12 @@ async function validateSpellLevel(level){
  */
 async function validateUser(userId, connection){
 
-    if(!validator.isNumeric(userId))
+    if(typeof userId != 'number' && !validator.isNumeric(userId))
         throw new Error("user id is not a number.")
     
         let userIds;
     try{
-        [userIds, cols] = connection.query('SELECT Id from User');
+        [userIds, cols] = await connection.query('SELECT Id from User');
         userIds = userIds.map(obj => obj.Id);
     } 
     catch(error){
@@ -117,6 +117,11 @@ async function validateSpellComponentBool(boolVal){
     }
 }
 
+/**
+ * Validates the material boolean and material string combination.
+ * @param {Boolean} material Indicates whether the spell requires material components.
+ * @param {String} materials The material components of the spell
+ */
 async function validateMaterials(material, materials){
     if(typeof material != 'boolean')
         throw new Error('The material component value was not a valid type.');
@@ -124,8 +129,23 @@ async function validateMaterials(material, materials){
     if(material && materials == null)
         throw new Error('The material components must be indicated for a spell which require them.');
         
-    if(!materials && materials != null)
-        throw new error('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
+    if(!material && materials != null)
+        throw new Error('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
+    if(material && typeof !materials == 'string')
+        throw new Error("Materials were not sent in a valid type");
+    if(material && !materials)
+        throw new Error("Materials can not be empty");
+}
+
+/**
+ * Damage can be null or a string, a string can not be empty.
+ * @param {String} damage The damage of a spell.
+ */
+async function validateSpellDamage(damage){
+    if(damage != null && typeof damage != 'string')
+        throw new Error('Damage was not a text value.')
+    if(damage != null && !damage)
+        throw new Error('Damage can not be empty.')
 }
 
 /**
@@ -137,7 +157,6 @@ async function validateMaterials(material, materials){
   * @param {String} description a description of what the spell does.
   * @param {String} name the spell's name.
   * @param {String} castingTime The casting time of the spell.
-  * @param {String} target The target of the spell.
   * @param {Boolean} verbal Indicates whether the spell requires verbal components.
   * @param {Boolean} somatic Indicates whether the spell requires somatic components.
   * @param {Boolean} material Indicates whether the spell requires material components.
@@ -148,24 +167,26 @@ async function validateMaterials(material, materials){
   * @throws {Error} Thrown if the spell data was invalid.
   * @throws {DatabaseError} Thrown if the validation could not be performed due to a database issue.
   */
-async function validateSpell(level, schoolId, userId, level, description, name, castingTime, target, verbal, somatic, material, materials, duration, damage, connection){
+async function validateSpell(level, schoolId, userId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, connection){
 
     if (level == null || name == null || userId == null || description == null || schoolId == null || castingTime == null
-         || target == null || verbal == null || somatic == null || material == null || duration == null)
+         || verbal == null || somatic == null || material == null || duration == null || concentration == null || ritual == null)
         throw new Error("spell data is incomplete.");
 
     await validateSpellLevel(level)
         .then(()=> validateSpellName(name))
         .then(() => validateSpellSchool(schoolId, connection))
         .then(() => validateSpellGenericString(description, 'description'))
-        .then(() => validateUser(userId))
+        .then(() => validateUser(userId, connection))
         .then(() => validateSpellGenericString(castingTime, 'casting time'))
-        .then(() => validateSpellGenericString(target, 'target'))
         .then(() => validateSpellComponentBool(verbal))
         .then(() => validateSpellComponentBool(somatic))
         .then(() => validateMaterials(material, materials))
         .then(() => validateSpellGenericString(duration, 'duration'))
         .then(() => validateSpellDamage(damage, 'damage'))
+        .then(() => validateSpellDamage(range, 'range'))
+        .then(() => validateSpellComponentBool(concentration))
+        .then(() => validateSpellComponentBool(ritual));
         
 }
 
@@ -175,4 +196,8 @@ module.exports = {
     validateSpellSchool,
     validateSpellGenericString,
     validateSpell,
+    validateUser,
+    validateSpellDamage,
+    validateSpellComponentBool,
+    validateMaterials
 }

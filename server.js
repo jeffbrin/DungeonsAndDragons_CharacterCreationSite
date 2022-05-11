@@ -1,5 +1,5 @@
 const app = require('./app.js');
-const port = 1330;
+const port = 1339;
 const spellModel = require('./models/spellModel');
 const raceModel = require('./models/raceModel');
 const classModel = require('./models/classModel');
@@ -28,8 +28,9 @@ async function startup() {
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
         await classModel.initialize(dbName, false);
-        await spellModel.initialize(dbName, false);
+        await spellModel.initialize(dbName, true);
         await characterModel.initialize(dbName, false);
+        await userModel.addUser('JeffBrin', 'SnoopDogg123');
         await characterModel.addCharacter(3, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
         let character = await characterModel.getCharacter(1);
         console.log(character);

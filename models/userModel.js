@@ -42,6 +42,10 @@ async function initialize(databaseName, reset) {
     // Create the user table
     try{
         await connection.execute('CREATE TABLE IF NOT EXISTS User (Id INT, Username TEXT, Password TEXT, PRIMARY KEY(Id));');
+
+        const adminUser = await connection.execute('SELECT 1 FROM User Where Id = 0;');
+        if(adminUser[0][0].length == 0)
+            await connection.execute("INSERT INTO User (Id, Username, Password) values (0, 'admin', '184273dDwacCAds_DW!dw$2njdwAJdw_+#@(2dwacwa');");
     }
     catch(error){
         throw new DatabaseError('userModel', 'initialize', `Failed to create the User table: ${error};`);
