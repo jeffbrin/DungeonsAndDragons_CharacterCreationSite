@@ -38,32 +38,32 @@ body {}
     padding: 2rem;
 }
 
-.charName {
-    grid-area: 1 / 1 / 2 / 2;
+.alignment {
+    grid-area: 1 / 7 / 2 / 8;
 }
 
 .level {
-    grid-area: 1 / 2 / 2 / 3;
+    grid-area: 1 / 1 / 2 / 2;
 }
 
 .class {
-    grid-area: 1 / 3 / 2 / 4;
+    grid-area: 1 / 2 / 2 / 3;
 }
 
 .race {
-    grid-area: 1 / 4 / 2 / 5;
+    grid-area: 1 / 3 / 2 / 4;
 }
 
 .AC {
-    grid-area: 1 / 5 / 2 / 6;
+    grid-area: 1 / 4 / 2 / 5;
 }
 
 .initiative {
-    grid-area: 1 / 6 / 2 / 7;
+    grid-area: 1 / 5 / 2 / 6;
 }
 
 .speed {
-    grid-area: 1 / 7 / 2 / 8;
+    grid-area: 1 / 6 / 2 / 7;
 }
 
 .Abilities {
@@ -254,12 +254,12 @@ body {}
     width: 50%;
     margin: auto;
     display: block;
+    margin-top: 1rem;
 }
 
 .iconDiv {
     background-color: var(--elevationColor);
     margin: 1rem;
-    margin-top: 0;
     border-radius: 1rem;
 }
 
@@ -293,8 +293,6 @@ body {}
     font-size: 2rem;
     margin-left: 6rem;
 }
-
-#hpImg {}
 
 .abilityScore {
     font-size: 2rem;
@@ -386,4 +384,55 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .d20Skill{
     max-height: 25px;
+}
+#characterName{
+    margin: 0 !important;
+}
+#btnAdd{
+    margin-top: 0;
+}
+#btnRemove{
+    margin-top: 0;
+}
+.no-border{
+    border: none !important;
+}
+.bg-trans{
+    background-color: transparent !important;
+}
+#levelupBtn:hover{
+    background-color: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
+#levelupBtn{
+    margin-top: 0;
+}
+#levelupImg{
+    max-height: 25px !important;
+}
+#itemBtn{
+    margin-top: 0;
+}
+#itemBtn:hover{
+    background-color: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
+#itemImg{
+    max-height: 25px !important;
+}
+.roll20:hover{
+    background-color: var(--popColorHover) !important;
+}
+.btn-elevated2{
+    background-color: var(--elevation2Color) !important;
+    border-radius: 1rem;
+}
+.btn-elevated2:hover{
+    background-color: var(--popColorHover) !important;
+}
+.bolded{
+    font-weight: bold;
+}
+.ability{
+    border-radius: 1rem;
 }

@@ -18,6 +18,11 @@ hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     return arg1 == arg2
 });
 
+
+async function getSheetStuff(id){
+
+}
+
 /**
  * Sends a character to the model by taking in the request's JSON and using it
  * @param {HTTPRequest} request The http Request object
@@ -48,6 +53,10 @@ async function sendCharacter(request, response) {
             response.status(400).render('characters.hbs', { error: true, message: "Couldn't Add Character, Input was invalid", character: character });
             logger.error('input error - from sendCharacter in characterController');
         }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
+        }
     }
 }
 
@@ -61,7 +70,7 @@ async function updateHitpoints(request, response) {
     requestJson = request.body;
     try {
         let updated = await model.addRemoveHp(request.params.id, requestJson.hp);
-        response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated" });
+        response.status(201).render('sheet.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated", character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -71,6 +80,10 @@ async function updateHitpoints(request, response) {
         else if (error instanceof errors.InvalidInputError) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${request.params.id}` });
             logger.error('input error - from updateHitpoints in characterController');
+        }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
         }
     }
 }
@@ -136,6 +149,7 @@ async function getAllUserCharacters(request, response, sessionId) {
         }
         else{
             logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
         }
     }
 }
@@ -164,8 +178,9 @@ async function updateCharacter(request, response) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't update Character with id: ${request.params.id}` });
             logger.error('input error - from updateCharacter in characterController');
         }
-        else {
-            response.status(400).render('characters.hbs', { error: true, message: `${error.message}` });
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
         }
     }
 }
@@ -195,28 +210,50 @@ async function deleteCharacter(request, response) {
             response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't delete Character with id: ${request.params.id}`, character: found });
             logger.error('input error - from deleteCharacter in characterController');
         }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
+        }
     }
 }
 
 
-async function formRoute(request, response) {
-    requestJson = request.body;
-    switch (requestJson.choice) {
-        case ("editCharacter"):
-            let character = await model.printDb();
-            response.status(201).render('characters.hbs', { charactersActive: true, chosenId: requestJson.characterId, character: character });
-            break;
-        default:
-            break;
+/**
+ * calls the level up function in the model
+ * Catches all errors and logs them and renders the pages based on the error
+ * @param {HTTP} request 
+ * @param {HTTP} response 
+ */
+async function updateLevel(request, response){
+    try{
+        await model.levelUp(request.params.id);
+        response.status(200).render('sheet.hbs', {character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css', success: true, message:"You Leveled Up!"});
+    }
+    catch(error){
+        if (error instanceof errors.DatabaseError) {
+            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}`});
+            logger.error("Database Error - From updateLevel in characterController");
+        }
+        else if (error instanceof errors.InvalidInputError) {
+            let found = await model.printDb();
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't level up Character with id: ${request.params.id}`, character: found, skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+            logger.error('input error - from updateLevel in characterController');
+        }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
+        }
     }
 }
+
+
 router.put('/:id', updateCharacter);
 router.post('/', sendCharacter);
-router.post('/forms', formRoute)
 router.delete('/:id', deleteCharacter);
 router.get('/:id', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id/hp', updateHitpoints);
+router.put('/:id/levels', updateLevel);
 
 module.exports = {
     router,

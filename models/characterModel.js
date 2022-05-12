@@ -246,6 +246,7 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 async function addRemoveHp(id, hpValueChange) {
     let selectQ = `Select CurrentHp from ${tableName} WHERE Id = ${id};`;
     let rows, column_definitions;
+    hpValueChange = parseInt(hpValueChange);
     try {
         [rows, column_definitions] = await connection.query(selectQ);
         logger.info("select Query before CurrentHp change Executed - addRemoveHp");
