@@ -5833,23 +5833,7 @@
       "level":"6",
       "school":"Conjuration",
       "class":"Druid"
-    },
-  
-    {
-      "name":"Trap the Soul",
-      "desc":"<p>This spell name was added as an error and does not exist. Refer to the spell named \"imprisonment\" for information on what this spell was intended to be.</p>",
-      "page":"phb Error",
-      "range":"30 feet",
-      "components":"V, S, M",
-      "ritual":"no",
-      "duration":"Until dispelled",
-      "concentration":"no",
-      "casting_time":"1 minute",
-      "level":"8",
-      "school":"Conjuration",
-      "class":"Wizard"
-    },
-  
+    },  
     {
       "name":"Tree Stride",
       "desc":"<p>You gain the ability to enter a tree and move from inside it to inside another tree of the same kind within 500 feet. Both trees must be living and at least the same size as you. You must use 5 feet of movement to enter a tree. You instantly know the location of all other trees of the same kind within 500 feet and, as part of the move used to enter the tree, can either pass into one of those trees or step out of the tree you’re in. You appear in a spot of your choice within 5 feet of the destination tree, using another 5 feet of movement. If you have no movement left, you appear within 5 feet of the tree you entered.</p><p>You can use this transportation ability once per round for the duration. You must end each turn outside a tree.</p>",
@@ -6164,6 +6148,7 @@
       "page":"phb 287",
       "range":"30 feet",
       "components":"V, S, M",
+      "material": "A piece of cork",
       "ritual":"yes",
       "duration":"1 hour",
       "concentration":"no",

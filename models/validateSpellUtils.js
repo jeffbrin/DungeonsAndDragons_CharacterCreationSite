@@ -149,6 +149,33 @@ async function validateSpellDamage(damage){
 }
 
 /**
+ * Validates all the class ids in the array to make sure they appear in the Class table.
+ * @param {Array} classIds A list of class ids.
+ * @param {Object} connection A connection to the mysql database.
+ * @throws {DatabaseError} Thrown when there is an issue querying the database to get the list of class ids.
+ * @throws {Error} Thrown when the list of class ids is not an array or contains a non-existant class id.
+ */
+async function validateClassIds(classIds, connection){
+    
+    let classIdsFromDatabase;
+    try{
+        [classIdsFromDatabase, columns] = await connection.query('SELECT Id FROM Class');
+        classIdsFromDatabase = classIdsFromDatabase.map(obj => obj.Id);
+    }
+    catch(error){
+        throw new DatabaseError('validateSpellUtils', 'validateClassIds', `Failed to query the database to get the list of class ids: ${error}`);
+    }
+
+    if(!Array.isArray(classIds))
+        throw new Error('class ids should be an array.');
+    
+    for(let i = 0; i < classIds.length; i++){
+        if(!classIdsFromDatabase.includes(classIds[i]))
+            throw new Error(`${classIds[i]} is not a valid class id.`);
+    }
+}
+
+/**
  * Validates a spell's info and throws an error if it's invalid.
   * @param {Integer} level the spell's level (between 0-9).
   * @param {Integer} schoolId the id of the spell's school.
@@ -163,14 +190,15 @@ async function validateSpellDamage(damage){
   * @param {String} materials The materials required for a spell, must be null if material is false, can not be null if material is true.
   * @param {String} duration The duration of the spell. 
   * @param {String} damage The damage of the spell, can be null.
+  * @param {Array} classIds A list of class ids which can cast this spell
   * @param {Object} connection A connection to the database.
   * @throws {Error} Thrown if the spell data was invalid.
   * @throws {DatabaseError} Thrown if the validation could not be performed due to a database issue.
   */
-async function validateSpell(level, schoolId, userId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, connection){
+async function validateSpell(level, schoolId, userId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, classIds, connection){
 
     if (level == null || name == null || userId == null || description == null || schoolId == null || castingTime == null
-         || verbal == null || somatic == null || material == null || duration == null || concentration == null || ritual == null)
+         || verbal == null || somatic == null || material == null || duration == null || concentration == null || ritual == null || classIds == null)
         throw new Error("spell data is incomplete.");
 
     await validateSpellLevel(level)
@@ -186,7 +214,8 @@ async function validateSpell(level, schoolId, userId, description, name, casting
         .then(() => validateSpellDamage(damage, 'damage'))
         .then(() => validateSpellDamage(range, 'range'))
         .then(() => validateSpellComponentBool(concentration))
-        .then(() => validateSpellComponentBool(ritual));
+        .then(() => validateSpellComponentBool(ritual))
+        .then(() => validateClassIds(classIds, connection));
         
 }
 
@@ -199,5 +228,6 @@ module.exports = {
     validateUser,
     validateSpellDamage,
     validateSpellComponentBool,
-    validateMaterials
+    validateMaterials,
+    validateClassIds
 }
