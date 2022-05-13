@@ -167,6 +167,16 @@ async function dropTables(){
         throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
     }
 
+    // Drop the ClassPermittedSpell table
+    dropCommand = 'DROP TABLE IF EXISTS ClassPermittedSpell;'
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`ClassPermittedSpell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the ClassPermittedSpell table in the database... check your connection to the database: ${error.message}`)
+    }
+
     // Drop the Class table
     dropCommand = 'DROP TABLE IF EXISTS Class;'
     try {
