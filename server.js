@@ -28,7 +28,7 @@ async function startup() {
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
         await classModel.initialize(dbName, false);
-        await spellModel.initialize(dbName, true);
+        await spellModel.initialize(dbName, false);
         await characterModel.initialize(dbName, false);
         try{
         await userModel.addUser('JeffBrin', 'SnoopDogg123');
@@ -47,10 +47,10 @@ async function startup() {
         }
 
         // Adding test spells
-        const spell = await spellModel.addSpellFromValues(1, 1, 1, 'DescRIptin', 'My Homebrewed Spell', '1 action', true, true, true, 'bat guano', 'instantaneous', '1d10', '60 feet', false, false, [1, 2])
+        const spell = await spellModel.addSpellFromValues(1, 1, 2, 'DescRIptin', 'Jahfroys Spell', '1 action', true, true, true, 'bat guano', 'instantaneous', '1d10', '60 feet', false, false, [1, 2])
         console.log(await spellModel.getSpellsWithSpecifications(1, 1, 1, null, null, null, null, null, null, null, null, null, null));
 
-        const updatedSpell = await spellModel.updateSpellById(spell.Id, 1, 8, 5, 'New DESCRIPTION', 'DOPE SPELL', '1 year', false, false, false, null, null, '1d100', '1 universe', true, true, [1, 2, 3, 4, 5, 6]);
+        const updatedSpell = await spellModel.updateSpellById(spell.Id, 2, 8, 5, 'New DESCRIPTION', null, '1 year', false, false, false, null, null, '1d100', '1 universe', true, true, [1, 2, 3, 4, 5, 6]);
         console.log(updatedSpell);
     } catch (error) {
         throw error;

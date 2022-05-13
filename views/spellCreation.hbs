@@ -1,0 +1,62 @@
+<form action="/spells" method="POST">
+
+<label for="schoolIdPicker">School</label>
+{{!-- School picker --}}
+<select required name="SchoolId" id="schoolIdPicker">
+    {{#each schools}}
+    <option value="{{Id}}">{{Name}}</option>
+    {{/each}}
+</select>
+
+{{!-- Level picker --}}
+<label for="levelPicker">Level</label>
+<select required name="Level" id="levelPicker">
+    <option value="0">Cantrip</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+</select>
+
+{{!-- Name --}}
+<label for="spellName">Name</label>
+<input required type="text" name="Name" id="spellName">
+
+{{!-- Description --}}
+<label for="spellDescription">Description</label>
+<input required type="text" name="Description">
+
+{{!-- Casting Time --}}
+<label for="castingTime">Casting Time</label>
+<select name="CastingTime" id="castingTime">
+    <option value="1 Action">1 Action</option>
+    <option value="1 Bonus Action">1 Bonus Action</option>
+    <option value="1 Reaction">1 Reaction</option>
+    <option value="1 Minute">1 Minute</option>
+    <option value="10 Minutes">10 Minutes</option>
+    <option value="1 Hour">1 Hour</option>
+    <option value="Custom">Custom</option>
+    <option id="optionSetByCustom" value="" hidden></option>
+</select>
+<input hidden type="text" id="customCastingTime" name="customCastingTime">
+
+{{!-- Components --}}
+<div id="components">
+    <h2>Components</h2>
+<label for="verbalButton">Verbal</label>
+<input type="checkbox" name="Verbal" id="verbalButton">
+
+<label for="somaticButton">Material</label>
+<input type="checkbox" name="Somatic" id="somaticButton">
+
+<label for="materialButton">Material</label>
+<input type="checkbox" name="Material" id="materialButton">
+</div>
+
+<button class="btn btn-primary">Add</button>
+</form>

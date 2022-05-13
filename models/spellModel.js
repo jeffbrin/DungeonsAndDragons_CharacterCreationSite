@@ -133,6 +133,7 @@ async function initialize(databaseName, reset) {
         await connection.execute('DROP TABLE IF EXISTS SavingThrowBonus;')
         await connection.execute('DROP TABLE IF EXISTS KnownSpell;')
         await connection.execute('DROP TABLE IF EXISTS OwnedItem;')
+        await connection.execute('DROP TABLE IF EXISTS ClassPermittedSpell;')
         await connection.execute('DROP TABLE IF EXISTS Spell;')
         await connection.execute('DROP TABLE IF EXISTS SpellSchool;')
     }
@@ -369,7 +370,7 @@ async function removeSpellById(Id, userId) {
 
     // Return right away if the spell Id is invalid
     try {
-        await validationModel.validateSqlTableId(Id)
+        await validationModel.validateSpellId(Id, userId, connection);
         await validationModel.validateUser(userId, connection);
     }
     catch (error) {
@@ -492,21 +493,21 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
     if (schoolId != null)
         tempSelectQuery += ` SchoolId = ${schoolId} AND`
     if(castingTime != null)
-        tempSelectQuery += `CastingTime = ${castingTime} AND`
+        tempSelectQuery += ` CastingTime = ${castingTime} AND`
     if(verbal != null)
-        tempSelectQuery += `Verbal = ${verbal} AND`
+        tempSelectQuery += ` Verbal = ${verbal} AND`
     if(somatic != null)
-        tempSelectQuery += `Somatic = ${somatic} AND`
+        tempSelectQuery += ` Somatic = ${somatic} AND`
     if(material != null)
-        tempSelectQuery += `Material = ${material} AND`
+        tempSelectQuery += ` Material = ${material} AND`
     if(duration != null)
-        tempSelectQuery += `Duration = ${duration} AND`
+        tempSelectQuery += ` Duration = ${duration} AND`
     if(effectRange != null)
-        tempSelectQuery += `Range = ${effectRange} AND`
+        tempSelectQuery += ` Range = ${effectRange} AND`
     if(concentration != null)
-        tempSelectQuery += `Concentration = ${concentration} AND`;
+        tempSelectQuery += ` Concentration = ${concentration} AND`;
     if(ritual != null)
-        tempSelectQuery += `Ritual = ${ritual} AND`
+        tempSelectQuery += ` Ritual = ${ritual} AND`
     if(classIds != null){
         if(classIds.length > 0)
             tempSelectQuery += '('
@@ -544,10 +545,10 @@ async function getSpellById(Id, userId) {
 
     // Validate the Id
     try {
-        await validationModel.validateSqlTableId(Id);
-        await validationModel.validateUser(userId);
+        await validationModel.validateSpellId(Id, userId, connection);
+        await validationModel.validateUser(userId, connection);
     } catch (error) {
-        throw new InvalidInputError(error.message)
+        throw new InvalidInputError('spellModel', 'getSpellById', error);
     };
 
     // Get all spells with specified Id
@@ -560,7 +561,7 @@ async function getSpellById(Id, userId) {
     };
 
     if(rows.length == 0)
-        throw new InvalidInputError('spellModel', 'getSpellById', 'The requested spell either does not exist.');
+        throw new InvalidInputError('spellModel', 'getSpellById', 'The requested spell either does not exist or you can not access it.');
 
     const spell = rows[0];
     spell.Classes = await getClassesObjectListFromSpellId(spell.Id);
@@ -682,21 +683,22 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
                     ${newLevel == null ? '' : `Level = ${newLevel} AND `}
                     ${newName == null ? '' : `Name = '${newName.toLowerCase().replace(/'/g, "''")}' AND `}
                     ${newSchoolId == null ? '' : `SchoolId = ${newSchoolId} AND `}
-                    ${newCastingTime == null ? '' : `CastingTime = '${newName.toLowerCase().replace(/'/g, "''")}' AND `}
+                    ${newCastingTime == null ? '' : `CastingTime = '${newCastingTime.replace(/'/g, "''")}' AND `}
                     ${newVerbal == null ? '' : `Verbal = ${newVerbal} AND `}
                     ${newSomatic == null ? '' : `Somatic = ${newSomatic} AND `}
-                    ${newMaterial == null ? '' : `Material = ${newMaterial} AND Materials = '${newMaterials == null ? null : newMaterials.toLowerCase().replace(/'/g, "''")}' AND `}
-                    ${newDuration == null ? '' : `Duration = '${newDuration.toLowerCase().replace(/'/g, "''")}' AND `}
-                    ${newEffectRange == null ? '' : `EffectRange = '${newEffectRange.toLowerCase().replace(/'/g, "''")}' AND `}
+                    ${newMaterial == null ? '' : `Material = ${newMaterial} AND ${newMaterials == null ? 'Materials is null' : `Materials = '${newMaterials.toLowerCase().replace(/'/g, "''")}'`} AND `}
+                    ${newDuration == null ? '' : `Duration = '${newDuration.replace(/'/g, "''")}' AND `}
+                    ${newEffectRange == null ? '' : `EffectRange = '${newEffectRange.replace(/'/g, "''")}' AND `}
                     ${newConcentration == null ? '' : `Concentration = ${newConcentration} AND `}
                     ${newRitual == null ? '' : `Ritual = ${newRitual} AND `}
-                    ${newDescription == null ? '' : `Description = '${newDescription.toLowerCase().replace(/'/g, "''")}' AND `}
+                    ${newDescription == null ? '' : `Description = '${newDescription.replace(/'/g, "''")}' AND `}
                     ${newDamage == null ? '' : `Damage = '${newDamage.toLowerCase().replace(/'/g, "''")}' AND `}`;
         selectQuery = selectQuery.substring(0, selectQuery.length - 4);
         let selectedSpell = await connection.query(selectQuery);
         selectedSpell = selectedSpell[0];
         if(selectedSpell.length > 0){
             // Get the classes for this spell 
+            selectedSpell = selectedSpell[0]
             let classes = await connection.query(`SELECT ClassId FROM ClassPermittedSpell WHERE SpellId = ${selectedSpell.Id}`);
             classes = classes.map(obj => obj.ClassId);
 
@@ -760,10 +762,9 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
     let executionData, spellInDatabase;
     try {
         [executionData] = await connection.execute(updateQuery);
-        [spellInDatabase, columns] = await connection.query(`SELECT ${COLS_TO_SELECT} FROM Spell S, SpellSchool SS WHERE S.Id = ${Id} AND SS.Id = S.SchoolId;`);
-        spellInDatabase = spellInDatabase[0];
+        spellInDatabase = await getSpellById(Id, userId);
     } catch (error) {
-        throw new DatabaseError(`Failed to update Spell table: ${error.message}`)
+        throw new DatabaseError('spellModel', 'updateSpellById' `Failed to update Spell table: ${error}`)
     }
 
     // If class ids was passed, edit those
@@ -792,7 +793,7 @@ async function getAllSchools() {
 
         for (let i = 0; i < schoolObjects.length; i++){
 
-            schoolObjects[i].name = schoolObjects[i].name[0].toUpperCase() + schoolObjects[i].name.substring(1, schoolObjects[i].name.length);
+            schoolObjects[i].Name = schoolObjects[i].name[0].toUpperCase() + schoolObjects[i].name.substring(1, schoolObjects[i].name.length);
         }
 
         return schoolObjects;

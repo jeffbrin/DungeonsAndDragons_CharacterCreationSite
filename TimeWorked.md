@@ -2,7 +2,7 @@
 
 ## Chase - 14 hrs
 
-## Jeffrey - 23 hours
+## Jeffrey - 27 hours
 
 ## Sam
 * 9 hours

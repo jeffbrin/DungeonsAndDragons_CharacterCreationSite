@@ -176,6 +176,26 @@ async function validateClassIds(classIds, connection){
 }
 
 /**
+ * Validates a spell id to ensure it exists in the database.
+ * @param {Integer} id The id of a spell.
+ * @param {Integer} userId The id of the user trying to access the spell.
+ * @param {Object} connection A connection to an sqlite database.
+ */
+async function validateSpellId(id, userId, connection){
+    let rows;
+    try{
+        [rows, cols] = await connection.query(`SELECT 1 from Spell WHERE Id = ${id}`);
+    }
+    catch(error){
+        throw new DatabaseError('validateSpellUtils', 'validateSpellId', error);
+    }
+
+    if(rows.length == 0){
+        throw new Error('Spell does not exist.');
+    }
+}
+
+/**
  * Validates a spell's info and throws an error if it's invalid.
   * @param {Integer} level the spell's level (between 0-9).
   * @param {Integer} schoolId the id of the spell's school.
@@ -229,5 +249,6 @@ module.exports = {
     validateSpellDamage,
     validateSpellComponentBool,
     validateMaterials,
-    validateClassIds
+    validateClassIds,
+    validateSpellId
 }
