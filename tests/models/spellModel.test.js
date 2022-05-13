@@ -28,6 +28,7 @@ function getRandomSpell (){
 // Initialize the database before each test.
 beforeEach(async () => {
     await userModel.initialize(dbName, true);
+    await userModel.addUser('TestUser', 'TestPass1243')
     await classModel.initialize(dbName, true);
     await spellModel.initialize(dbName, false);
 });

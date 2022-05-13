@@ -4,6 +4,7 @@ const spellModel = require('../models/spellModel');
 const router = express.Router();
 const routeRoot = '/spells';
 const logger = require('../logger');
+const {DatabaseError, InvalidInputError} = require('../models/errorModel')
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -23,7 +24,7 @@ async function getRenderObject(additionalFields) {
             renderObject.schools = await spellModel.getAllSchools();
         }
         catch (error) {
-            throw new DatabaseIOError("Failed to get spells or spell schools.");
+            throw new DatabaseError("Failed to get spells or spell schools.");
         }
     }
 
@@ -79,7 +80,7 @@ async function addSpell(request, response) {
                 response.status(400);
                 response.render('spells.hbs', await getRenderObject({ error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }));
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 }))
                 logger.error(error);
@@ -108,7 +109,7 @@ async function removeSpellsByName(request, response) {
                 response.status(400)
                 response.render('spells.hbs', await getRenderObject({ error: `Spells with the selected name couldn't be deleted due to invalid input: ${error.message}`, status: 400 }))
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', { error: 'Sorry, a database error was encountered while trying to delete the spells. Please wait a moment and try again.', status: 500 });
                 logger.error(error);
@@ -137,7 +138,7 @@ async function removeSpellById(request, response) {
                 response.status(400);
                 response.render('spells.hbs', await getRenderObject({ error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 }));
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 }));
                 logger.error(error);
@@ -158,7 +159,7 @@ async function showAllSpells(request, response) {
     try {
         response.render('spells.hbs', await getRenderObject())
     } catch (error) {
-        if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+        if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
             response.status(500);
             response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
             logger.error(error);
@@ -215,7 +216,7 @@ async function showFilteredSpells(request, response) {
                 response.status(400)
                 response.render('spells.hbs', await getRenderObject({ error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400 }));
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500 }));
                 logger.error(error);
@@ -239,12 +240,12 @@ async function showSpellWithId(request, response) {
     spellModel.getSpellById(id)
         .then(async spell => { response.render('focusSpell.hbs', { spell: capitalizeSpells([spell])[0], spellsActive: true }) })
         .catch(async error => {
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `Sorry, we couldn't get the spell you wanted to focus on due to a server issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
             }
-            if (error instanceof spellModel.InvalidInputError) {
+            if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get spell: ${error.message}`);
                 response.status(400)
                 response.render('spells.hbs', await getRenderObject({ error: `Sorry, we couldn't get the spell you wanted to focus on. Please try again in a moment.`, status: 400 }))
@@ -297,7 +298,7 @@ async function editSpellWithId(request, response) {
                 response.status(400)
                 response.render('spells.hbs', await getRenderObject({ error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
@@ -330,7 +331,7 @@ async function editSpellNames(request, response) {
                 response.status(400)
                 response.render('spells.hbs', await getRenderObject({ error: `Failed to change the spell names due to invalid input: ${error.message}`, status: 400 }));
             }
-            if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+            if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                 response.status(500);
                 response.render('spells.hbs', await getRenderObject({ error: `Failed to change the spell names due to a server error`, status: 500 }));
                 logger.error(error);
@@ -369,7 +370,7 @@ async function editSpell(request, response) {
                     response.status(400)
                     response.render('spells.hbs', await getRenderObject({ error: `Sorry, an error occured while trying to update the page for editing, please try again in a moment.`, status: 400 }))
                 }
-                if (error instanceof spellModel.DatabaseIOError || error instanceof DatabaseIOError) {
+                if (error instanceof spellModel.DatabaseError || error instanceof DatabaseError) {
                     response.status(500);
                     response.render('spells.hbs', await getRenderObject({ error: `Sorry, a server side issue occured while trying to update the page for editing, please try again in a moment.`, status: 500 }))
                     logger.error(error);
@@ -427,9 +428,6 @@ function capitalizeSpells(spells) {
     return spells
 
 }
-
-// Needed to throw in this class sometimes. Specifically in getRenderObject()
-class DatabaseIOError extends Error { };
 
 module.exports = {
     router,
