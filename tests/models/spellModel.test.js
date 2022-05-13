@@ -29,7 +29,7 @@ function getRandomSpell (){
 beforeEach(async () => {
     await userModel.initialize(dbName, true);
     await classModel.initialize(dbName, true);
-    await spellModel.initialize(dbName, true);
+    await spellModel.initialize(dbName, false);
 });
 
 // Close the database connection after each test to prevent open handles error.

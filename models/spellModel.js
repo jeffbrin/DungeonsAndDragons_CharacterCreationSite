@@ -146,7 +146,6 @@ async function populateSpellTable(){
     const spellsJson = JSON.parse(await fs.readFile('database-content-json/spells.json'));
     
     for (spell of spellsJson){
-        console.log(spell);
         // Insert the spell
         const castingTime = spell.casting_time;
         const verbal = spell.components.includes('V');
@@ -487,8 +486,8 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
         tempSelectQuery += `Material = ${material} AND`
     if(duration != null)
         tempSelectQuery += `Duration = ${duration} AND`
-    if(range != null)
-        tempSelectQuery += `Range = ${range} AND`
+    if(effectRange != null)
+        tempSelectQuery += `Range = ${effectRange} AND`
     if(concentration != null)
         tempSelectQuery += `Concentration = ${concentration} AND`;
     if(ritual != null)

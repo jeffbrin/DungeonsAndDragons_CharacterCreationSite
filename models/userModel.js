@@ -66,6 +66,7 @@ async function initialize(databaseName, reset) {
  */
 async function dropReliantTables(){
     try{
+        await connection.execute('DROP TABLE IF EXISTS ClassPermittedSpell;')
         await connection.execute('DROP TABLE IF EXISTS AbilityScore;')
         await connection.execute('DROP TABLE IF EXISTS SkillProficiency;')
         await connection.execute('DROP TABLE IF EXISTS SkillExpertise;')
