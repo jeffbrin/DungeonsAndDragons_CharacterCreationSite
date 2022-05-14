@@ -24,7 +24,9 @@
 {{/if}}
 
 {{#if success}}
-<div class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert" role="alert">
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
   <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
     <use xlink:href="#check-circle-fill" />
   </svg>
@@ -37,12 +39,18 @@
 
 {{#with character}}
 
-<h1 class="text-center capitalize" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
+<div class="myTopContainer text-center">
+  <h1 class="text-center capitalize inline-block" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
+  <button id="btnUpdateCharacter"  class="inline-block btn btn-primary" type="button" name="edit">Edit</button>
+  <input hidden name="characterId" id="characterIdHidden" value="{{Id}}">
+</div>
+
 
 
 <div class="containerGrid">
   <div class="alignment iconDiv">
-    <h5 class="text-center">{{Name}}</h5>
+    <img class="iconImg" src="/images/icons/{{Ethics}}_{{Morality}}.png">
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">{{Ethics}} {{Morality}}</h5>
   </div>
   <div class="level iconDiv">
     <img class="iconImg" src="/images/icons/swords.png">
@@ -57,23 +65,23 @@
   </div>
   <div class="class iconDiv">
     <img class="iconImg" src="/images/icons/class/{{Class.Name}}.png">
-    <h5 class="text-center">Class: Barbarian</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Class: Barbarian</h5>
   </div>
   <div class="race iconDiv">
     <img class="iconImg" src="/images/icons/race/{{Race.Name}}.png">
-    <h5 class="text-center">Race: {{Race.Name}}</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Race: {{Race.Name}}</h5>
   </div>
   <div class="AC iconDiv">
     <img class="iconImg" src="/images/icons/shield.png">
-    <h5 class="text-center">AC: {{ArmorClass}}</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">AC: {{ArmorClass}}</h5>
   </div>
   <div class="initiative iconDiv">
     <img class="iconImg" src="/images/icons/initiative.png">
-    <h5 class="text-center">Initiative: {{Initiative}}</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Initiative: {{Initiative}}</h5>
   </div>
   <div class="speed iconDiv">
     <img class="iconImg" src="/images/icons/speed.png">
-    <h5 class="text-center">Speed: {{Speed}}</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Speed: {{Speed}}</h5>
   </div>
   <div class="Abilities">
 
@@ -119,10 +127,14 @@
       </tbody>
     </table>
   </div>
+  <form hidden id="addItemForm" method="post" action="/characters/{{character.Id}}/items">
+    <input hidden name="choice" value='{"method":"PUT"}'> <input id="hiddenItemQuantity" hidden name="itemQuantity">
+    <input id="hiddenItemName" hidden name="itemName">
+  </form>
   <div class="items">
-    <table class="table">
-      <thead>
-        <tr>
+    <table class="table mw-100">
+      <thead class="mw-100">
+        <tr class="mw-100">
           <th scope="col">Name</th>
           <th scope="col">Quantity</th>
           <th scope="col">
@@ -136,11 +148,12 @@
           </th>
         </tr>
       </thead>
-      <tbody>
+
+      <tbody id="itemTBody" class="mw-100">
         {{#each character.OwnedItems}}
-        <tr>
-          <td>{{Name}}</td>
-          <td colspan="2">{{Count}}</td>
+        <tr class="mw-100">
+          <td class="capitalize mw-50">{{Name}}</td>
+          <td class="mw-50" colspan="2">{{Count}}</td>
         </tr>
         {{/each}}
       </tbody>

@@ -9,6 +9,7 @@ const logger = require('../logger');
 const authenticator = require('./authenticationHelperController')
 const userModel = require('../models/userModel')
 const charStatsModel = require('../models/characterStatisticsModel');
+const raceModel = require('../models/raceModel');
 
 const errors = require('../models/errorModel');
 
@@ -18,10 +19,14 @@ hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     return arg1 == arg2
 });
 
-
-async function getSheetStuff(id){
-
+async function buildSheet(id){
+    let bigObject = {};
+    bigObject.character = await model.getCharacter(id);
+    bigObject.skills = await charStatsModel.getAllSkills();
+    bigObject.css = 'soloCharacter.css';
+    return bigObject;
 }
+
 
 /**
  * Sends a character to the model by taking in the request's JSON and using it
@@ -70,7 +75,8 @@ async function updateHitpoints(request, response) {
     requestJson = request.body;
     try {
         let updated = await model.addRemoveHp(request.params.id, requestJson.hp);
-        response.status(201).render('sheet.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated", character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+        let built = await buildSheet(request.params.id);
+        response.status(201).render('sheet.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated", character: built.character, skills: built.skills, soloCharacter: built.css });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
@@ -226,6 +232,7 @@ async function deleteCharacter(request, response) {
  */
 async function updateLevel(request, response){
     try{
+        let everything = 1;
         await model.levelUp(request.params.id);
         response.status(200).render('sheet.hbs', {character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css', success: true, message:"You Leveled Up!"});
     }
@@ -235,9 +242,53 @@ async function updateLevel(request, response){
             logger.error("Database Error - From updateLevel in characterController");
         }
         else if (error instanceof errors.InvalidInputError) {
-            let found = await model.printDb();
-            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't level up Character with id: ${request.params.id}`, character: found, skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't level up Character with id: ${request.params.id}`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
             logger.error('input error - from updateLevel in characterController');
+        }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: `Something went wrong...`});
+        }
+    }
+}
+
+async function addItem(request, response){
+    requestJson = request.body;
+    try{
+        await model.addItem(parseInt(request.params.id), requestJson.itemName, requestJson.itemQuantity);
+        response.status(200).render('sheet.hbs', {character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css', success: true, message:"Item Successfully Added!"});
+    }
+    catch(error){
+        if (error instanceof errors.DatabaseError) {
+            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}`});
+            logger.error("Database Error - From addItem in characterController");
+        }
+        else if (error instanceof errors.InvalidInputError) {
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Add Item!`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+            logger.error('input error - from addItem in characterController');
+        }
+        else{
+            logger.error(error.message);
+            response.status(500).render('home.hbs', {error: true, message: `Something went wrong...`});
+        }
+    }
+}
+
+async function sendToUpdateController(request, response){
+    try {
+        let classModel = require('../models/classModel');
+        let races = await raceModel.getAllRaces();
+        let classes = await classModel.getAllClasses();
+        let built = await buildSheet(request.params.id);
+        response.status(200).render('characterUpdate.hbs', {character: built.character });
+    } catch (error) {
+        if (error instanceof errors.DatabaseError) {
+            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}`});
+            logger.error(`Database Error - From sendToUpdateController in characterController: ${error.message}`);
+        }
+        else if (error instanceof errors.InvalidInputError) {
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Navigate to Update Page!`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+            logger.error(`input error - from sendToUpdateController in characterController: ${error.message}`);
         }
         else{
             logger.error(error.message);
@@ -254,6 +305,8 @@ router.get('/:id', (request, response) => authenticator.gateAccess(request, resp
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id/hp', updateHitpoints);
 router.put('/:id/levels', updateLevel);
+router.put("/:id/items", addItem);
+router.get("/forms/:id", sendToUpdateController);
 
 module.exports = {
     router,

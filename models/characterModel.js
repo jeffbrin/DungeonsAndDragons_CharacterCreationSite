@@ -434,7 +434,7 @@ async function addItem(characterId, itemName, itemCount) {
 
     //check to see if there already is this item
     itemName = itemName.toLowerCase();
-    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName}';`;
+    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName.replace(/'/g, "''")}';`;
     let rows, cols;
     try {
         [rows, cols] = await connection.query(selectQ);
@@ -452,7 +452,7 @@ async function addItem(characterId, itemName, itemCount) {
         
     }
     else{
-        const insertQ = `INSERT INTO OwnedItem (CharacterId, Name, Count) VALUES (${characterId}, '${itemName}', ${itemCount});`;
+        const insertQ = `INSERT INTO OwnedItem (CharacterId, Name, Count) VALUES (${characterId}, '${itemName.replace(/'/g, "''")}', ${itemCount});`;
         try {
             await connection.execute(insertQ);
         } catch (error) {

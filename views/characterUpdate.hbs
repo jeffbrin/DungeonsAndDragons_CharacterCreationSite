@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+        <path
+            d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+    </symbol>
+    <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+        <path
+            d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+    </symbol>
+    <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+        <path
+            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+    </symbol>
+</svg>
+<section class="bgimage">
+    {{#if success}}
+    <div class="alert alert-success text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+        <h4>{{title}}</h4>
+        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+            <use xlink:href="#check-circle-fill" />
+        </svg>{{message}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{/if}}
+
+    {{#if error}}
+    <div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+        <h4>{{title}}</h4>
+        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+            <use xlink:href="#exclamation-triangle-fill" />
+        </svg>{{message}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{/if}}
+    <div id="addchardiv" class="container">
+        <h2 id="addmessageh2" class="text-center">Update Your Character!</h2>
+        <form action="/characters" method="post" id="formMain">
+            <!-- Name input -->
+            <div class="form-outline mb-4" id="divName">
+                <input type="text" id="inputName" name="name" value="{{character.Name}}" class="form-control" />
+                <label class="form-label" for="name">Name</label>
+            </div>
+
+            {{!-- Race Input --}}
+            <select class="form-select" id="selectRace" name="race" aria-label="Default select example">
+                <option {{#if (equals character.Race.Id 1)}} selected {{/if}} value="1">Dwarf</option>
+                <option {{#if (equals character.Race.Id 2)}} selected {{/if}} value="2">Elf</option>
+                <option {{#if (equals character.Race.Id 3)}} selected {{/if}} value="3">Halfling</option>
+                <option {{#if (equals character.Race.Id 4)}} selected {{/if}} value="4">Human</option>
+                <option {{#if (equals character.Race.Id 5)}} selected {{/if}} value="5">Gnome</option>
+                <option {{#if (equals character.Race.Id 6)}} selected {{/if}} value="6">Half-Elf</option>
+                <option {{#if (equals character.Race.Id 7)}} selected {{/if}} value="7">Half-Orc</option>
+                <option {{#if (equals character.Race.Id 8)}} selected {{/if}} value="8">Tiefling</option>
+                <option {{#if (equals character.Race.Id 9)}} selected {{/if}} value="9">Dragonborn</option>
+            </select>
+
+            {{!-- Class Input --}}
+            <select name="charClass" id="selectClass" class="form-select" aria-label="Default select example">
+                <option {{#if (equals character.Class.Id 1)}} selected {{/if}} value="1">Barbarian</option>
+                <option {{#if (equals character.Class.Id 2)}} selected {{/if}} value="2">Bard</option>
+                <option {{#if (equals character.Class.Id 3)}} selected {{/if}} value="3">Cleric</option>
+                <option {{#if (equals character.Class.Id 4)}} selected {{/if}} value="4">Druid</option>
+                <option {{#if (equals character.Class.Id 5)}} selected {{/if}} value="5">Fighter</option>
+                <option {{#if (equals character.Class.Id 6)}} selected {{/if}} value="6">Monk</option>
+                <option {{#if (equals character.Class.Id 7)}} selected {{/if}} value="7">Paladin</option>
+                <option {{#if (equals character.Class.Id 8)}} selected {{/if}} value="8">Ranger</option>
+                <option {{#if (equals character.Class.Id 9)}} selected {{/if}} value="9">Rogue</option>
+                <option {{#if (equals character.Class.Id 10)}} selected {{/if}} value="10">Sorcerer</option>
+                <option {{#if (equals character.Class.Id 11)}} selected {{/if}} value="11">Warlock</option>
+                <option {{#if (equals character.Class.Id 12)}} selected {{/if}} value="12">Wizard</option>
+            </select>
+            {{!-- Background Input --}}
+            <select name="background" id="selectBackground" class="form-select" aria-label="Default select example">
+                <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Barbarian</option>
+                <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Bard</option>
+                <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Cleric</option>
+                <option {{#if (equals character.background.Id 4)}} selected {{/if}} value="4">Druid</option>
+                <option {{#if (equals character.background.Id 5)}} selected {{/if}} value="5">Fighter</option>
+                <option {{#if (equals character.background.Id 6)}} selected {{/if}} value="6">Monk</option>
+                <option {{#if (equals character.background.Id 7)}} selected {{/if}} value="7">Paladin</option>
+                <option {{#if (equals character.background.Id 8)}} selected {{/if}} value="8">Ranger</option>
+                <option {{#if (equals character.background.Id 9)}} selected {{/if}} value="9">Rogue</option>
+                <option {{#if (equals character.background.Id 10)}} selected {{/if}} value="10">Sorcerer</option>
+                <option {{#if (equals character.background.Id 11)}} selected {{/if}} value="11">Warlock</option>
+                <option {{#if (equals character.background.Id 12)}} selected {{/if}} value="12">Wizard</option>
+            </select>
+            {{!-- Ethics Input --}}
+            <select name="ethics" id="selectEthics" class="form-select" aria-label="Default select example">
+                <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Neutral</option>
+                <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Chaotic</option>
+                <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Lawful</option>
+            </select>
+            {{!-- Morality Input --}}
+            <select name="morality" id="selectEthics" class="form-select" aria-label="Default select example">
+                <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Neutral</option>
+                <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Evil</option>
+                <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Good</option>
+            </select>
+            <div class="form-outline" id="divHp">
+                <input name="hitpoints" min="0" max="10" type="number" id="typeNumber" class="form-control" />
+                <label class="form-label" for="typeNumber">{{character.MaxHp}}</label>
+            </div>
+            <div class="row justify-content-center">
+                <input type="submit" id="submitBtn" class="btn btn-warning btn-primary" data-bs-toggle="tooltip"
+                    data-bs-placement="top" title="Input data and Create your Masterpiece"></input>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script src="/scripts/updateCharacter.js"></script>
