@@ -1,0 +1,223 @@
+<form hidden id="addCharacterForm" method="post" action="/characters"></form>
+<div class="card elevated .container-md" id="mainCardDiv" style="">
+    <div class="row align-items-center justify-content-center">
+        <div class="col-md-4">
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="512" height="512" viewBox="0 0 32 32"
+                style=" fill:#000000;">
+                <path
+                    d="M 12 4 C 4.789 4 6 11 7 12 C 6.966 10.421 7.174 9.004 8 8 C 8.219 8.296 8.454375 8.52575 8.984375 8.96875 C 8.953375 6.56275 10.834 5.976 12 6 C 13.75 6.036 15 8 14 10 L 16.462891 12.462891 C 19.916891 8.9728906 17 4 12 4 z M 11 8 C 10.318 9.996 10.8 11.419 11 12 C 9.88 11.539 8.893 10.85 8 10 C 7.893 11.006 7.885 12.007 8 13 C 6.854 13.63 5.847 14.295 5 15 L 7 15 L 7 17 C 8 16 9 15 11 14 C 10.229 14.89 9.569 15.897 9 17 C 9.917 16.714 10.729 16.64 11 17 L 12 18 C 12.275 18.343 12.281 19.003 12 20 L 14 19 C 13 18 12 17 12 16 L 13 16 C 13.837 16 15.333781 16.333781 15.925781 16.925781 L 17 18 L 18 16 C 17.2 16.128 16.537 15.781 16 15 L 16 14 L 12 10 C 11.435 9.478 11.159 8.758 11 8 z M 25 12 C 23.765 12.399 22.9 13.123 22 14 L 22 13 C 20.913 13.961 20.339109 14.814625 20.037109 15.890625 C 19.266109 16.702625 18.572109 17.629406 17.912109 18.566406 L 19.34375 19.482422 C 20.10875 17.086422 21.571906 15.725172 23.128906 14.951172 C 24.259906 15.015172 25.364 15.364 26 16 C 26.934 15.066 27.382797 14.266875 28.716797 14.046875 C 28.868797 14.063875 28.96875 14.078125 28.96875 14.078125 C 28.91975 14.058125 28.876125 14.045344 28.828125 14.027344 C 28.887125 14.019344 28.938 14.006 29 14 L 28.373047 13.865234 C 26.757047 13.302234 25.375828 13.194828 24.173828 13.423828 C 24.372828 12.883828 24.652 12.413 25 12 z M 13.5 14 C 13.776 14 14 14.224 14 14.5 C 14 14.776 13.776 15 13.5 15 C 13.224 15 13 14.776 13 14.5 C 13 14.224 13.224 14 13.5 14 z M 14 17 L 14.681641 17.681641 C 14.885641 17.885641 15 18.161219 15 18.449219 L 15 19.527344 C 15 19.826344 15.141 20.107969 15.375 20.292969 C 17.017 21.593969 18.438 22.39 19 24 C 19.063 25.557 18.868 25.855 20 27 C 19.898 25.927 19.811 25.901 20 25 C 21.128 27.486 22.81275 28.420172 25.96875 27.826172 C 25.45775 27.607172 25.182 27.431 25 27 C 28.646 26.452 28.844 21.984 26 21 C 26.813 23.119 24.761 24.053 23 24 C 24.417 22.869 23.815 21.734 23 21 C 22.521 22.182 21.125 21.702 20 21 L 17 19 C 16.651 18.772 16.275 19.196 16 19 C 15.412 18.572 16.235 17.455 14 17 z M 6 17.027344 C 3.844 18.728344 3 21 3 21 L 4.5800781 21 C 4.3660781 21.71 3.468 25.078 5 27 C 5.112 26.247 5.3954844 25.616734 5.6464844 25.177734 C 6.8434844 26.931734 8.88 28 11 28 C 14.286 28 15.844906 26.265906 17.378906 23.378906 L 15.539062 21.539062 C 14.147063 23.464062 12.799 24.761 11 24 C 8.003 22.732 9.3650781 19.61 10.330078 18 L 8 19 L 8 18 L 6 19 L 6 17.027344 z">
+                </path>
+            </svg>
+        </div>
+        <div class="col-md-8" id="Card1" hidden>
+            <div class="card-body">
+                <h2 class="card-title">Welcome!</h2>
+                <h4 class="card-text">Welcome To The Character Creation.<br>Let's Start of with the Basics</h4>
+                <label for="characterName">What is your Characters name?</label><br>
+                <input type="text" name="characterName"><br><br>
+                <label for="characterClass">What is their class?</label>
+                <select name="characterClass" id="selectClass" class="form-select">
+                    <option value="1">Barbarian</option>
+                    <option value="2">Bard</option>
+                    <option value="3">Cleric</option>
+                    <option value="4">Druid</option>
+                    <option value="5">Fighter</option>
+                    <option value="6">Monk</option>
+                    <option value="7">Paladin</option>
+                    <option value="8">Ranger</option>
+                    <option value="9">Rogue</option>
+                    <option value="10">Sorcerer</option>
+                    <option value="11">Warlock</option>
+                    <option value="12">Wizard</option>
+                </select><br>
+
+                <label for="characterRace">What is their race?</label><br>
+                <select class="form-select" id="selectRace" name="characterRace">
+                    <option value="1">Dwarf</option>
+                    <option value="2">Elf</option>
+                    <option value="3">Halfling</option>
+                    <option value="4">Human</option>
+                    <option value="5">Gnome</option>
+                    <option value="6">Half-Elf</option>
+                    <option value="7">Half-Orc</option>
+                    <option value="8">Tiefling</option>
+                    <option value="9">Dragonborn</option>
+                </select><br>
+
+                <label for="characterLevel">What is their Level?</label><br>
+                <select class="form-select" id="selectLevel" name="characterLevel">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select><br>
+
+                <label for="characterMaxHp">How Many Hit Points?</label><br>
+                <input type="number" min="0" name="characterMaxHp" id="inputHp"><br><br>
+
+                <button class="btn btn-primary nextCardButton" type="button">Next</button>
+            </div>
+
+        </div>
+
+        <div class="col-md-8" id="Card2" hidden>
+            <div class="card-body">
+                <h2 class="card-title">Looking Good!</h2>
+                <h4 class="card-text">Let's go a little deeper...</h4>
+                <h5 class="card-text">Hover over the icons for more information.</h5>
+                <br>
+                {{!-- Alignment Definition
+                https://www.dndbeyond.com/sources/basic-rules/personality-and-background#Alignment --}}
+                <label>What is your Character's Alignment?</label><button type="button" class="btn btn-secondary"
+                    data-bs-toggle="tooltip" data-bs-placement="right"
+                    title="A typical creature in the game world has an alignment, which broadly describes its moral and personal attitudes. Alignment is a combination of two factors: one identifies morality (good, evil, or neutral), and the other describes attitudes toward society and order (lawful, chaotic, or neutral). Thus, nine distinct alignments define the possible combinations.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                {{!-- Ethics Input --}}
+                <label for="selectEthics">Choose how ethical they will be.</label>
+                <select name="characterEthics" id="selectEthics" class="form-select"
+                    aria-label="Default select example">
+                    <option value="1">Neutral</option>
+                    <option value="2">Chaotic</option>
+                    <option value="3">Lawful</option>
+                </select><br>
+                {{!-- Morality Input --}}
+                <label for="selectMorality">Choose their morals.</label>
+                <select name="characterMorality" id="selectMorality" class="form-select"
+                    aria-label="Default select example">
+                    <option value="1">Neutral</option>
+                    <option value="2">Evil</option>
+                    <option value="3">Good</option>
+                </select><br>
+
+                {{!-- AC definition -- https://www.dndbeyond.com/sources/basic-rules/equipment#ArmorandShields --}}
+                <label for="characterArmorClass">Choose their Armor Class.</label><button type="button"
+                    class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="right"
+                    title="Armor Class (AC). Armor protects its wearer from attacks. The armor (and shield) you wear determines your base Armor Class. Leave it empty if you aren't sure what armor you will have.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input class="numberInput" type="number" min="0" name="characterArmorClass" id="characterArmorClass">
+                <br>
+                {{!-- Initiative definition -- https://www.dndbeyond.com/sources/basic-rules/combat#Initiative --}}
+                <label for="characterInitiative">Choose their Initiative.</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Initiative determines the order of turns during combat. When combat starts, every participant makes a Dexterity check to determine their place in the initiative order. The DM makes one roll for an entire group of identical creatures, so each member of the group acts at the same time.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input class="numberInput" type="number" min="0" name="characterInitiative" id="characterInitiative">
+                <br>
+                {{!-- Speed definition -- https://www.dndbeyond.com/sources/basic-rules/adventuring#Speed --}}
+                <label for="characterSpeed">Choose their Speed.</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Every character and monster has a speed, which is the distance in feet that the character or monster can walk in 1 round. This number assumes short bursts of energetic movement in the midst of a life-threatening situation.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input class="numberInput" type="number" min="0" name="characterSpeed" id="characterSpeed">
+                <br><br>
+
+                <button class="btn btn-primary nextCardButton" type="button">Next</button>
+            </div>
+        </div>
+
+        <div class="col-md-8" id="Card3">
+            <div class="card-body">
+                <h2 class="card-title">Almost There!</h2>
+                <h4 class="card-text inline">You Will Now Roll your Ability Scores</h4><button type="button"
+                    class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="right"
+                    title="Ability scores are your D&D character’s primary statistics and pretty much determine how good they are at doing anything. These stats consist of strength, constitution, intelligence, wisdom, charisma and dexterity.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button>
+                <br>
+
+
+
+                {{!-- Rolling Steps from -- https://mykindofmeeple.com/how-to-roll-stats-in-dnd-pros-cons/ --}}
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#howToModal">
+                    How to Roll your Scores
+                </button>
+                <!-- Modal -->
+                <div class="modal fade" tabindex="-1" id="howToModal" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark">
+                                <h5 class="modal-title" id="exampleModalLabel">How to Roll your Scores</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body bg-dark">
+                                <ul class="numberedUl">
+                                    <li>Roll a 6 sided dice 4 times</li>
+                                    <li>Remove the lowest dice result</li>
+                                    <li>Add up the remaining numbers to get an ability score</li>
+                                    <li>Write down this ability score</li>
+                                    <li>Repeat these steps until you have 6 ability scores</li>
+                                    <li>Assign a score to each ability below</li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer bg-dark">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <br><br>
+    <button class="btn btn-primary nextCardButton" type="button">Next</button>
+</div>
+</div>
+</div>
+
+
+
+<div class="progress">
+    <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+        aria-valuemax="100"></div>
+</div>
+<div class="progress">
+    <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 25%"
+        aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+</div>
+<div class="progress" hidden>
+    <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 50%"
+        aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+</div>
+<div class="progress" hidden>
+    <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 75%"
+        aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+</div>
+<div class="progress" hidden>
+    <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 100%"
+        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+</div>
+
+<div class="text-center tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="right"
+    title="Cannot Submit until character is fully created!">
+    <button type="submit" class="btn btn-primary" form="addCharacterForm" value="Submit" disabled>Submit</button>
+</div>
+
+
+<script src="/scripts/newCharacterScript.js" defer></script>

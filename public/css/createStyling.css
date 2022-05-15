@@ -1,0 +1,52 @@
+:root {
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #26413C;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+}
+
+.progress {
+    background-color: transparent !important;
+}
+
+.elevated {
+    text-align: left !important;
+}
+
+#mainCardDiv {
+    margin: 2rem 4rem 2rem 4rem;
+}
+
+.btn-primary:disabled {
+    cursor: not-allowed;
+}
+
+.card-title {
+    font-size: 3rem;
+}
+
+.btn-secondary {
+    background: transparent !important;
+    border: none;
+}
+
+.helpPng {
+    max-width: 25px;
+    height: auto;
+}
+
+.numberInput {
+    background-color: var(--elevation2Color);
+    color: var(--textColor);
+}
+
+.numberedUl {
+    list-style-type: decimal;
+}
+
+.inline {
+    display: inline;
+}

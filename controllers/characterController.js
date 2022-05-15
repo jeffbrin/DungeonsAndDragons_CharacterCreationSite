@@ -302,6 +302,12 @@ async function addItem(request, response) {
     }
 }
 
+/**
+ * Sends the user to the update page with all required Data
+ * Catches all errors and logs them and writes error messages on banners on the page
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ */
 async function sendToUpdateController(request, response) {
     try {
         let classModel = require('../models/classModel');
@@ -309,6 +315,7 @@ async function sendToUpdateController(request, response) {
         let classes = await classModel.getAllClasses();
         let built = await buildSheet(request.params.id);
         response.status(200).render('characterUpdate.hbs', { character: built.character });
+        logger.info(`Navigated to Update Page with character ${request.params.id}`);
     } catch (error) {
         if (error instanceof errors.DatabaseError) {
             response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}` });
@@ -319,8 +326,35 @@ async function sendToUpdateController(request, response) {
             logger.error(`input error - from sendToUpdateController in characterController: ${error.message}`);
         }
         else {
-            logger.error(error.message);
+            logger.error(error.message + 'From sendToCreatePage.');
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
+        }
+    }
+}
+
+/**
+ * Sends the user to the create page with all required Data
+ * Catches all errors and logs them and writes error messages on banners on the page
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ */
+async function sendToCreatePage(request, response){
+    try {
+        let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
+        response.status(200).render('newCharacter.hbs', {UserId : userId, createCharacterStyle: '/createStyling.css'});
+        logger.info(`Navigated to Create Page with user ${userId}`);
+    } catch (error) {
+        if (error instanceof errors.DatabaseError) {
+            response.status(500).render('home.hbs', { error: `Database error` });
+            logger.error(`Database Error - From sendToCreatePage in characterController: ${error.message}`);
+        }
+        else if (error instanceof errors.InvalidInputError) {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Navigate to Create Page!`});
+            logger.error(`input error - from sendToCreatePage in characterController: ${error.message}`);
+        }
+        else {
+            logger.error(error.message + 'From sendToCreatePage.');
+            response.status(500).render('home.hbs', { error: `Something went wrong...`});
         }
     }
 }
@@ -329,12 +363,15 @@ async function sendToUpdateController(request, response) {
 router.put('/:id', updateCharacter);
 router.post('/', sendCharacter);
 router.delete('/:id', deleteCharacter);
-router.get('/:id', (request, response) => authenticator.gateAccess(request, response, getCharacter));
+//(\d+) is regex and makes it so id can be 1 or more numeric digits, this frees up other string endpoints as well as prevents database query errors
+//where the database was trying to get a string Id from an integer column
+router.get('/:id(\\d+)', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id/hp', updateHitpoints);
 router.put('/:id/levels', updateLevel);
 router.put("/:id/items", addItem);
-router.get("/forms/:id", sendToUpdateController);
+router.get("/forms/:id(\\d+)", sendToUpdateController);
+router.get("/new", sendToCreatePage);
 
 module.exports = {
     router,

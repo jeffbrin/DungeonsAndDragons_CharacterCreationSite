@@ -130,6 +130,9 @@ input[type="search"]::-webkit-search-cancel-button {
     margin-top: 2rem;
 }
 
+.mtop-2rem{
+  margin-top: 2rem;
+}
 #addchardiv {
     background-color: var(--elevationColor);
     color: var(--textColor);
@@ -163,10 +166,6 @@ input[type="search"]::-webkit-search-cancel-button {
     margin: auto;
 }
 
-#selectClass {
-    margin: auto;
-    margin-top: 1rem;
-}
 
 #divHp {
     margin-top: 1rem;
