@@ -41,7 +41,7 @@
 
 <div class="myTopContainer text-center">
   <h1 class="text-center capitalize inline-block" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
-  <button id="btnUpdateCharacter"  class="inline-block btn btn-primary" type="button" name="edit">Edit</button>
+  <button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button" name="edit">Edit</button>
   <input hidden name="characterId" id="characterIdHidden" value="{{Id}}">
 </div>
 
@@ -208,18 +208,73 @@
       <img id="removeHp" src="/images/icons/minus.png">
     </button>
   </form>
-  <div class="hp"></div>
 
   <div class="raceFeats">
     <h5 class="text-center">Race Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Race.Traits}}
+            <tr>
+              <td><a class="lighterHoverA" href="/races/{{../Id}}">{{Name}}</a></td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
+
   <div class="classFeats">
     <h5 class="text-center">Class Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Class.Features}}
+            {{#ifCond Level '<=' ../Level}}<tr>
+              <td><a class="lighterHoverA" href="/classes/{{../Id}}">{{Name}}</a></td>
+              </tr>{{/ifCond}}
+              {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
   <div class="backgroundFeats">
     <h5 class="text-center">Background Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Background.Features}}
+            <tr>
+              <td><a class="lighterHoverA" href="/backgrounds/{{../Id}}">{{Name}}</a></td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+  {{/with}}
 </div>
-{{/with}}
-
 <script src="/scripts/sheetButtons.js" defer></script>

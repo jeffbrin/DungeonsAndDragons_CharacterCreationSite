@@ -530,12 +530,38 @@ td {
     height: 100%;
 }
 
+.table-wrapper table {
+    width: 100%;
+}
+.table-wrapper{
+    position: relative;
+}
+
+.table-scroll{
+    max-height: 190px;
+    overflow: scroll;
+}
 /* Taken from https://www.w3schools.com/howto/howto_css_shake_image.asp */
 .shakeshakeshake {
     animation: shake 0.5s !important;
     animation-iteration-count: 2 !important;
 }
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+}
+::-webkit-scrollbar {
+    width: 5px; 
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    background: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
 
+.lighterHoverA:hover{
+    color: var(--brightGreen);
+}
 @keyframes shake {
     0% {
         transform: translate(1px, 1px) rotate(0deg);
