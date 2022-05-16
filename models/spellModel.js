@@ -375,7 +375,7 @@ async function removeSpellById(Id, userId) {
         await validationModel.validateUser(userId, connection);
     }
     catch (error) {
-        throw new InvalidInputError(`Failed to remove spell with Id (${Id}): ${error}`)
+        throw new InvalidInputError(`Failed to remove spell with Id (${Id}): ${error.message}`)
     }
 
     const deleteQuery = `DELETE FROM Spell WHERE Id = ${Id} AND UserId = ${userId}`;
@@ -404,7 +404,7 @@ async function getAllSpells(userId = 0) {
     let columnDefinitions;
 
     try {
-        [rows, columnDefinitions] = await connection.query(`select S.*, SS.name as "school" from Spell S, SpellSchool SS WHERE S.schoolId = SS.Id AND (S.UserId = ${userId} OR S.UserId = 0);`)
+        [rows, columnDefinitions] = await connection.query(`select S.*, SS.name as "school" from Spell S, SpellSchool SS WHERE S.schoolId = SS.Id AND (S.UserId = ${userId} OR S.UserId = 0) ORDER BY Level ASC;`)
     } catch (error) {
         throw new DatabaseError(`Failed to read from table Spell ... Try resetting the database : ${error.message}`)
     }
@@ -435,9 +435,10 @@ async function getAllSpells(userId = 0) {
   * @param {Boolean} concentration Indicates whether the spell requires concentration.
   * @param {Boolean} ritual Indicates whether the spell can be cast as a ritual.
   * @param {Array} classIds An array of class ids which can cast the spell.
+  * @param {Boolean} homebrewOnlyOrNone Indicates whether the spells should be only homebrew or only phb. False = phb, True = Homebrew
  * @returns An array containing the spells which match the specifications passed.
  */
-async function getSpellsWithSpecifications(level, schoolId, userId, name, castingTime, verbal, somatic, material, duration, effectRange, concentration, ritual, classIds) {
+async function getSpellsWithSpecifications(level, schoolId, userId, name, castingTime, verbal, somatic, material, duration, effectRange, concentration, ritual, classIds, homebrewOnlyOrNone) {
 
     // Later code checks if the name is null, the same
     // logic should be applied for an empty name
@@ -461,9 +462,9 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
         if(somatic != null)
             await validationModel.validateSpellComponentBool(somatic);
         if(material != null)
-            await validationModel.validateMaterials(material, materials);
+            await validationModel.validateSpellComponentBool(material);
         if(duration != null)
-            await validationModel.validateSpellComponentBool(duration);
+            await validationModel.validateSpellGenericString(duration, 'duration');
         if(effectRange != null)
             await validationModel.validateSpellGenericString(effectRange, 'range');
         if(concentration != null)
@@ -471,11 +472,13 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
         if(ritual != null)
             await validationModel.validateSpellComponentBool(ritual);
         if(classIds != null)
-            await validationModel.validateClassIds(classIds);
+            await validationModel.validateClassIds(classIds, connection);
+        if(homebrewOnlyOrNone != null)
+            await validationModel.validateSpellComponentBool(homebrewOnlyOrNone);
 
     } catch (error) {
         if (error instanceof Error)
-            throw new InvalidInputError(error.message)
+            throw new InvalidInputError('spellModel', 'getSpellsWithSpecifications', error.message)
         throw error
     }
 
@@ -494,7 +497,7 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
     if (schoolId != null)
         tempSelectQuery += ` SchoolId = ${schoolId} AND`
     if(castingTime != null)
-        tempSelectQuery += ` CastingTime = ${castingTime} AND`
+        tempSelectQuery += ` CastingTime = '${castingTime}' AND`
     if(verbal != null)
         tempSelectQuery += ` Verbal = ${verbal} AND`
     if(somatic != null)
@@ -502,9 +505,9 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
     if(material != null)
         tempSelectQuery += ` Material = ${material} AND`
     if(duration != null)
-        tempSelectQuery += ` Duration = ${duration} AND`
+        tempSelectQuery += ` Duration = '${duration}' AND`
     if(effectRange != null)
-        tempSelectQuery += ` Range = ${effectRange} AND`
+        tempSelectQuery += ` EffectRange = '${effectRange}' AND`
     if(concentration != null)
         tempSelectQuery += ` Concentration = ${concentration} AND`;
     if(ritual != null)
@@ -513,18 +516,20 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
         if(classIds.length > 0)
             tempSelectQuery += '('
         for(id of classIds)
-            tempSelectQuery += `EXISTS (SELECT 1 FROM ClassPermittedSpell WHERE ClassId = ${id}) AND`
+            tempSelectQuery += ` EXISTS (SELECT 1 FROM ClassPermittedSpell WHERE ClassId = ${id} AND SpellId = S.Id) AND`
         tempSelectQuery = tempSelectQuery.substr(0, tempSelectQuery.length-3) + ') AND';
     }
 
     // Remove the last AND
-    let selectQuery = tempSelectQuery + (userId == null ? 'UserId = 0' : `(UserId = 0 OR UserId = ${userId})`);
+    let userWhereClause = homebrewOnlyOrNone == null ? (userId == null ? ' UserId = 0' : ` (UserId = 0 OR UserId = ${userId})`) : homebrewOnlyOrNone ? ` UserId = ${userId}` : ' UserId = 0';
+    let selectQuery = tempSelectQuery + userWhereClause;
+    selectQuery += ' ORDER BY Level ASC';
     let rows;
     let columnDefinitions;
     try {
         [rows, columnDefinitions] = await connection.query(selectQuery)
     } catch (error) {
-        throw new DatabaseError(`Failed to read from table Spell: ${error.message}`)
+        throw new DatabaseError('spellModel', 'getSpellsWithSpecifications', `Failed to read from the Spell table: ${error.message}`)
     };
 
     // Get the classes that can cast the spells

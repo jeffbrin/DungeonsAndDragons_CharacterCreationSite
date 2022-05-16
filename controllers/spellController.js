@@ -9,6 +9,7 @@ const {DatabaseError, InvalidInputError} = require('../models/errorModel');
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
+const { request, response } = require('express');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -30,6 +31,7 @@ async function getRenderObject(additionalFields, userId) {
             renderObject.schools = await spellModel.getAllSchools();
         }
         catch (error) {
+            throw new DatabaseError('spellController', 'getRenderObject', `Failed to get spells or schools: ${error}`)
         }
     }
 
@@ -60,6 +62,7 @@ async function addSpell(request, response, sessionId) {
     spellToAdd.Verbal = spellToAdd.Verbal == 'on' ? true : false
     spellToAdd.Ritual = spellToAdd.Ritual == 'on' ? true : false
     spellToAdd.Concentration = spellToAdd.Concentration == 'on' ? true : false
+    spellToAdd.Damage = spellToAdd.damageDice ? spellToAdd.Damage : null;
 
     spellToAdd.Classes = spellToAdd.ClassIds.split(',')
     if (spellToAdd.Classes.length == 1 && spellToAdd.Classes[0] == '')
@@ -70,7 +73,7 @@ async function addSpell(request, response, sessionId) {
         spellToAdd.UserId = await userModel.getUserIdFromSessionId(sessionId);
         username = await userModel.getUsernameFromSessionId(sessionId);
     }catch(error){
-        response.render('home.hbs', {error: 'Sorry, something went wrong while validating your login status.', status: 500});
+        response.render('home.hbs', {error: 'Sorry, something went wrong while validating your login status.', status: 500, confirmation: 'Successfully added spell'});
     }
 
     spellModel.addSpell(spellToAdd)
@@ -137,11 +140,11 @@ router.delete('/', removeSpellById);
  */
 async function showAllSpellsLoggedIn(request, response, username, userId) {
     try {
-        response.render('spells.hbs', await getRenderObject({username: username}, userId))
+        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(), username: username}, userId))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
+            response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 })
             logger.error(error);
         }
         else{
@@ -160,11 +163,11 @@ async function showAllSpellsLoggedIn(request, response, username, userId) {
  */
 async function showAllSpellsLoggedOut(request, response) {
     try {
-        response.render('spells.hbs', await getRenderObject())
+        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(),}))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
+            response.render('home.hbs', await getRenderObject({error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
             logger.error(error);
         }
         else{
@@ -186,52 +189,45 @@ router.get('/', (request, response) => authenticator.loadDifferentPagePerLoginSt
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
  */
-async function showFilteredSpells(request, response) {
+async function showFilteredSpells(request, response, username, userId) {
     filter = request.query;
 
-    // Unspecified values get passed as empty strings, they should be null for the filter
-    if (filter.name == '')
-        filter.name = null;
+    userId = userId ? userId : 0;
+    filter.Level = filter.Level ? filter.Level : null;
+    filter.SchoolId = filter.SchoolId ? filter.SchoolId : null;
+    filter.Name = filter.Name ? filter.Name : null;
+    filter.CastingTime = filter.CastingTime ? filter.CastingTime : null;
+    filter.Verbal = filter.includeVerbal == 'on' ? filter.Verbal == 'on' : null;
+    filter.Somatic = filter.includeSomatic == 'on' ? filter.Somatic == 'on' : null;
+    filter.Material = filter.includeMaterial == 'on' ? filter.Material == 'on' : null;
+    filter.Duration = filter.Duration ? filter.Duration : null;
+    filter.EffectRange = filter.EffectRange ? filter.EffectRange : null;
+    filter.Concentration = filter.includeConcentration == 'on' ? filter.Concentration == 'on' : null;
+    filter.Ritual = filter.includeRitual == 'on' ? filter.Ritual == 'on' : null;
+    filter.Classes = filter.filterByClass == 'on' ? 
+                                                filter.ClassIds && filter.ClassIds[0] ? 
+                                                filter.ClassIds.split(',') : null : 
+                                                null;
+    filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
 
-
-    try {
-        // Convert strings to integer, if the string is empty
-        // set it to null so it doesn't get parsed to 0
-        if (filter.schoolId == '')
-            filter.schoolId = null;
-        else {
-            if (filter.schoolId != null)
-                filter.schoolId = Number(filter.schoolId);
-        }
-
-        if (filter.level == '')
-            filter.level = null;
-        else if (filter.level != null) {
-            filter.level = Number(filter.level);
-        }
-    }
-    catch (error) {
-        logger.error(`Failed to get filtered spells: ${error.message}`);
-        response.status(400);
-        response.render('spells.hbs', await getRenderObject({ error: `Failed to get the filtered list of spells since the provided filter contained invalid data. The id of the school or the level of the spell was not a number.`, status: 400, filter: filter }))
-    }
-
-    spellModel.getSpellsWithSpecifications(filter.level, filter.name, filter.schoolId)
-        .then(async filteredSpells => { response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter })) })
+    spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
+        .then(async filteredSpells => { 
+            response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
+        })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get filtered list of spells: ${error.message}`);
                 response.status(400)
-                response.render('spells.hbs', await getRenderObject({ error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400 }));
+                response.render('home.hbs', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username });
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500 }));
+                response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username });
                 logger.error(error);
             }
         })
 }
-router.get('/filter', showFilteredSpells)
+router.get('/filter', (request, response) => authenticator.loadDifferentPagePerLoginStatus(request, response, showFilteredSpells, showFilteredSpells))
 
 
 /**
@@ -275,30 +271,8 @@ router.get('/id', showSpellWithId);
  */
 async function editSpellWithId(request, response) {
 
-    const requestJson = request.body;
-    let id;
-    let level;
-    let school;
-
-    try {
-        if (requestJson.spellChoiceId != null)
-            id = Number(requestJson.spellChoiceId);
-
-        if (requestJson.level != null)
-            level = Number(requestJson.level);
-
-        if (requestJson.schoolId != null)
-            school = Number(requestJson.schoolId);
-    }
-    catch (error) {
-        response.status(400).render('spells.hbs', await getRenderObject({ error: 'Failed to edit the spell you selected. The id, level or school was not a number.', status: 400 }))
-    }
-
-
-    const name = requestJson.name;
-    const description = requestJson.description;
-
-    spellModel.updateSpellById(id, level, name, school, description)
+    // TODO:
+    spellModel.updateSpellById()
         .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject()) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
@@ -314,7 +288,7 @@ async function editSpellWithId(request, response) {
         })
 
 }
-router.put('/', editSpellWithId);
+router.put('/', (request, response) => authenticator.gateAccess(request, response, editSpellWithId));
 
 /**
  * Manages the requests to edit a spell
@@ -368,7 +342,30 @@ async function getAddSpellForm(request, response, sessionId){
 router.get('/spellAddition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
 
 hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
+    if(!arg1 && !arg2)
+        return true;
     return arg1 == arg2
+});
+hbs.handlebars.registerHelper('numEquals', (arg1, arg2) => {
+    if ((!arg1 || !arg2) && arg1 != arg2) 
+        return false
+    return Number(arg1) == Number(arg2)
+});
+hbs.handlebars.registerHelper('in', (item, container) => {
+    return container ? container.includes(item) : false;
+});
+hbs.handlebars.registerHelper('stringIn', (item, container) => {
+    return container ? container.includes(String(item)) : false;
+});
+hbs.handlebars.registerHelper('trim', (text, length = 200) => {
+    if(text.fn(this).length < length)
+        return text.fn(this);
+    return text.fn(this).substring(0, length) + '...';
+});
+hbs.handlebars.registerHelper('isNoneOf', (arg1, arg2) => {
+    if(!arg1)
+        arg1 = null;
+    return !JSON.parse(arg2).includes(arg1);
 });
 
 /**

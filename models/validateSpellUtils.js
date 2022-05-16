@@ -168,6 +168,9 @@ async function validateClassIds(classIds, connection){
 
     if(!Array.isArray(classIds))
         throw new Error('class ids should be an array.');
+
+    if(classIds.length == 0)
+        throw new Error('At least one class should be able to cast a spell');
     
     for(let i = 0; i < classIds.length; i++){
         if(!classIdsFromDatabase.includes(Number(classIds[i])))
