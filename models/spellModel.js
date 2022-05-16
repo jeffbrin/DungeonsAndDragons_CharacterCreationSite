@@ -4,7 +4,7 @@ const logger = require('../logger');
 const fs = require('fs/promises');
 const {DatabaseError, InvalidInputError} = require('./errorModel');
 
-const COLS_TO_SELECT = 'S.*, SS.Name';
+const COLS_TO_SELECT = 'S.*, SS.Name as school, SS.Id as schoolId';
 
 let connection;
 const validSchools = [
@@ -409,10 +409,11 @@ async function getAllSpells(userId = 0) {
         throw new DatabaseError(`Failed to read from table Spell ... Try resetting the database : ${error.message}`)
     }
 
-    // Get the classes that can cast the spells
-    for (spell of rows){
-        spell.Classes = await getClassesObjectListFromSpellId(spell.Id);
-    }
+    // This was making it very slow
+    // // Get the classes that can cast the spells
+    // for (spell of rows){
+    //     spell.Classes = await getClassesObjectListFromSpellId(spell.Id);
+    // }
 
     return rows;
 
@@ -532,10 +533,11 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
         throw new DatabaseError('spellModel', 'getSpellsWithSpecifications', `Failed to read from the Spell table: ${error.message}`)
     };
 
-    // Get the classes that can cast the spells
-    for(spell of rows){
-        spell.Classes = await getClassesObjectListFromSpellId(spell.Id);
-    }
+    // This was making it very slow
+    // // Get the classes that can cast the spells
+    // for(spell of rows){
+    //     spell.Classes = await getClassesObjectListFromSpellId(spell.Id);
+    // }
 
     return rows;
 

@@ -23,6 +23,18 @@
 </div>
 {{/if}}
 {{#if confirmation}}
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+    <use xlink:href="#check-circle-fill" />
+  </svg>
+  <div class="text-center container">
+    <em class="bolded">{{confirmation}}</em>
+  </div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
 
 
 {{!-- Filtering section --}}
@@ -233,9 +245,11 @@
   const classFilteringDiv = document.getElementById('classFilteringDiv');
   const homebrewDiv = document.getElementById('homebrewDiv')
 
+  if (homebrewIncluded){
   homebrewIncluded.addEventListener('change', e => {
     homebrewDiv.style.visibility = homebrewIncluded.checked ? 'visible' : 'hidden';
   })
+  }
 
   classFilteringIncluded.addEventListener('change', e => {
     classFilteringDiv.style.visibility = classFilteringIncluded.checked ? 'visible' : 'hidden';
@@ -270,7 +284,7 @@
 <h1 class="text-center mt-0">Spells</h1>
 <div class="d-flex flex-wrap  justify-content-center">
   {{#each spells}}
-  <form action="/spells/{{Id}}" class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
+  <form action="/spells/id/{{Id}}" class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
   <div class="card-header d-flex justify-content-between">
     <h5>{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
     {{#if (equals UserId 0)}}{{else}}<button type="button" width="40px" height="40px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn"><img src="/images/icons/subtraction.png" width="30px" alt="delete"></button>{{/if}}
@@ -285,6 +299,14 @@
   </form>
   {{/each}}
 </div>
+<div class="d-flex flex-column align-items-center mt-2 mb-5">
+  {{#if (isEmpty spells)}}
+    <h2>No spells meet the criteria you've filtered for. </h2><br/><p>Why don't you add a spell!</p>
+    {{#if username}}<a class="btn btn-primary" href="/spells/spellAddition">Add a spell.</a>{{else}}
+              <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
+              data-bs-target="#modalSignup" id="signupButton">Sign-up to add a spell.</button>{{/if}}
+  {{/if}}
+</div>
 
 <script src="/scripts/spellDeleter.js"></script>
-{{!-- <script src="/scripts/cardPicker.js"></script> --}}
+<script src="/scripts/cardPicker.js"></script>
