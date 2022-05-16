@@ -108,7 +108,7 @@ async function sendCharacter(request, response)
             await model.updateInitiative(charAddedId, requestJson.characterInitiative);
             let built = await buildSheet(charAddedId);
             response.status(201);
-            response.render('sheet.hbs', { character: built.character, skills: built.skills, soloCharacter: built.css });
+            response.render('sheet.hbs', { character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
         }
     } catch (error)
     {
@@ -144,7 +144,7 @@ async function updateHitpoints(request, response)
     {
         let updated = await model.addRemoveHp(request.params.id, requestJson.hp);
         let built = await buildSheet(request.params.id);
-        response.status(201).render('sheet.hbs', { success: true, message: "Character's hitpoints have been updated", character: built.character, skills: built.skills, soloCharacter: built.css });
+        response.status(201).render('sheet.hbs', { success: true, message: "Character's hitpoints have been updated", character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
     }
     catch (error)
     {
@@ -468,6 +468,96 @@ async function sendToCreatePage(request, response)
     }
 }
 
+async function addProficiencyController(request, response)
+{
+    const json = request.body;
+    try
+    {
+        await charStatsModel.addSkillProficiency(json.characterId, json.skillId);
+        logger.info(`Successfully added skill proficiency with id: ${ json.skillId } to character: ${ json.characterId }`);
+        let built = await buildSheet(json.characterId);
+
+        response.status(200).render('sheet.hbs', { success: true, message: `Successfully added Skill Proficiency`, character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error couldn't add proficiency` });
+            logger.error(`Database Error - From addProficiencyController in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Add proficiency!` });
+            logger.error(`input error - from addProficiencyController in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From addProficiencyController.');
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
+        }
+    }
+}
+
+async function addExpertiseController(request, response)
+{
+    const json = request.body;
+    try
+    {
+        await charStatsModel.addSkillExpertise(json.characterId, json.skillId);
+        logger.info(`Successfully added skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
+        let built = await buildSheet(json.characterId);
+
+        response.status(200).render('sheet.hbs', { success: true, message: `Successfully added Skill Expertise`, character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error couldn't add Expertise` });
+            logger.error(`Database Error - From addSkillExpertise in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Add Expertise!` });
+            logger.error(`input error - from addSkillExpertise in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From addSkillExpertise.');
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
+        }
+    }
+}
+
+async function removeAllExpertiseAndProficiencies(request, response)
+{
+    const json = request.body;
+    try
+    {
+        await charStatsModel.removeSkillExpertise(json.characterId, json.skillId);
+        logger.info(`Successfully removed skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
+        let built = await buildSheet(json.characterId);
+
+        response.status(200).render('sheet.hbs', { success: true, message: `Successfully removed Skill Expertise`, character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error couldn't add Expertise` });
+            logger.error(`Database Error - From removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Add Expertise!` });
+            logger.error(`input error - from removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From removeAllExpertiseAndProficiencies.');
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
+        }
+    }
+}
+
 
 router.put('/:id', updateCharacter);
 router.post('/', sendCharacter);
@@ -476,11 +566,15 @@ router.delete('/:id', deleteCharacter);
 //where the database was trying to get a string Id from an integer column
 router.get('/:id(\\d+)', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
-router.put('/:id/hp', updateHitpoints);
+router.put('/:id(\\d+)/hp', updateHitpoints);
 router.put('/:id/levels', updateLevel);
 router.put("/:id/items", addItem);
 router.get("/forms/:id(\\d+)", sendToUpdateController);
 router.get("/new", sendToCreatePage);
+router.put('/:id(\\d+)/proficiencies', addProficiencyController);
+router.put('/:id(\\d+)/expertise', addExpertiseController);
+router.delete('/:id(\\d+)/proficiencies', removeAllExpertiseAndProficiencies);
+
 
 module.exports = {
     router,

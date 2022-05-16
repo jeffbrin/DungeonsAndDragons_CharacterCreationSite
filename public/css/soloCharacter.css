@@ -489,6 +489,14 @@ input[type=number]::-webkit-outer-spin-button {
     max-width: 25% !important;
 }
 
+.w-20 {
+    width: 20% !important;
+}
+
+.w-40 {
+    width: 40% !important;
+}
+
 #addRow {
     max-width: 100%;
 }
@@ -533,35 +541,46 @@ td {
 .table-wrapper table {
     width: 100%;
 }
-.table-wrapper{
+
+.table-wrapper {
     position: relative;
 }
 
-.table-scroll{
+.table-scroll {
     max-height: 190px;
     overflow: scroll;
 }
+
+.profOrExpertise {
+    max-width: 25px;
+    height: auto;
+}
+
 /* Taken from https://www.w3schools.com/howto/howto_css_shake_image.asp */
 .shakeshakeshake {
     animation: shake 0.5s !important;
     animation-iteration-count: 2 !important;
 }
+
 html {
     overflow: scroll;
     overflow-x: hidden;
 }
+
 ::-webkit-scrollbar {
-    width: 5px; 
+    width: 5px;
 }
+
 /* Optional: show position indicator in red */
 ::-webkit-scrollbar-thumb {
     background: var(--popColorHover) !important;
     border-radius: 1rem;
 }
 
-.lighterHoverA:hover{
+.lighterHoverA:hover {
     color: var(--brightGreen);
 }
+
 @keyframes shake {
     0% {
         transform: translate(1px, 1px) rotate(0deg);
@@ -606,6 +625,20 @@ html {
     100% {
         transform: translate(1px, -2px) rotate(-1deg);
     }
+}
+
+.btn-secondary2 {
+    background-color: transparent !important;
+    border: none;
+    max-height: 30px;
+}
+
+.btn-no-padding {
+    padding: 0 !important;
+}
+
+.btn-secondary2:hover {
+    background-color: var(--popColorHover) !important;
 }
 
 @media only screen and (max-width: 1300px) {

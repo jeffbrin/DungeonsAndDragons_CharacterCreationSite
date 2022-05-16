@@ -1,3 +1,12 @@
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl)
+{
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+
+
+
+
 let form = document.getElementById('hitpointsForm');
 let numberInput = document.getElementById('hpValueInput');
 let addBtn = document.getElementById('btnAdd');
@@ -40,6 +49,66 @@ for (let i = 0; i < abilityScoreModifiers.length; i++)
 }
 
 
+
+
+function addProficiency(characterId, skillId)
+{
+    let form = document.getElementById('addProficiencyForm');
+    let characterIdInput = document.createElement('input');
+    characterIdInput.hidden = true;
+    characterIdInput.value = characterId;
+    characterIdInput.setAttribute('name', 'characterId');
+
+    let skillIdInput = document.createElement('input');
+    skillIdInput.hidden = true;
+    skillIdInput.value = skillId;
+    skillIdInput.setAttribute('name', 'skillId');
+
+    form.append(characterIdInput);
+    form.append(skillIdInput);
+
+    form.submit();
+}
+
+function addExpertise(characterId, skillId)
+{
+    let form = document.getElementById('addExpertiseForm');
+
+    let characterIdInput = document.createElement('input');
+    characterIdInput.hidden = true;
+    characterIdInput.value = characterId;
+    characterIdInput.setAttribute('name', 'characterId');
+
+    let skillIdInput = document.createElement('input');
+    skillIdInput.hidden = true;
+    skillIdInput.value = skillId;
+    skillIdInput.setAttribute('name', 'skillId');
+
+    form.append(characterIdInput);
+    form.append(skillIdInput);
+    form.submit();
+}
+
+function removeAll(characterId, skillId)
+{
+    let form = document.getElementById('removeAllForm');
+
+    let characterIdInput = document.createElement('input');
+    characterIdInput.hidden = true;
+    characterIdInput.value = characterId;
+    characterIdInput.setAttribute('name', 'characterId');
+
+    let skillIdInput = document.createElement('input');
+    skillIdInput.hidden = true;
+    skillIdInput.value = skillId;
+    skillIdInput.setAttribute('name', 'skillId');
+
+    form.append(characterIdInput);
+    form.append(skillIdInput);
+
+    form.submit();
+
+}
 
 addBtn.addEventListener('click', addHp);
 removeBtn.addEventListener('click', removeHp);

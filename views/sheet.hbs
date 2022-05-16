@@ -109,20 +109,46 @@
   {{/with}}
 
   <div class="skills">
+    <form id="removeAllForm" method="post" action="/characters/{{character.Id}}/proficiencies" hidden><input
+        name="choice" value='{"method":"Delete"}'>
+    </form>
+    <form id="addProficiencyForm" hidden method="post" action="/characters/{{character.Id}}/proficiencies"><input
+        name="choice" value='{"method":"Put"}'></form>
+    <form id="addExpertiseForm" hidden method="post" action="/characters/{{character.Id}}/expertise"><input
+        name="choice" value='{"method":"Put"}'></form>
     <table class="table">
       <thead>
         <tr>
-          <th scope="col">&#10003;</th>
-          <th scope="col">Name</th>
-          <th scope="col">Ability</th>
+          <th class="w-20" scope="col"><button type="button" class="btn btn-secondary2 btn-no-padding"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="+ Means Not Proficient (Click to Add). 'P' Means Proficient (Click to add Expertise). 'E' Means Expertise.">
+              <img class="profOrExpertise" src="/images/icons/help.png">
+            </button></th>
+          <th class="w-40" scope="col">Name</th>
+          <th class="w-40" scope="col">Ability</th>
         </tr>
       </thead>
       <tbody>
         {{#each skills}}
-        <tr>
-          <th scope="row">{{#ifIn Id ../character.SavingThrowProficiencies}} &#10003; {{/ifIn}}</th>
-          <td>{{Name}}</td>
-          <td>{{Ability.Name}}</td>
+        <tr class="w-100">
+          <td class="w-20">
+            {{#ifIn Id ../skillProficiencies}}
+
+            <button type="button" form="addExpertiseForm" onclick="addExpertise({{../character.Id}},{{Id}})"
+              class="btn btn-secondary2 btn-no-padding"><img class="profOrExpertise" src="/images/icons/p.png"></button>
+            {{else}}
+            {{#ifIn Id ../skillExpertise}}<button type="button" form="removeAllForm"
+              onclick="removeAll({{../character.Id}},{{Id}})" class="btn btn-secondary2 btn-no-padding"><img
+                class="profOrExpertise" src="/images/icons/e.png"></button>
+            {{else}}
+            <button type="button" form="addProficiencyForm" onclick="addProficiency({{../character.Id}},{{Id}})"
+              class="btn btn-secondary2 btn-no-padding"><img src="/images/icons/profPlus.png"
+                class="profOrExpertise"></button>
+            {{/ifIn}}
+            {{/ifIn}}
+          </td>
+          <td class="w-40">{{Name}}</td>
+          <td class="w-40">{{Ability.Name}}</td>
         </tr>
         {{/each}}
       </tbody>
