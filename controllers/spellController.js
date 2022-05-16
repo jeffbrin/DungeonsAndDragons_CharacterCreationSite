@@ -5,11 +5,12 @@ const authenticator = require('./authenticationHelperController')
 const router = express.Router();
 const routeRoot = '/spells';
 const logger = require('../logger');
-const {DatabaseError, InvalidInputError} = require('../models/errorModel');
+const {DatabaseError, InvalidInputError, InvalidSessionError} = require('../models/errorModel');
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
 const { request, response } = require('express');
+const { gateAccess } = require('./authenticationHelperController');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -110,25 +111,49 @@ router.post('/', (request, response) => authenticator.gateAccess(request, respon
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
  */
-async function removeSpellById(request, response) {
-    id = request.body.spellChoiceId;
+async function removeSpellById(request, response, sessionId) {
+    id = request.params.id;
 
-    spellModel.removeSpellById(id)
-        .then(async spellDeleted => { response.render('spells.hbs', await getRenderObject()) })
+    let userId;
+    try{
+        userId = await userModel.getUserIdFromSessionId(sessionId)
+    }
+    catch(error){
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401).render('home.hbs', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401});
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500).render('home.hbs', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500});
+        }
+        else{
+            logger.error(error);
+            response.status(500).render('home.hbs', {error: 'Something went wrong.', status: 500});
+        }
+
+    }
+
+    spellModel.removeSpellById(id, userId)
+        .then(async spellDeleted => { response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully deleted spell.'}, userId)) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to delete spell: ${error.message}`);
                 response.status(400);
-                response.render('spells.hbs', await getRenderObject({ error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 }));
+                response.render('spells.hbs', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 });
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', await getRenderObject({ error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 }));
+                response.render('spells.hbs', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 });
                 logger.error(error);
+            }
+            else{
+                logger.error(error);
+                response.status(500).render('home.hbs', {error: 'Something went wrong.', status: 500});
             }
         })
 }
-router.delete('/', removeSpellById);
+router.delete('/:id', (request, response) => authenticator.gateAccess(request, response, removeSpellById));
 
 
 /**
