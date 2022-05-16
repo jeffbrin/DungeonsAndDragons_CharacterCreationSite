@@ -93,11 +93,17 @@ async function addSpell(request, response, sessionId) {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to add new spell: ${error.message}`);
                 response.status(400);
+                try{
                 response.render('spells.hbs', await getRenderObject({ error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }));
+                }catch(error){
+                    response.status(500);
+                    response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
+                    logger.error(error);
+                }
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 }))
+                response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
                 logger.error(error);
             }
         })
@@ -142,11 +148,11 @@ async function removeSpellById(request, response, sessionId) {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to delete spell: ${error.message}`);
                 response.status(400);
-                response.render('spells.hbs', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 });
+                response.render('home.hbs', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 });
             }
             else if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 });
+                response.render('home.hbs', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 });
                 logger.error(error);
             }
             else{
