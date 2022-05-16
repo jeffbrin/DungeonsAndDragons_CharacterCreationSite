@@ -12,6 +12,8 @@
             d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
     </symbol>
 </svg>
+<form id="updateCharacterForm" action="/characters/{{character.Id}}" method="post"><input name="choice" hidden
+        value='{"method":"PUT"}'><input hidden name="savingThrows" value="{{character.SavingThrows}}"></form>
 <section class="bgimage">
     {{#if success}}
     <div class="alert alert-success text-center container w-50 alert-dismissible fade show myAlert" role="alert">
@@ -32,17 +34,20 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {{/if}}
-    <div id="addchardiv" class="container">
+    <div id="addchardiv" class="container" style="border-radius: 1rem;">
         <h2 id="addmessageh2" class="text-center">Update Your Character!</h2>
         <form action="/characters" method="post" id="formMain">
             <!-- Name input -->
+            <label for="inputName">Name:</label><br>
             <div class="form-outline mb-4" id="divName">
-                <input type="text" id="inputName" name="name" value="{{character.Name}}" class="form-control" />
-                <label class="form-label" for="name">Name</label>
-            </div>
+                <input form="updateCharacterForm" type="text" id="inputName" name="charName" value="{{character.Name}}"
+                    class="form-control" />
+            </div><br>
 
             {{!-- Race Input --}}
-            <select class="form-select" id="selectRace" name="race" aria-label="Default select example">
+            <label for="selectRace">Race:</label><br>
+            <select form="updateCharacterForm" class="form-select" id="selectRace" name="race"
+                aria-label="Default select example">
                 <option {{#if (equals character.Race.Id 1)}} selected {{/if}} value="1">Dwarf</option>
                 <option {{#if (equals character.Race.Id 2)}} selected {{/if}} value="2">Elf</option>
                 <option {{#if (equals character.Race.Id 3)}} selected {{/if}} value="3">Halfling</option>
@@ -52,10 +57,12 @@
                 <option {{#if (equals character.Race.Id 7)}} selected {{/if}} value="7">Half-Orc</option>
                 <option {{#if (equals character.Race.Id 8)}} selected {{/if}} value="8">Tiefling</option>
                 <option {{#if (equals character.Race.Id 9)}} selected {{/if}} value="9">Dragonborn</option>
-            </select>
+            </select><br>
 
             {{!-- Class Input --}}
-            <select name="charClass" id="selectClass" class="form-select" aria-label="Default select example">
+            <label for="selectClass">Class:</label><br>
+            <select form="updateCharacterForm" name="charClass" id="selectClass" class="form-select"
+                aria-label="Default select example">
                 <option {{#if (equals character.Class.Id 1)}} selected {{/if}} value="1">Barbarian</option>
                 <option {{#if (equals character.Class.Id 2)}} selected {{/if}} value="2">Bard</option>
                 <option {{#if (equals character.Class.Id 3)}} selected {{/if}} value="3">Cleric</option>
@@ -68,9 +75,12 @@
                 <option {{#if (equals character.Class.Id 10)}} selected {{/if}} value="10">Sorcerer</option>
                 <option {{#if (equals character.Class.Id 11)}} selected {{/if}} value="11">Warlock</option>
                 <option {{#if (equals character.Class.Id 12)}} selected {{/if}} value="12">Wizard</option>
-            </select>
+            </select><br>
+
             {{!-- Background Input --}}
-            <select name="background" id="selectBackground" class="form-select" aria-label="Default select example">
+            <label for="selectBackground">Background:</label><br>
+            <select form="updateCharacterForm" name="background" id="selectBackground" class="form-select"
+                aria-label="Default select example">
                 <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Barbarian</option>
                 <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Bard</option>
                 <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Cleric</option>
@@ -83,26 +93,105 @@
                 <option {{#if (equals character.background.Id 10)}} selected {{/if}} value="10">Sorcerer</option>
                 <option {{#if (equals character.background.Id 11)}} selected {{/if}} value="11">Warlock</option>
                 <option {{#if (equals character.background.Id 12)}} selected {{/if}} value="12">Wizard</option>
-            </select>
+            </select><br>
             {{!-- Ethics Input --}}
-            <select name="ethics" id="selectEthics" class="form-select" aria-label="Default select example">
+            <label for="selectEthics">Ethics:</label><br>
+            <select form="updateCharacterForm" name="ethics" id="selectEthics" class="form-select"
+                aria-label="Default select example">
                 <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Neutral</option>
                 <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Chaotic</option>
                 <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Lawful</option>
-            </select>
+            </select><br>
             {{!-- Morality Input --}}
-            <select name="morality" id="selectMorality" class="form-select" aria-label="Default select example">
+            <label for="selectMorality">Morality:</label><br>
+            <select form="updateCharacterForm" name="morality" id="selectMorality" class="form-select"
+                aria-label="Default select example">
                 <option {{#if (equals character.background.Id 1)}} selected {{/if}} value="1">Neutral</option>
                 <option {{#if (equals character.background.Id 2)}} selected {{/if}} value="2">Evil</option>
                 <option {{#if (equals character.background.Id 3)}} selected {{/if}} value="3">Good</option>
-            </select>
-            <div class="form-outline" id="divHp">
-                <input name="hitpoints" min="0" max="10" type="number" id="typeNumber" class="form-control" />
-                <label class="form-label" for="typeNumber">{{character.MaxHp}}</label>
-            </div>
+            </select><br>
+
+            {{!-- Level --}}
+            <label class="form-label" for="selectLevel">Level:</label><br>
+            <select form="updateCharacterForm" required class="form-select" id="selectLevel" name="level">
+                <option {{#if (equals character.Level 1)}} selected {{/if}} value="1">1</option>
+                <option {{#if (equals character.Level 2)}} selected {{/if}} value="2">2</option>
+                <option {{#if (equals character.Level 3)}} selected {{/if}} value="3">3</option>
+                <option {{#if (equals character.Level 4)}} selected {{/if}} value="4">4</option>
+                <option {{#if (equals character.Level 5)}} selected {{/if}} value="5">5</option>
+                <option {{#if (equals character.Level 6)}} selected {{/if}}value="6">6</option>
+                <option {{#if (equals character.Level 7)}} selected {{/if}} value="7">7</option>
+                <option {{#if (equals character.Level 8)}} selected {{/if}} value="8">8</option>
+                <option {{#if (equals character.Level 9)}} selected {{/if}} value="9">9</option>
+                <option {{#if (equals character.Level 10)}} selected {{/if}} value="10">10</option>
+                <option {{#if (equals character.Level 11)}} selected {{/if}} value="11">11</option>
+                <option {{#if (equals character.Level 12)}} selected {{/if}} value="12">12</option>
+                <option {{#if (equals character.Level 13)}} selected {{/if}} value="13">13</option>
+                <option {{#if (equals character.Level 14)}} selected {{/if}} value="14">14</option>
+                <option {{#if (equals character.Level 15)}} selected {{/if}} value="15">15</option>
+                <option {{#if (equals character.Level 16)}} selected {{/if}} value="16">16</option>
+                <option {{#if (equals character.Level 17)}} selected {{/if}}value="17">17</option>
+                <option {{#if (equals character.Level 18)}} selected {{/if}} value="18">18</option>
+                <option {{#if (equals character.Level 19)}} selected {{/if}} value="19">19</option>
+                <option {{#if (equals character.Level 20)}} selected {{/if}} value="20">20</option>
+            </select><br>
+
+            {{!-- Speed --}}
+            <label class="form-label" for="characterSpeed">Speed:</label><br>
+            <input class="form-control" form="updateCharacterForm" value="{{character.Speed}}" required
+                class="numberInput" type="number" min="0" name="speed" id="characterSpeed">
+            <br>
+
+            {{!-- Initiative --}}
+            <label class="form-label" for="characterInitiative">Initiative:</label><br>
+            <input class="form-control" form="updateCharacterForm" required class="numberInput"
+                value="{{character.Initiative}}" type="number" min="0" name="initiative" id="characterInitiative">
+            <br>
+
+            {{!-- AC --}}
+            <label class="form-label" for="characterArmorClass">Armor Class:</label><br>
+            <input class="form-control" form="updateCharacterForm" value="{{character.ArmorClass}}" required
+                class="numberInput" type="number" min="0" name="armorClass" id="characterArmorClass">
+            <br>
+
+            {{!-- HitPoints --}}
+            <label class="form-label" for="numberHp">Max Hitpoints</label>
+            <input class="form-control" form="updateCharacterForm" name="maxHp" min="0" type="number" id="numberHp"
+                value="{{character.MaxHp}}" class="form-control"><br>
+
+            {{!-- Proficiency Bonus --}}
+            <label class="form-label" for="characterProficiencyBonus">Proficiency Bonus</label><br>
+            <input class="form-control" form="updateCharacterForm" class="numberInput" type="number" min="0"
+                name="proficiencyBonus" id="characterProficiencyBonus" value="{{character.ProficiencyBonus}}"><br>
+
+
+            <label class="form-label" for="inputStrength">Strength</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="strength"
+                id="inputStrength" value="{{character.AbilityScores.0.Score}}"><br>
+
+            <label class="form-label" for="inputDexterity">Dexterity</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="dexterity"
+                id="inputDexterity" value="{{character.AbilityScores.1.Score}}"><br>
+
+            <label class="form-label" for="inputConstitution">Constitution</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="constitution"
+                id="inputConstitution" value="{{character.AbilityScores.2.Score}}"><br>
+
+            <label class="form-label" for="inputIntelligence">Intelligence</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="intelligence"
+                id="inputIntelligence" value="{{character.AbilityScores.3.Score}}"><br>
+
+            <label class="form-label" for="inputWisdom">Wisdom</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="wisdom" id="inputWisdom"
+                value="{{character.AbilityScores.4.Score}}"><br>
+
+            <label class="form-label" for="inputCharisma">Charisma</label><br>
+            <input class="form-control" form="updateCharacterForm" type="number" min="0" name="charisma"
+                id="inputCharisma" value="{{character.AbilityScores.5.Score}}"><br>
+
             <div class="row justify-content-center">
-                <input type="submit" id="submitBtn" class="btn btn-warning btn-primary" data-bs-toggle="tooltip"
-                    data-bs-placement="top" title="Input data and Create your Masterpiece"></input>
+                <input type="submit" form="updateCharacterForm" id="submitBtn"
+                    class="btn btn-warning btn-primary"></input>
             </div>
         </form>
     </div>

@@ -8,34 +8,71 @@ let itemBtn = document.getElementById('itemBtn');
 let addItemFormButton;
 let updateCharacterButton = document.getElementById('btnUpdateCharacter');
 
+let abilityScores = document.getElementsByClassName('abilityScore');
+let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
+let savingThrowModifiers = document.getElementsByClassName('abilityScoreModifierTd');
+
+
+
+for (let i = 0; i < abilityScoreModifiers.length; i++)
+{
+    let modifier = Math.floor((abilityScores[i].innerText - 10) / 2);
+    if (modifier < 0)
+    {
+        abilityScoreModifiers[i].classList.add('red');
+        abilityScoreModifiers[i].innerText = modifier;
+        savingThrowModifiers[i].classList.add('red');
+        savingThrowModifiers[i].innerText = modifier;
+
+    }
+    else if (modifier > 0)
+    {
+        abilityScoreModifiers[i].classList.add('green');
+        abilityScoreModifiers[i].innerText = `+${ modifier }`;
+        savingThrowModifiers[i].classList.add('green');
+        savingThrowModifiers[i].innerText = `+${ modifier }`;
+    }
+    else
+    {
+        abilityScoreModifiers[i].innerText = modifier;
+    }
+
+}
+
+
+
 addBtn.addEventListener('click', addHp);
 removeBtn.addEventListener('click', removeHp);
 levelupBtn.addEventListener('click', levelup);
 itemBtn.addEventListener('click', addItemInternal);
 updateCharacterButton.addEventListener('click', sendToUpdate);
 
-$(document).on('click','#addItemFormButton',function(e){addItemChangeValuesBeforeSending(e)});
+$(document).on('click', '#addItemFormButton', function (e) { addItemChangeValuesBeforeSending(e); });
 
 
 
-function sendToUpdate(){
+function sendToUpdate()
+{
     let id = document.getElementById('characterIdHidden').value;
 
-    location.href = `/characters/forms/${id}`;
+    location.href = `/characters/forms/${ id }`;
 }
 
 
-function timeout(ms) {
+function timeout(ms)
+{
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-async function addItemChangeValuesBeforeSending(event){
+async function addItemChangeValuesBeforeSending(event)
+{
     let hiddenName = document.getElementById('hiddenItemName');
     let hiddenQuantity = document.getElementById('hiddenItemQuantity');
 
     let qty = document.getElementById('formItemQuantity').value;
     let name = document.getElementById('formItemName').value;
 
-    if(qty === "" && name === ""){
+    if (qty === "" && name === "")
+    {
         let nameForm = document.getElementById('formItemName');
         let qtyForm = document.getElementById('formItemQuantity');
         qtyForm.classList.add("shakeshakeshake");
@@ -45,7 +82,8 @@ async function addItemChangeValuesBeforeSending(event){
         qtyForm.classList.remove("shakeshakeshake");
         return;
     }
-    if(qty === ""){
+    if (qty === "")
+    {
         //shake
         let qtyForm = document.getElementById('formItemQuantity');
         qtyForm.classList.add("shakeshakeshake");
@@ -53,7 +91,8 @@ async function addItemChangeValuesBeforeSending(event){
         qtyForm.classList.remove("shakeshakeshake");
         return;
     }
-    if(name === ""){
+    if (name === "")
+    {
         //shake 
         let nameForm = document.getElementById('formItemName');
         nameForm.classList.add("shakeshakeshake");
@@ -68,8 +107,10 @@ async function addItemChangeValuesBeforeSending(event){
 }
 
 
-function addItemInternal(event){
-    if($("#addRow").length) {
+function addItemInternal(event)
+{
+    if ($("#addRow").length)
+    {
         //object already exists
         return;
     }
@@ -79,7 +120,8 @@ function addItemInternal(event){
     tableBody.insertAdjacentHTML('beforeend', tableRow);
     addItemFormButton = document.getElementById('addItemFormButton');
 }
-function addHp(event) {
+function addHp(event)
+{
     let hpValueChange = document.getElementById('hpValueInput').value;
     if (hpValueChange === "")
         hpValueChange = 1;
@@ -88,9 +130,11 @@ function addHp(event) {
     form.submit();
 }
 
-function removeHp(event) {
+function removeHp(event)
+{
     let hpValueChange = document.getElementById('hpValueInput').value;
-    if (hpValueChange > 0) {
+    if (hpValueChange > 0)
+    {
         hpValueChange = Math.abs(hpValueChange) * -1;
     }
     if (hpValueChange === "")
@@ -100,7 +144,8 @@ function removeHp(event) {
 
     form.submit();
 }
-function levelup(event) {
+function levelup(event)
+{
     let formLvl = document.getElementById('levelupForm');
     formLvl.submit();
 }
@@ -115,51 +160,57 @@ var $die = $('.die'),
     lastFace,
     timeoutId,
     transitionDuration = 500,
-    animationDuration = 3000
+    animationDuration = 3000;
 
-$('ul > li > a').click(function () {
-    reset()
-    rollTo($(this).attr('href'))
+$('ul > li > a').click(function ()
+{
+    reset();
+    rollTo($(this).attr('href'));
 
-    return false
-})
+    return false;
+});
 
-function randomFace() {
-    var face = Math.floor((Math.random() * sides)) + initialSide
-    lastFace = face == lastFace ? randomFace() : face
+function randomFace()
+{
+    var face = Math.floor((Math.random() * sides)) + initialSide;
+    lastFace = face == lastFace ? randomFace() : face;
 
-    
+
     return face;
 }
 
-function rollTo(face) {
-    clearTimeout(timeoutId)
+function rollTo(face)
+{
+    clearTimeout(timeoutId);
 
-    $('ul > li > a').removeClass('active')
-    $('[href=' + face + ']').addClass('active')
+    $('ul > li > a').removeClass('active');
+    $('[href=' + face + ']').addClass('active');
 
-    $die.attr('data-face', face)
+    $die.attr('data-face', face);
     //SAM
     //Now we can inject the face (int) into the DOM
     let h5 = document.createElement('h5');
-    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${face}</b>`;
+    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${ face }</b>`;
     let rollDiv = document.getElementById('rollBody');
     rollDiv.append(h5);
 }
 
-function reset() {
-    $die.attr('data-face', null).removeClass('rolling')
+function reset()
+{
+    $die.attr('data-face', null).removeClass('rolling');
 }
 
-$('.randomize, .die').click(function () {
-    $die.addClass('rolling')
-    clearTimeout(timeoutId)
+$('.randomize, .die').click(function ()
+{
+    $die.addClass('rolling');
+    clearTimeout(timeoutId);
 
-    timeoutId = setTimeout(function () {
-        $die.removeClass('rolling')
+    timeoutId = setTimeout(function ()
+    {
+        $die.removeClass('rolling');
 
-        rollTo(randomFace())
-    }, animationDuration)
+        rollTo(randomFace());
+    }, animationDuration);
 
-    return false
-})
+    return false;
+});

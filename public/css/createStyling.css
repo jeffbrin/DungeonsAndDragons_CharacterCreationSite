@@ -50,3 +50,18 @@
 .inline {
     display: inline;
 }
+
+.abilityLabels {
+    width: 100px;
+}
+
+@media (min-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 auto;
+        width: 45%;
+    }
+
+    .col-md-8 {
+        width: 55%;
+    }
+}

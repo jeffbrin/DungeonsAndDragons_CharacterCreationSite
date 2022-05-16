@@ -1,4 +1,9 @@
-<form hidden id="addCharacterForm" method="post" action="/characters"></form>
+<form hidden id="addCharacterForm" method="post" action="/characters">
+</form>
+<div id="bsBannerInputNotFilled" class="alert alert-warning alert-dismissible fade show" hidden role="alert">
+    <strong>Woah There Adventurer!</strong> Don't be too hasty. Make sure Everything is Filled in.
+    <button type="button" class="btn-close" id="btnCloseAlert"></button>
+</div>
 <div class="card elevated .container-md" id="mainCardDiv" style="">
     <div class="row align-items-center justify-content-center">
         <div class="col-md-4">
@@ -9,14 +14,14 @@
                 </path>
             </svg>
         </div>
-        <div class="col-md-8" id="Card1" hidden>
+        <div class="col-md-8" id="Card1">
             <div class="card-body">
                 <h2 class="card-title">Welcome!</h2>
                 <h4 class="card-text">Welcome To The Character Creation.<br>Let's Start of with the Basics</h4>
                 <label for="characterName">What is your Characters name?</label><br>
-                <input type="text" name="characterName"><br><br>
+                <input form="addCharacterForm" required class="numberInput" type="text" name="characterName"><br><br>
                 <label for="characterClass">What is their class?</label>
-                <select name="characterClass" id="selectClass" class="form-select">
+                <select form="addCharacterForm" required name="characterClass" id="selectClass" class="form-select">
                     <option value="1">Barbarian</option>
                     <option value="2">Bard</option>
                     <option value="3">Cleric</option>
@@ -32,20 +37,14 @@
                 </select><br>
 
                 <label for="characterRace">What is their race?</label><br>
-                <select class="form-select" id="selectRace" name="characterRace">
-                    <option value="1">Dwarf</option>
-                    <option value="2">Elf</option>
-                    <option value="3">Halfling</option>
-                    <option value="4">Human</option>
-                    <option value="5">Gnome</option>
-                    <option value="6">Half-Elf</option>
-                    <option value="7">Half-Orc</option>
-                    <option value="8">Tiefling</option>
-                    <option value="9">Dragonborn</option>
+                <select form="addCharacterForm" required class="form-select" id="selectRace" name="characterRace">
+                    {{#each races}}
+                    <option value="{{Id}}">{{Name}}</option>
+                    {{/each}}
                 </select><br>
 
                 <label for="characterLevel">What is their Level?</label><br>
-                <select class="form-select" id="selectLevel" name="characterLevel">
+                <select form="addCharacterForm" required class="form-select" id="selectLevel" name="characterLevel">
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -69,9 +68,10 @@
                 </select><br>
 
                 <label for="characterMaxHp">How Many Hit Points?</label><br>
-                <input type="number" min="0" name="characterMaxHp" id="inputHp"><br><br>
+                <input form="addCharacterForm" required type="number" class="numberInput" min="0" name="characterMaxHp"
+                    id="inputHp"><br><br>
 
-                <button class="btn btn-primary nextCardButton" type="button">Next</button>
+                <button class="btn btn-primary nextCardButton" id="Card1Next" type="button">Next</button>
             </div>
 
         </div>
@@ -91,7 +91,7 @@
                 </button><br>
                 {{!-- Ethics Input --}}
                 <label for="selectEthics">Choose how ethical they will be.</label>
-                <select name="characterEthics" id="selectEthics" class="form-select"
+                <select form="addCharacterForm" required name="characterEthics" id="selectEthics" class="form-select"
                     aria-label="Default select example">
                     <option value="1">Neutral</option>
                     <option value="2">Chaotic</option>
@@ -99,7 +99,7 @@
                 </select><br>
                 {{!-- Morality Input --}}
                 <label for="selectMorality">Choose their morals.</label>
-                <select name="characterMorality" id="selectMorality" class="form-select"
+                <select form="addCharacterForm" name="characterMorality" id="selectMorality" class="form-select"
                     aria-label="Default select example">
                     <option value="1">Neutral</option>
                     <option value="2">Evil</option>
@@ -112,7 +112,8 @@
                     title="Armor Class (AC). Armor protects its wearer from attacks. The armor (and shield) you wear determines your base Armor Class. Leave it empty if you aren't sure what armor you will have.">
                     <img class="helpPng" src="/images/icons/help.png">
                 </button><br>
-                <input class="numberInput" type="number" min="0" name="characterArmorClass" id="characterArmorClass">
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterArmorClass" id="characterArmorClass">
                 <br>
                 {{!-- Initiative definition -- https://www.dndbeyond.com/sources/basic-rules/combat#Initiative --}}
                 <label for="characterInitiative">Choose their Initiative.</label>
@@ -120,7 +121,8 @@
                     title="Initiative determines the order of turns during combat. When combat starts, every participant makes a Dexterity check to determine their place in the initiative order. The DM makes one roll for an entire group of identical creatures, so each member of the group acts at the same time.">
                     <img class="helpPng" src="/images/icons/help.png">
                 </button><br>
-                <input class="numberInput" type="number" min="0" name="characterInitiative" id="characterInitiative">
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterInitiative" id="characterInitiative">
                 <br>
                 {{!-- Speed definition -- https://www.dndbeyond.com/sources/basic-rules/adventuring#Speed --}}
                 <label for="characterSpeed">Choose their Speed.</label>
@@ -128,30 +130,83 @@
                     title="Every character and monster has a speed, which is the distance in feet that the character or monster can walk in 1 round. This number assumes short bursts of energetic movement in the midst of a life-threatening situation.">
                     <img class="helpPng" src="/images/icons/help.png">
                 </button><br>
-                <input class="numberInput" type="number" min="0" name="characterSpeed" id="characterSpeed">
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0" name="characterSpeed"
+                    id="characterSpeed">
                 <br><br>
 
-                <button class="btn btn-primary nextCardButton" type="button">Next</button>
+                <button class="btn btn-primary nextCardButton" id="Card2Prev" type="button">Prev</button>
+                <button class="btn btn-primary nextCardButton" id="Card2Next" type="button">Next</button>
             </div>
         </div>
 
-        <div class="col-md-8" id="Card3">
+        <div class="col-md-8" id="Card3" hidden>
             <div class="card-body">
-                <h2 class="card-title">Almost There!</h2>
-                <h4 class="card-text inline">You Will Now Roll your Ability Scores</h4><button type="button"
+                <h2 class="card-title text-left">Almost There!</h2>
+                <h4 class="card-text text-left inline">You Will Now Roll your Ability Scores</h4><button type="button"
                     class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="right"
                     title="Ability scores are your D&D character’s primary statistics and pretty much determine how good they are at doing anything. These stats consist of strength, constitution, intelligence, wisdom, charisma and dexterity.">
                     <img class="helpPng" src="/images/icons/help.png">
                 </button>
                 <br>
-
-
-
                 {{!-- Rolling Steps from -- https://mykindofmeeple.com/how-to-roll-stats-in-dnd-pros-cons/ --}}
                 <!-- Button trigger modal -->
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#howToModal">
                     How to Roll your Scores
                 </button>
+                <br>
+                <label class="abilityLabels" for="characterStrength">Strength</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Strength measures bodily power, athletic training, and the extent to which you can exert raw physical force.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterStrength" id="characterStrength">
+                <br>
+                <label class="abilityLabels" for="characterDexterity">Dexterity</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Dexterity measures agility, reflexes, and balance.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterDexterity" id="characterDexterity">
+
+                <br>
+                <label class="abilityLabels" for="characterConstitution">Constitution</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Constitution measures health, stamina, and vital force.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterConstitution" id="characterConstitution">
+
+                <br>
+                <label class="abilityLabels" for="characterIntelligence">Intelligence</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Intelligence measures mental acuity, accuracy of recall, and the ability to reason.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterIntelligence" id="characterIntelligence">
+
+                <br>
+                <label class="abilityLabels" for="characterWisdom">Wisdom</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Wisdom reflects how attuned you are to the world around you and represents perceptiveness and intuition.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0" name="characterWisdom"
+                    id="characterWisdom">
+
+                <br>
+                <label class="abilityLabels" for="characterCharisma">Charisma</label>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip"
+                    title="Charisma measures your ability to interact effectively with others. It includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button><br>
+                <input form="addCharacterForm" required class="numberInput" type="number" min="0"
+                    name="characterCharisma" id="characterCharisma">
+
+
                 <!-- Modal -->
                 <div class="modal fade" tabindex="-1" id="howToModal" aria-labelledby="exampleModalLabel"
                     aria-hidden="true">
@@ -178,6 +233,39 @@
                         </div>
                     </div>
                 </div>
+                <br><br>
+                <button class="btn btn-primary nextCardButton" id="Card3Prev" type="button">Prev</button>
+                <button class="btn btn-primary nextCardButton" id="Card3Next" type="button">Next</button>
+            </div>
+        </div>
+
+
+        <div class="col-md-8" id="Card4" hidden>
+            <div class="card-body">
+                <h2 class="card-title text-left">One Final Step</h2>
+                <br><br>
+
+                <label for="characterProficiencyBonus">Proficiency Bonus</label>
+                <input form="addCharacterForm" class="numberInput" type="number" min="0"
+                    name="characterProficiencyBonus" id="characterProficiencyBonus"><br><br>
+                <br>
+                <label for="characterBackground">Background</label><button type="button" class="btn btn-secondary"
+                    data-bs-toggle="tooltip" data-bs-placement="right"
+                    title="Every story has a beginning. Your character’s background reveals where you came from, how you became an adventurer, and your place in the world. Your fighter might have been a courageous knight or a grizzled soldier. Your wizard could have been a sage or an artisan. Your rogue might have gotten by as a guild thief or commanded audiences as a jester.">
+                    <img class="helpPng" src="/images/icons/help.png">
+                </button>
+                <select form="addCharacterForm" required name="characterBackground" id="characterBackground"
+                    class="form-select">
+                    {{#each backgrounds}}
+                    <option value="{{Id}}">{{Name}}</option>
+                    {{/each}}
+                </select><br>
+                <button class="btn btn-primary nextCardButton" id="Card4Prev" type="button">Prev</button>
+                <div id="toolTipSubmit" class="text-center tooltip-wrapper" data-bs-toggle="tooltip"
+                    data-bs-placement="right" title="Cannot Submit until character is fully created!">
+                    <button id="disabledSubmit" type="submit" class="btn btn-primary" form="addCharacterForm"
+                        value="Submit" disabled>Submit</button>
+                </div>
             </div>
         </div>
     </div>
@@ -185,39 +273,32 @@
 
 
 
-    <br><br>
-    <button class="btn btn-primary nextCardButton" type="button">Next</button>
-</div>
-</div>
 </div>
 
 
 
-<div class="progress">
+<div class="progress" id="progress0">
     <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0"
         aria-valuemax="100"></div>
 </div>
-<div class="progress">
+<div class="progress" id="progress25" hidden>
     <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 25%"
         aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
 </div>
-<div class="progress" hidden>
+<div class="progress" hidden id="progress50">
     <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 50%"
         aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
 </div>
-<div class="progress" hidden>
+<div class="progress" hidden id="progress75">
     <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 75%"
         aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
 </div>
-<div class="progress" hidden>
+<div class="progress" hidden id="progress100">
     <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" role="progressbar" style="width: 100%"
         aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
 </div>
 
-<div class="text-center tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="right"
-    title="Cannot Submit until character is fully created!">
-    <button type="submit" class="btn btn-primary" form="addCharacterForm" value="Submit" disabled>Submit</button>
-</div>
+
 
 
 <script src="/scripts/newCharacterScript.js" defer></script>

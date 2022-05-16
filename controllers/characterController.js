@@ -6,22 +6,27 @@ const router = express.Router();
 const routeRoot = '/characters';
 const model = require('../models/characterModel');
 const logger = require('../logger');
-const authenticator = require('./authenticationHelperController')
-const userModel = require('../models/userModel')
+const authenticator = require('./authenticationHelperController');
+const userModel = require('../models/userModel');
 const charStatsModel = require('../models/characterStatisticsModel');
 const raceModel = require('../models/raceModel');
 
 const errors = require('../models/errorModel');
+const { getBackground, getAllBackgrounds } = require('../models/backgroundModel');
+const { json } = require('express/lib/response');
 
 
 
-hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
-    return arg1 == arg2
+hbs.handlebars.registerHelper('equals', (arg1, arg2) =>
+{
+    return arg1 == arg2;
 });
 
 //https://stackoverflow.com/questions/8853396/logical-operator-in-a-handlebars-js-if-conditional
-hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
-    switch (operator) {
+hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options)
+{
+    switch (operator)
+    {
         case '==':
             return (v1 == v2) ? options.fn(this) : options.inverse(this);
         case '===':
@@ -47,11 +52,23 @@ hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
     }
 });
 
-async function buildSheet(id) {
+hbs.handlebars.registerHelper('ifIn', function (elem, list, options)
+{
+    if (list.indexOf(elem) > -1)
+    {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
+async function buildSheet(id)
+{
     let bigObject = {};
     bigObject.character = await model.getCharacter(id);
     bigObject.skills = await charStatsModel.getAllSkills();
     bigObject.css = 'soloCharacter.css';
+    bigObject.skillProficiencies = await charStatsModel.getSkillProficiencies(id);
+    bigObject.skillExpertise = await charStatsModel.getSkillExpertise(id);
     return bigObject;
 }
 
@@ -61,34 +78,55 @@ async function buildSheet(id) {
  * @param {HTTPRequest} request The http Request object
  * @param {HTTPResponse} response The http Response object
  */
-async function sendCharacter(request, response) {
+async function sendCharacter(request, response)
+{
     requestJson = request.body;
-    try {
-        let charAdded = await model.addCharacter(requestJson.name, requestJson.race, requestJson.charClass, requestJson.hitpoints);
-        if (charAdded === null) {
+    let charAddedId;
+    try
+    {
+        let abilityScores = [];
+        abilityScores.push(requestJson.characterStrength);
+        abilityScores.push(requestJson.characterDexterity);
+        abilityScores.push(requestJson.characterConstitution);
+        abilityScores.push(requestJson.characterIntelligence);
+        abilityScores.push(requestJson.characterWisdom);
+        abilityScores.push(requestJson.characterCharisma);
+
+        let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
+        charAddedId = await model.addCharacter(requestJson.characterClass, requestJson.characterRace, requestJson.characterName, requestJson.characterMaxHp,
+            requestJson.characterBackground, requestJson.characterEthics, requestJson.characterMorality, requestJson.characterLevel, abilityScores, [],
+            requestJson.characterProficiencyBonus, userId, requestJson.characterArmorClass);
+        if (charAddedId === null)
+        {
             response.status(400);
-            response.render('characters.hbs', "Character was null... somehow")
+            response.render('characters.hbs', "Character was null... somehow");
 
         }
-        else {
-            let character = await model.printDb();
+        else
+        {
+            await model.updateSpeed(charAddedId, requestJson.characterSpeed);
+            await model.updateInitiative(charAddedId, requestJson.characterInitiative);
+            let built = await buildSheet(charAddedId);
             response.status(201);
-            response.render('characters.hbs', { charactersActive: true, success: true, message: "Character Added", title: "Success!", character: character });
+            response.render('sheet.hbs', { character: built.character, skills: built.skills, soloCharacter: built.css });
         }
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500);
             logger.error("database error from sendCharacter in Character Controller");
-            response.render('characters.hbs', { error: true, message: "Couldn't Add Character There was a Database Error" });
+            response.render('home.hbs', { error: "Couldn't Add Character There was a Database Error" });
         }
-        else if (error instanceof errors.InvalidInputError) {
-            let character = await model.printDb();
-            response.status(400).render('characters.hbs', { error: true, message: "Couldn't Add Character, Input was invalid", character: character });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: "Couldn't Add Character, Input was invalid", character: character });
             logger.error('input error - from sendCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
         }
     }
 }
@@ -99,23 +137,29 @@ async function sendCharacter(request, response) {
  * @param {HTTPRequest} request the request made by the user
  * @param {HTTPResponse} response the response that will be sent back in this function depending on what happened
  */
-async function updateHitpoints(request, response) {
+async function updateHitpoints(request, response)
+{
     requestJson = request.body;
-    try {
+    try
+    {
         let updated = await model.addRemoveHp(request.params.id, requestJson.hp);
         let built = await buildSheet(request.params.id);
-        response.status(201).render('sheet.hbs', { charactersActive: true, success: true, message: "Character's hitpoints have been updated", character: built.character, skills: built.skills, soloCharacter: built.css });
+        response.status(201).render('sheet.hbs', { success: true, message: "Character's hitpoints have been updated", character: built.character, skills: built.skills, soloCharacter: built.css });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
-            logger.error("Database Error - From updateHitpoints in characterController")
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${ request.params.id }` });
+            logger.error("Database Error - From updateHitpoints in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${request.params.id}` });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${ request.params.id }` });
             logger.error('input error - from updateHitpoints in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
         }
@@ -129,24 +173,30 @@ async function updateHitpoints(request, response) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getCharacter(request, response, sessionId) {
-    try {
+async function getCharacter(request, response, sessionId)
+{
+    try
+    {
         const id = request.params.id;
         const userId = await userModel.getUserIdFromSessionId(sessionId);
-        let found = await model.getCharacter(id);
-        let allSkills = await charStatsModel.getAllSkills();
-        response.status(201).render('sheet.hbs', { charactersActive: true, soloCharacter: 'soloCharacter.css', character: found, skills: allSkills });
+        let built = await buildSheet(id);
+
+        response.status(201).render('sheet.hbs', { soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't get Character with id: ${id}` });
-            logger.error("Database Error - From getCharacter in characterController")
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't get Character with id: ${ id }` });
+            logger.error("Database Error - From getCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${id}` });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't get Character with id: ${ id }` });
             logger.error('input error - from getCharacter in characterController');
         }
-        else {
+        else
+        {
             response.status(400).render('characters.hbs', { error: true, message: `Catastrophic Failure` });
             logger.error('Catastrophic Failure from getCharacter in characterController');
         }
@@ -160,28 +210,35 @@ async function getCharacter(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getAllUserCharacters(request, response, sessionId) {
-    try {
+async function getAllUserCharacters(request, response, sessionId)
+{
+    try
+    {
         const userId = await userModel.getUserIdFromSessionId(sessionId);
         let userCharacters = await model.getUserCharacters(userId);
         // Get all the characters
-        response.status(201).render('characters.hbs', { charactersActive: true, characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId) });
+        response.status(201).render('characters.hbs', { characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId) });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('characters.hbs', { error: true, message: "Database error, Couldn't get Characters" });
             logger.error("Database Error - From getAllCharacters in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('characters.hbs', { error: true, message: "Input Error, Couldn't get all Characters" });
             logger.error('input error - from getAllCharacters in characterController');
         }
-        else if (error instanceof errors.InvalidSessionError) {
+        else if (error instanceof errors.InvalidSessionError)
+        {
             response.clearCookie('sessionId');
             response.status(400).render('home.hbs', { homeActive: true });
             logger.error('tried to access /characters with an invalid session');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
         }
@@ -196,23 +253,44 @@ async function getAllUserCharacters(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function updateCharacter(request, response) {
-    requestJson = request.body;
-    try {
-        await model.updateCharacter(request.params.id, requestJson.name, requestJson.race, requestJson.charClass, requestJson.hitpoints);
-        let found = await model.printDb();
-        response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character has been Updated", character: found });
+async function updateCharacter(request, response)
+{
+    let json = request.body;
+
+    try
+    {
+        let abilityScores = [];
+        abilityScores.push(json.strength);
+        abilityScores.push(json.dexterity);
+        abilityScores.push(json.constitution);
+        abilityScores.push(json.intelligence);
+        abilityScores.push(json.wisdom);
+        abilityScores.push(json.charisma);
+        let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
+        let characterId = await model.updateCharacter(request.params.id, json.charClass, json.race, json.ethics, json.morality, json.background, json.charName, json.maxHp,
+            json.level, abilityScores, json.savingThrows, json.proficiencyBonus, userId, json.armorClass);
+
+        //add speed and initiative
+        await model.updateInitiative(characterId, json.initiative);
+        await model.updateSpeed(characterId, json.speed);
+        let built = await buildSheet(characterId);
+
+        response.status(201).render('sheet.hbs', { soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${request.params.id}` });
-            logger.error("Database Error - From updateCharacter in characterController")
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't update Character with id: ${ request.params.id }` });
+            logger.error("Database Error - From updateCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't update Character with id: ${request.params.id}` });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't update Character with id: ${ request.params.id }` });
             logger.error('input error - from updateCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
         }
@@ -227,24 +305,30 @@ async function updateCharacter(request, response) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response 
  */
-async function deleteCharacter(request, response) {
-    try {
+async function deleteCharacter(request, response)
+{
+    try
+    {
         await model.deleteCharacter(request.params.id);
         let found = await model.printDb();
-        response.status(201).render('characters.hbs', { charactersActive: true, success: true, message: "Character has been deleted", character: found });
+        response.status(201).render('characters.hbs', { success: true, message: "Character has been deleted", character: found });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             let found = await model.printDb();
-            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't delete Character with id: ${request.params.id}`, character: found });
+            response.status(500).render('characters.hbs', { error: true, message: `Database error, Couldn't delete Character with id: ${ request.params.id }`, character: found });
             logger.error("Database Error - From deleteCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             let found = await model.printDb();
-            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't delete Character with id: ${request.params.id}`, character: found });
+            response.status(400).render('characters.hbs', { error: true, message: `Input error, Couldn't delete Character with id: ${ request.params.id }`, character: found });
             logger.error('input error - from deleteCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
         }
@@ -258,44 +342,57 @@ async function deleteCharacter(request, response) {
  * @param {HTTP} request 
  * @param {HTTP} response 
  */
-async function updateLevel(request, response) {
-    try {
-        let everything = 1;
+async function updateLevel(request, response)
+{
+    try
+    {
         await model.levelUp(request.params.id);
-        response.status(200).render('sheet.hbs', { character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css', success: true, message: "You Leveled Up!" });
+        let built = await buildSheet(request.params.id);
+        response.status(200).render('sheet.hbs', { success: true, message: "You Leveled Up!", soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}` });
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }` });
             logger.error("Database Error - From updateLevel in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't level up Character with id: ${request.params.id}`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't level up Character with id: ${ request.params.id }`, soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
             logger.error('input error - from updateLevel in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...` });
         }
     }
 }
 
-async function addItem(request, response) {
+async function addItem(request, response)
+{
     requestJson = request.body;
-    try {
+    try
+    {
         await model.addItem(parseInt(request.params.id), requestJson.itemName, requestJson.itemQuantity);
-        response.status(200).render('sheet.hbs', { character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css', success: true, message: "Item Successfully Added!" });
+        let built = await buildSheet(request.params.id);
+        response.status(200).render('sheet.hbs', { soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise, success: true, message: "Item Successfully Added!" });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}` });
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }` });
             logger.error("Database Error - From addItem in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Add Item!`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Add Item!`, soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
             logger.error('input error - from addItem in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
         }
@@ -308,26 +405,32 @@ async function addItem(request, response) {
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
  */
-async function sendToUpdateController(request, response) {
-    try {
+async function sendToUpdateController(request, response)
+{
+    try
+    {
         let classModel = require('../models/classModel');
         let races = await raceModel.getAllRaces();
         let classes = await classModel.getAllClasses();
         let built = await buildSheet(request.params.id);
         response.status(200).render('characterUpdate.hbs', { character: built.character });
-        logger.info(`Navigated to Update Page with character ${request.params.id}`);
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { success: true, message: `Database error, Couldn't level up Character with id: ${request.params.id}` });
-            logger.error(`Database Error - From sendToUpdateController in characterController: ${error.message}`);
+        logger.info(`Navigated to Update Page with character ${ request.params.id }`);
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }` });
+            logger.error(`Database Error - From sendToUpdateController in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Navigate to Update Page!`, character: await model.getCharacter(request.params.id), skills: await charStatsModel.getAllSkills(), soloCharacter: 'soloCharacter.css' });
-            logger.error(`input error - from sendToUpdateController in characterController: ${error.message}`);
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('sheet.hbs', { error: true, message: `Input error, Couldn't Navigate to Update Page!`, soloCharacter: built.css, character: built.character, skills: built.skills, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
+            logger.error(`input error - from sendToUpdateController in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From sendToCreatePage.');
-            response.status(500).render('home.hbs', { error: true, message: `Something went wrong...` });
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
         }
     }
 }
@@ -338,23 +441,29 @@ async function sendToUpdateController(request, response) {
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
  */
-async function sendToCreatePage(request, response){
-    try {
+async function sendToCreatePage(request, response)
+{
+    try
+    {
         let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
-        response.status(200).render('newCharacter.hbs', {UserId : userId, createCharacterStyle: '/createStyling.css'});
-        logger.info(`Navigated to Create Page with user ${userId}`);
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+        response.status(200).render('newCharacter.hbs', { UserId: userId, createCharacterStyle: '/createStyling.css', backgrounds: await getAllBackgrounds(), races: await raceModel.getAllRaces() });
+        logger.info(`Navigated to Create Page with user ${ userId }`);
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error` });
-            logger.error(`Database Error - From sendToCreatePage in characterController: ${error.message}`);
+            logger.error(`Database Error - From sendToCreatePage in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('home.hbs', { error: `Input error, Couldn't Navigate to Create Page!`});
-            logger.error(`input error - from sendToCreatePage in characterController: ${error.message}`);
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Navigate to Create Page!` });
+            logger.error(`input error - from sendToCreatePage in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From sendToCreatePage.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`});
+            response.status(500).render('home.hbs', { error: `Something went wrong...` });
         }
     }
 }
@@ -376,4 +485,4 @@ router.get("/new", sendToCreatePage);
 module.exports = {
     router,
     routeRoot
-}
+};

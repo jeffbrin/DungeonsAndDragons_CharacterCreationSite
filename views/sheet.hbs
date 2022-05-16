@@ -39,6 +39,7 @@
 
 {{#with character}}
 
+
 <div class="myTopContainer text-center">
   <h1 class="text-center capitalize inline-block" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
   <button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button" name="edit">Edit</button>
@@ -90,7 +91,7 @@
   <div class="{{AbilityName}} ability">
     <h6>{{AbilityName}}</h6>
     <h5 class="text-center abilityScore">{{Score}}</h5>
-    <h6 class="text-center abilityBonus green w-33">FE</h6>
+    <h6 class="text-center abilityBonus w-33">FE</h6>
   </div>
   {{/each}}
 
@@ -119,7 +120,7 @@
       <tbody>
         {{#each skills}}
         <tr>
-          <th scope="row">&#10003; FE</th>
+          <th scope="row">{{#ifIn Id ../character.SavingThrowProficiencies}} &#10003; {{/ifIn}}</th>
           <td>{{Name}}</td>
           <td>{{Ability.Name}}</td>
         </tr>
@@ -177,7 +178,7 @@
           <td scope="row"><button class="no-border btn-elevated2 roll20" data-bs-toggle="modal"
               data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
           <td>{{AbilityName}}</td>
-          <td>FE</td>
+          <td class="abilityScoreModifierTd">FE</td>
         </tr>
         {{/each}}
       </tbody>
