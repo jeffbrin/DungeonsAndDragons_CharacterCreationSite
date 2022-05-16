@@ -187,7 +187,7 @@ async function populateSpellTable(){
                 classIds.push(id);
         }
 
-        await addSpellFromValues(level, schoolId, 0, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, classIds)
+        await addSpellFromValues(level, schoolId, 0, description, name, castingTime, range, verbal, somatic, material, materials, duration, damage, concentration, ritual, classIds)
     }
 }
 
@@ -230,7 +230,7 @@ async function closeConnection() {
 async function addSpell(spell) {
     return addSpellFromValues(spell.Level, spell.SchoolId, spell.UserId, spell.Description, spell.Name, spell.CastingTime,
                               spell.EffectRange, spell.Verbal, spell.Somatic, spell.Material, spell.Materials, spell.Duration, 
-                              spell.Damage, spell.EffectRange, spell.Concentration, spell.Ritual);
+                              spell.Damage, spell.Concentration, spell.Ritual, spell.Classes);
 }
 
 /**
@@ -257,9 +257,10 @@ async function addSpell(spell) {
  * @throws {InvalidInputError} Thrown when the input is invalid.
  * @throws {DatabaseError} Thrown when the spell could not be added to the database.
  */
-async function addSpellFromValues(level, schoolId, userId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, effectRange, concentration, ritual, classIds) {
+async function addSpellFromValues(level, schoolId, userId, description, name, castingTime, effectRange, verbal, somatic, material, materials, duration, damage, concentration, ritual, classIds) {
 
     // Validate the spell, this will throw if the spell is invalid
+    materials = materials ? materials : null;
     try{
         await validationModel.validateSpell(level, schoolId, userId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, effectRange, concentration, ritual, classIds, connection);
     }catch(error){
@@ -299,6 +300,7 @@ async function addSpellFromValues(level, schoolId, userId, description, name, ca
 
     // If this spell isn't already present in the table, add it
     let spellInDb;
+    let existingClassIds;
     if (matchedSpellRows.length == 0) {
 
         // Find next highest Id
@@ -325,23 +327,22 @@ async function addSpellFromValues(level, schoolId, userId, description, name, ca
         // Return the spell added
         logger.info(`Successfully added spell (${name}).`)
 
+    }else{    
+        // Get the list of class ids in the database that can already cast this spell
+        // This allows the user to add more schools for a spell by adding the spell
+        try{
+            [existingClassIds, columns] = await connection.query(`SELECT ClassId FROM ClassPermittedSpell WHERE SpellId = ${matchedSpellRows[0].Id}`);
+            existingClassIds = existingClassIds.map(obj => obj.ClassId);
+        }
+        catch(error){
+            throw new DatabaseError('spellModel', 'addSpellFromValues', `Failed to get the list of classes a spell can be casted by: ${error}`);
+        }
     }
 
-    // Get the list of class ids in the database that can already cast this spell
-    // This allows the user to add more schools for a spell by adding the spell
-    let existingClassIds;
-    try{
-        existingClassIds = await connection.query(`SELECT ClassId FROM ClassPermittedSpell WHERE SpellId = ${spellInDb.Id}`);
-        existingClassIds = existingClassIds.map(obj => obj.ClassId);
-    }
-    catch(error){
-        throw new DatabaseError('spellModel', 'addSpellFromValues', `Failed to get the list of classes a spell can be casted by: ${error}`);
-    }
-    
     for(classId of classIds){
-        if(!existingClassIds.includes(classId)){
+        if(!existingClassIds || !existingClassIds.includes(Number(classId))){
             try{
-                await connection.execute(`INSERT INTO ClassPermittedSpell (ClassId, SpellId) values (${classId}, ${spellInDb.Id});`)
+                await connection.execute(`INSERT INTO ClassPermittedSpell (ClassId, SpellId) values (${classId}, ${matchedSpellRows.length == 0 ? spellInDb.Id : matchedSpellRows[0].Id});`)
             }
             catch(error){
                 throw new DatabaseError('spellModel', 'addSpellFromValues', `Failed to add spell to the ClassPermittedSpell table: ${error};`)

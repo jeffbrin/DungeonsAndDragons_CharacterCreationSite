@@ -7,13 +7,14 @@ const routeRoot = '/spells';
 const logger = require('../logger');
 const {DatabaseError, InvalidInputError} = require('../models/errorModel');
 const userModel = require('../models/userModel');
+const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
  * @param {Object} additionalFields an object containing additional fields specific to the method calling it.
  */
-async function getRenderObject(userId, additionalFields) {
+async function getRenderObject(additionalFields, userId) {
     const renderObject = {};
     renderObject.spellsActive = true;
     renderObject.pageLevelCss = 'css/spells.css'
@@ -29,7 +30,6 @@ async function getRenderObject(userId, additionalFields) {
             renderObject.schools = await spellModel.getAllSchools();
         }
         catch (error) {
-            throw new DatabaseError("Failed to get spells or spell schools.");
         }
     }
 
@@ -52,26 +52,31 @@ async function getRenderObject(userId, additionalFields) {
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
  */
-async function addSpell(request, response, username) {
+async function addSpell(request, response, sessionId) {
     const spellToAdd = request.body;
 
-    try {
-        if (spellToAdd.level != null)
-            spellToAdd.level = Number(spellToAdd.level);
+    spellToAdd.Material = spellToAdd.Material == 'on' ? true : false
+    spellToAdd.Somatic = spellToAdd.Somatic == 'on' ? true : false
+    spellToAdd.Verbal = spellToAdd.Verbal == 'on' ? true : false
+    spellToAdd.Ritual = spellToAdd.Ritual == 'on' ? true : false
+    spellToAdd.Concentration = spellToAdd.Concentration == 'on' ? true : false
 
-        if (spellToAdd.schoolId != null)
-            spellToAdd.schoolId = Number(spellToAdd.schoolId);
-    }
-    catch (error) {
-        logger.error(`Failed to add new spell: ${error.message}`);
-        response.status(400);
-        response.render('spells.hbs', await getRenderObject({username: username, error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }))
+    spellToAdd.Classes = spellToAdd.ClassIds.split(',')
+    if (spellToAdd.Classes.length == 1 && spellToAdd.Classes[0] == '')
+        spellToAdd.Classes = [];
+
+    let username;
+    try{
+        spellToAdd.UserId = await userModel.getUserIdFromSessionId(sessionId);
+        username = await userModel.getUsernameFromSessionId(sessionId);
+    }catch(error){
+        response.render('home.hbs', {error: 'Sorry, something went wrong while validating your login status.', status: 500});
     }
 
     spellModel.addSpell(spellToAdd)
         .then(async spellAddedSuccessfully => {
             response.status(201);
-            const options = await getRenderObject();
+            const options = await getRenderObject({username: username}, spellToAdd.UserId);
             // Add a warning if the spell wasn't added properly
             if (!spellAddedSuccessfully) {
                 options.warning = "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead."
@@ -87,12 +92,12 @@ async function addSpell(request, response, username) {
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 }))
+                response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 }))
                 logger.error(error);
             }
         })
 }
-router.post('/', addSpell);
+router.post('/', (request, response) => authenticator.gateAccess(request, response, addSpell));
 
 /**
  * Removes a spell which matching the id provided in the uri.
@@ -132,11 +137,11 @@ router.delete('/', removeSpellById);
  */
 async function showAllSpellsLoggedIn(request, response, username, userId) {
     try {
-        response.render('spells.hbs', await getRenderObject(userId, {username: username}))
+        response.render('spells.hbs', await getRenderObject({username: username}, userId))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
+            response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
             logger.error(error);
         }
         else{
@@ -159,7 +164,7 @@ async function showAllSpellsLoggedOut(request, response) {
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('spells.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
+            response.render('home.hbs', await getRenderObject({ error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
             logger.error(error);
         }
         else{
@@ -357,7 +362,7 @@ router.post('/editform', editSpell)
 
 async function getAddSpellForm(request, response, sessionId){
 
-    response.render('spellCreation.hbs', {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools()});
+    response.render('spellCreation.hbs', {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses()});
 
 }
 router.get('/spellAddition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
@@ -376,7 +381,7 @@ function capitalizeSpells(spells) {
         // Return the spells if the spell is null
         let words;
         try {
-            words = spell.name.split(' ')
+            words = spell.Name.split(' ')
         } catch (error) {
             return spells;
         }
@@ -393,9 +398,9 @@ function capitalizeSpells(spells) {
             });
 
             if (newName.length > 1)
-                spell.name = newName.substring(0, newName.length - 1);
+                spell.Name = newName.substring(0, newName.length - 1);
             else
-                spell.name = newName;
+                spell.Name = newName;
             spell.school = `${spell.school[0].toUpperCase()}${spell.school.substring(1, spell.school.length)}`
 
         }

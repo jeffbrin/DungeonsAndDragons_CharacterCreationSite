@@ -47,7 +47,7 @@ async function validateSpellLevel(level){
 
     if(typeof schoolId != 'number' && !validator.isNumeric(schoolId))
         throw new Error("spell school is not a number.")
-    
+    schoolId = Number(schoolId)
         let spellSchoolIds;
     try{
         [spellSchoolIds, cols] = await connection.query('SELECT Id from SpellSchool');
@@ -170,7 +170,7 @@ async function validateClassIds(classIds, connection){
         throw new Error('class ids should be an array.');
     
     for(let i = 0; i < classIds.length; i++){
-        if(!classIdsFromDatabase.includes(classIds[i]))
+        if(!classIdsFromDatabase.includes(Number(classIds[i])))
             throw new Error(`${classIds[i]} is not a valid class id.`);
     }
 }
