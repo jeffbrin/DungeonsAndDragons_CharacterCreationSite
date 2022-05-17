@@ -106,7 +106,7 @@ async function addSpell(request, response, sessionId) {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to add new spell: ${error.message}`);
                 response.status(400);
-                response.redirect(getUrlFormat('/spells', {error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }));
+                response.redirect(getUrlFormat('/spells/spellAddition', {error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400, failedSpell: JSON.stringify(spellToAdd) }));
             }
             else if (error instanceof DatabaseError) {
                 response.status(500);
@@ -193,7 +193,7 @@ async function showAllSpellsLoggedIn(request, response, username, userId) {
     try {
         const currentRenderObj = {Classes: await classModel.getAllClasses(), username: username};
 
-        // Add redirect query norifications
+        // Add redirect query notifications
         const query = request.query;
         if (query.error)
             currentRenderObj.error = query.error;
@@ -233,7 +233,7 @@ async function showAllSpellsLoggedOut(request, response) {
     try {
         const currentRenderObj = {Classes: await classModel.getAllClasses()};
 
-        // Add redirect query norifications
+        // Add redirect query notifications
         const query = request.query;
         if (query.error)
             currentRenderObj.error = query.error;
@@ -433,7 +433,40 @@ router.post('/editform', editSpell)
  */
 async function getAddSpellForm(request, response, sessionId){
 
-    response.render('spellCreation.hbs', {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses()});
+    let currentRenderObj;
+    try{
+        currentRenderObj = {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses()}
+    }
+    catch(error){
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401)
+            response.redirect(getUrlFormat('/home', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
+        }
+        else{
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
+        }
+    }
+
+    // Add redirect query notifications
+    const query = request.query;
+    if (query.error)
+        currentRenderObj.error = query.error;
+    if(query.warning)
+        currentRenderObj.warning = query.warning;
+    if(query.confirmation)
+        currentRenderObj.confirmation = query.confirmation;
+    if(query.failedSpell)
+        currentRenderObj.failedSpell = JSON.parse(query.failedSpell);
+
+    response.render('spellCreation.hbs', currentRenderObj);
 
 }
 router.get('/spellAddition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
