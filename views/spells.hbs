@@ -151,13 +151,13 @@
           <option {{#if (equals filter.Duration "1 Hour")}}selected{{/if}} value="1 Hour">1 Hour</option>
           <option {{#if (equals filter.Duration "8 Hours")}}selected{{/if}} value="8 Hours">8 Hours</option>
           <option
-            {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 minutes","30 Minutes","1 hour","8 Hours",null]')}}selected{{/if}}
+            {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}selected{{/if}}
             value="Custom">Custom</option>
         </select>
         </div>
         <div class="px-1">
         <input
-          {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 minutes","30 Minutes","1 hour","8 Hours",null]')}}value="{{filter.Duration}}"
+          {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}value="{{filter.Duration}}"
           {{else}}style="visibility: hidden;" {{/if}} type="text" id="customDuration" name="customDuration">
           </div>
       </div>
@@ -186,12 +186,12 @@
       </div>
 
     </div>
-    <div id="booleansDiv" style="flex: 1;" class="flex flex-column justify-content-between">
+    <div id="booleansDiv" style="flex: 1;" class="d-flex flex-column align-items-between">
 
       {{!-- Components --}}
-      <div id="componentsDiv" class="d-flex align-items-start flex-column">
+      <div id="componentsDiv" class="d-flex align-items-start flex-column" style="flex: 3;">
         {{!-- Verbal --}}
-        <div class="d-flex justify-content-start w-100">
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
           <div class="px-2">
           <label for="includeVerbal">Filter by Verbal?</label>
           <input type="checkbox" name="includeVerbal" id="includeVerbal" {{#if filter.includeVerbal}}checked{{/if}}>
@@ -204,7 +204,7 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-start w-100">
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
           <div class="px-2">
           <label for="includeSomatic">Filter by Somatic?</label>
           <input type="checkbox" name="includeSomatic" id="includeSomatic" {{#if filter.includeSomatic}}checked{{/if}}>
@@ -217,7 +217,7 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-start w-100">
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
           <div class="px-2">
           <label for="includeMaterial">Filter by Material?</label>
           <input type="checkbox" name="includeMaterial" id="includeMaterial"
@@ -231,8 +231,9 @@
             </div>
         </div>
       </div>
-
-      <div id="concentrationDiv" class="d-flex justify-content-start w-100 flex-wrap">
+ 
+      {{!-- Concentration --}}
+      <div id="concentrationDiv" class="d-flex justify-content-start w-100 flex-wrap" style="flex: 1;">
         <div class="px-2">
         <label for="includeConcentration">Filter by Concentration?</label>
         <input class="roundCheckbox" type="checkbox" id="includeConcentration" name="includeConcentration"
@@ -246,7 +247,8 @@
           </div>
       </div>
 
-      <div id="ritualDiv" class="d-flex justify-content-start w-100">
+      {{!-- Ritual --}}
+      <div id="ritualDiv" class="d-flex justify-content-start w-100" style="flex: 1;">
         <div class="px-2">
         <label for="includeRitual">Filter by Ritual?</label>
         <input type="checkbox" id="includeRitual" name="includeRitual" {{#if filter.includeRitual}}checked{{/if}}>
@@ -260,7 +262,8 @@
       </div>
 
       {{#if username}}
-      <div class="d-flex justify-content-start w-100">
+      {{!-- Homebrew --}}
+      <div class="d-flex justify-content-start w-100" style="flex: 1;">
         <div class="px-2">
         <label for="includeHomebrew">Filter by Homebrew?</label>
         <input type="checkbox" id="includeHomebrew" name="includeHomebrew" {{#if filter.includeHomebrew}}checked{{/if}}>
@@ -272,8 +275,8 @@
       </div>
       {{/if}}
 
-      <div class="d-flex justify-content-center">
-      <button class="btn btn-primary" style="margin: auto;">Filter</button>
+      <div class="d-flex justify-content-center" style="flex: 1;">
+      <button class="btn btn-primary px-5" style="margin: auto;">Filter</button>
       </div>
 
     </div>
