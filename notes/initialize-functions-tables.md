@@ -13,7 +13,7 @@ Table dependencies are indicated in brackets.
   * CREATE TABLE IF NOT EXISTS SpellSchool (Id INT, Name TEXT, PRIMARY KEY(Id));
 * Spell (spell school) - 
   * CREATE TABLE IF NOT EXISTS Spell(Id INT, SchoolId INT,
-  UserId INT, Level INT, Description TEXT, Name TEXT, CastingTime TEXT, Tange TEXT, Verbal BOOLEAN, Somatic BOOLEAN, Material BOOLEAN, Materials TEXT NULL, Duration TEXT, Damage TEXT NULL, PRIMARY KEY(Id), FOREIGN KEY (SchoolId) REFERENCES SpellSchool(Id), FOREIGN KEY (UserId) REFERENCES User(Id));
+  UserId INT, Level INT, Description TEXT, Name TEXT, CastingTime TEXT, Target TEXT, Verbal BOOLEAN, Somatic BOOLEAN, Material BOOLEAN, Materials TEXT NULL, Duration TEXT, Damage TEXT NULL, PRIMARY KEY(Id), FOREIGN KEY (SchoolId) REFERENCES SpellSchool(Id), FOREIGN KEY (UserId) REFERENCES User(Id));
 
 ## BackgroundModel
 * Background - 
