@@ -805,6 +805,85 @@ async function updateInitiative(characterId, initiative) {
 }
 
 
+async function createRecentCharactersCookie(characterIdVisited, previousCookie) {
+
+    if (previousCookie) {
+        //take data from old one and see
+        let oldRecents = {};
+        oldRecents.recentCharacters = previousCookie;
+        oldRecents.name = "recentCharacters";
+        oldRecents.expires = new Date(Date.now() + 900000);
+
+        // { id: parseInt(characterIdVisited) }
+        let index = oldRecents.recentCharacters.findIndex(object => {
+            return object.id === parseInt(characterIdVisited);
+        });
+
+        //if already at index 0 then just return, nothing changes
+        if (index === 0) return oldRecents;
+        //if > 0 have to take it from wherever it is and put it at [0]
+        else if (index > 0) {
+            let newArray = [];
+            newArray.push({ id: oldRecents.recentCharacters[index].id, name: oldRecents.recentCharacters[index].name });
+            for (let i = 0; i < oldRecents.recentCharacters.length; i++) {
+                if (i === index) continue;
+
+                if (newArray.length === 3) break;
+
+                newArray.push({ id: oldRecents.recentCharacters[i].id, name: oldRecents.recentCharacters[i].name });
+            }
+            oldRecents.recentCharacters = newArray;
+
+            return oldRecents;
+        }
+        //it's not in the array so just add to [0] and make sure length is 3
+        else {
+            if (oldRecents.recentCharacters.length === 3) {
+                oldRecents.recentCharacters.pop();
+                try {
+                    oldRecents.recentCharacters.splice(0, 0, { id: characterIdVisited, name: await getNameInternal(characterIdVisited) });
+                    return oldRecents;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            try {
+                oldRecents.recentCharacters.splice(0, 0, { id: characterIdVisited, name: await getNameInternal(characterIdVisited) });
+            } catch (error) {
+                throw error;
+            }
+
+            return oldRecents;
+        }
+    }
+    else {
+        let obj = {}
+        try {
+            obj.name = "recentCharacters"; obj.recentCharacters = [{ id: characterIdVisited, name: await getNameInternal(characterIdVisited) }]; obj.expires = new Date(Date.now() + 900000);
+        } catch (error) {
+            throw error;
+        }
+        return obj;
+    }
+}
+
+async function getNameInternal(id) {
+    const q = `SELECT Name from PlayerCharacter WHERE Id = ${id}`;
+    try {
+        let [rows, cols] = await connection.query(q);
+        return rows[0].Name;
+    } catch (error) {
+        if (error instanceof errors.InvalidInputError) {
+            throw new errors.InvalidInputError('characterModel', 'getNameInternal', `Character does not exist`);
+        }
+        else {
+            throw new errors.DatabaseError('characterModel', 'getNameInternal', `Database connection or query error, couldn't get name of the Character`);
+        }
+    }
+}
+
+
 /* #endregion */
 
 /**
@@ -957,5 +1036,6 @@ module.exports = {
     updateInitiative,
     addCharacterObject,
     addItem,
-    removeItem
+    removeItem,
+    createRecentCharactersCookie
 };

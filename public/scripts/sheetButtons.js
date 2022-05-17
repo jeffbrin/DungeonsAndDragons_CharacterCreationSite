@@ -25,10 +25,7 @@ let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
 let savingThrowModifiers = document.getElementsByClassName('abilityScoreModifierTd');
 
 
-// Inspired by https://stackoverflow.com/questions/23101966/bootstrap-alert-auto-close
-$(".alert").delay(4000).slideUp(750, function () {
-    $(this).alert('close');
-});
+
 
 for (let i = 0; i < abilityScoreModifiers.length; i++) {
     let modifier = Math.floor((abilityScores[i].innerText - 10) / 2);

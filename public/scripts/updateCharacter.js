@@ -1,3 +1,11 @@
-let selectElementClass = document.getElementById('selectClass');
-let selectElementRace = document.getElementById('selectRace');
+let deleteForm = document.getElementById('deleteBtnForm');
+
+let deleteBtn = document.getElementById('deleteCharacterButton');
+
+deleteBtn.addEventListener('click', sendToDelete);
+
+
+function sendToDelete() {
+    deleteForm.submit();
+}
 

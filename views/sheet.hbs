@@ -18,7 +18,7 @@
   <h4>{{status}} Error</h4>
   <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
     <use xlink:href="#exclamation-triangle-fill"></use>
-  </svg>{{message}}
+  </svg>{{error}}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {{/if}}
@@ -31,7 +31,7 @@
     <use xlink:href="#check-circle-fill" />
   </svg>
   <div class="text-center container">
-    <em class="bolded">{{message}}</em>
+    <em class="bolded">{{success}}</em>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
@@ -41,7 +41,9 @@
 
 
 <div class="miniGridContainer">
-  <div class="profBonus text-center">Proficiency Bonus: <h2>+{{ProficiencyBonus}}</h2>
+  <div class="profBonus text-center">
+    <h5>Proficiency Bonus:</h5>
+    <h2 class="h2PB"><br>+{{ProficiencyBonus}}</h2>
   </div>
   <h1 class="text-center capitalize characterName" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
   <div class="editBtn text-center"><button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button"

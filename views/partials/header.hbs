@@ -30,6 +30,19 @@
             <li><a class="dropdown-item" href="/backgrounds">Backgrounds</a></li>
           </ul>
         </li>
+        {{#if recentCharacters}}
+        <li class="dropdown">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="recentCharactersDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            Recent Characters
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="recentCharactersDropdown">
+            {{#each recentCharacters}}
+            <li><a class="dropdown-item" href="/characters/{{id}}">{{name}}</a></li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/if}}
       </ul>
 
       <div class="text-end d-flex" style="gap: 8px;">
@@ -167,14 +180,12 @@
 
   var myModal;
   var timesModalWasShown = 0;
-  document.addEventListener('DOMContentLoaded', () =>
-  {
+  document.addEventListener('DOMContentLoaded', () => {
     myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {});
     myModal.toggle();
 
     // Add an event to the modal to remove the test next time it's loaded
-    document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e)
-    {
+    document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e) {
 
       console.log(timesModalWasShown);
       if (document.getElementById('loginErrorText') != null)
@@ -194,14 +205,12 @@
 
   var myModal;
   var timesModalWasShown = 0;
-  document.addEventListener('DOMContentLoaded', () =>
-  {
+  document.addEventListener('DOMContentLoaded', () => {
     myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {});
     myModal.toggle();
 
     // Add an event to the modal to remove the test next time it's loaded
-    document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e)
-    {
+    document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e) {
 
       console.log(timesModalWasShown);
       if (document.getElementById('signupErrorText') != null)

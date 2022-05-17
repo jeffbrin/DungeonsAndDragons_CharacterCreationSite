@@ -340,7 +340,13 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 
-
+#deleteBtnForm{
+  
+  width: fit-content;
+  float: right;
+  margin-right: 4rem;
+  margin-top: 2rem;
+}
 
 
 
