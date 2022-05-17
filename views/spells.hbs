@@ -52,13 +52,35 @@
 
 
 {{!-- Filtering section --}}
-<form id="additionForm" class="bg-dark my-5" action="/spells/filter" method="GET">
+<form id="additionForm" class="bg-dark my-5 d-flex" action="/spells/filter" method="GET">
 
-  <div id="top" class="d-flex">
-    <div id="left" class="container d-flex flex-column justify-content-around py-5 align-items-center">
-      <div>
+
+  <div id="left" class="d-flex flex-column">
+
+    <div id="classesDiv" style="flex: 1;">
+      {{!-- Classes that can cast this spell --}}
+      <div class="d-flex align-items-center flex-column justify-content-center">
+        <div class="d-flex flex-column align-items-center"id="classFilteringDiv">
+          <div class="d-flex flex-wrap" class="d-flex flex-align-between flex-wrap">
+            {{#each Classes}}
+            <div class="px-4">
+              <p>{{Name}}</p>
+              <input type="checkbox" class="classCheckbox" value="{{Id}}"
+                {{#if (stringIn Id ../filter.Classes)}}checked{{/if}}>
+            </div>
+            {{/each}}
+            <input type="text" hidden id="castableClasses" name="ClassIds">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="basicsDiv" class="d-flex justify-content-evenly align-items-end pb-5" style="flex: 1;">
+
+      {{!-- Schools picker --}}
+      <div id="schoolsDiv">
         <label for="schoolIdPicker">School</label>
-        {{!-- School picker --}}
+        
         <select name="SchoolId" id="schoolIdPicker">
           <option value="" selected>Any</option>
           {{#each schools}}
@@ -67,8 +89,8 @@
         </select>
       </div>
 
-      {{!-- Level picker --}}
-      <div class="m-2">
+      {{!-- Levels --}}
+      <div id="levelsDiv">
         <label for="levelPicker">Level</label>
         <select name="Level" id="levelPicker">
           <option value="" selected>Any</option>
@@ -91,25 +113,20 @@
         <input type="text" name="Name" id="spellName" {{#if filter.Name}}value="{{filter.Name}}" {{/if}}>
       </div>
 
-      {{!-- Classes that can cast this spell --}}
-      <div class="d-flex align-items-center flex-column justify-content-center">
-        <label for="filterByClass">Filter by class?</label>
-        <input type="checkbox" name="filterByClass" id="filterByClass" {{#if filter.Classes}}checked{{/if}}>
-        <div class="d-flex flex-column align-items-center" {{#if filter.Classes}}{{else}}style="visibility: hidden;"
-          {{/if}} id="classFilteringDiv">
-          <h3 class="mt-2">Can be cast by...</h3>
-          <div class="d-flex flex-wrap" class="d-flex flex-align-between flex-wrap">
-            {{#each Classes}}
-            <div class="px-4">
-              <p>{{Name}}</p>
-              <input type="checkbox" class="classCheckbox" value="{{Id}}"
-                {{#if (stringIn Id ../filter.Classes)}}checked{{/if}}>
-            </div>
-            {{/each}}
-            <input type="text" hidden id="castableClasses" name="ClassIds">
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
+  <div id="right">
+    <div id="castingDetailsDiv"></div>
+    <div id="booleansDiv"></div>
+  </div>
+
+  <div id="top" class="d-flex">
+    <div id="left" class="container d-flex flex-column justify-content-around py-5 align-items-center">
+      
+
+      
+
+      
     </div>
     <div class="container d-flex flex-column justify-content-around py-5 align-items-center w-100">
       {{!-- Casting Time --}}
