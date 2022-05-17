@@ -1,4 +1,4 @@
-{{#if (equals spell.level null)}}
+{{#if (equals spell.Level null)}}
 <div class="container d-flex flex-column align-items-center">
     <h1 class="text-center">The spell you're looking for could not be found.</h1>
     <p class="p-5">Why don't you head back to the spells page and add it yourself!</p>
@@ -7,31 +7,31 @@
 {{else}}
 <div id="container" class="container d-flex flex-column justify-content-center align-items-center">
     <div class="d-flex align-items-end">
-        <img class="mb-3 pr-5" width="50px" src="/images/icons/spells/{{spell.school}}.png">
-        <h1 id="spellFocusName" class="p-3">{{spell.name}}</h1>
-        <img class="mb-3 pl-5" width="50px" src="/images/icons/spells/{{spell.school}}.png">
+        <img class="mb-3 pr-5" width="50px" src="/images/icons/spells/{{spell.School}}.png">
+        <h1 id="spellFocusName" class="p-3">{{spell.Name}}</h1>
+        <img class="mb-3 pl-5" width="50px" src="/images/icons/spells/{{spell.School}}.png">
     </div>
 
     {{!-- Level and school --}}
     <div class="d-flex">
         <div class="p-5 text-center">
             <h2>Level</h2>
-            {{#if (equals spell.level 0)}}
+            {{#if (equals spell.Level 0)}}
             <p id="spellFocusLevel">Cantrip</p>
             {{else}}
-            <p id="spellFocusLevel">{{spell.level}}</p>
+            <p id="spellFocusLevel">{{spell.Level}}</p>
             {{/if}}
         </div>
         <div class="d-flex p-5 text-center">
             <div>
                 <h2>School</h2>
-                <p id="spellFocusSchool">{{spell.school}}</p>
+                <p id="spellFocusSchool">{{spell.School}}</p>
             </div>
         </div>
     </div>
 
     <h2>Description</h2>
-    <p id="spellFocusDescription">{{spell.description}}</p>
+    <p id="spellFocusDescription">{{spell.Description}}</p>
 
     <a class="btn btn-primary mt-5 mb-2" href="/spells">All Spells</a>
 

@@ -27,7 +27,7 @@ async function initialize(databaseName, reset) {
     }
 
     // Create the tables and populate them
-    await createClassTable(connection, reset);
+    await createClassTable(reset);
     await createClassFeatureTable();
     await populateClassAndClassFeatureTables();
 
@@ -107,6 +107,16 @@ async function dropTables(){
         throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
     }
 
+    // Drop the Spell table since it won't have any classes that can cast them now
+    dropCommand = `DROP TABLE IF EXISTS Spell;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`Spell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the Spell table in the database... check your connection to the database: ${error.message}`)
+    }
+
     // Drop the AbilityScore table first
     dropCommand = `DROP TABLE IF EXISTS AbilityScore;`;
     try {
@@ -165,6 +175,16 @@ async function dropTables(){
     }
     catch (error) {
         throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the ClassPermittedSpell table
+    dropCommand = 'DROP TABLE IF EXISTS ClassPermittedSpell;'
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`ClassPermittedSpell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the ClassPermittedSpell table in the database... check your connection to the database: ${error.message}`)
     }
 
     // Drop the Class table

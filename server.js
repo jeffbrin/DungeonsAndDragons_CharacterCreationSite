@@ -34,6 +34,7 @@ async function startup()
         await classModel.initialize(dbName, false);
         await spellModel.initialize(dbName, false);
         await characterModel.initialize(dbName, false);
+        await userModel.addUser('JeffBrin', 'SnoopDogg123');
         await characterModel.addCharacter(3, 1, 'sam', 55, 2, 2, 2, 2, [1, 2, 3, 4, 5, 6], [1, 2], 3, 1, 25);
         let character = await characterModel.getCharacter(1);
         console.log(character);
