@@ -2,7 +2,8 @@ const express = require('express');
 const { InvalidSessionError, DatabaseError } = require('../models/errorModel');
 const router = express.Router();
 const userModel = require('../models/userModel');
-const authenticationController = require('./authenticationHelperController')
+const authenticationController = require('./authenticationHelperController');
+const characterAuthentication = require('./characterController');
 const routeRoot = '/';
 
 
@@ -43,16 +44,33 @@ const routeRoot = '/';
 
 // }
 
-async function getHomeLoggedIn(request, response, username){
-    response.status(200).render('home.hbs', {homeActive: true, username: username});
+async function getHomeLoggedIn(request, response, username, userId) {
+    try {
+        let cookieObj = await characterAuthentication.getCookieObjectFromRequestAndUserId(request, userId);
+
+        if (!cookieObj) {
+            response.status(200).render('home.hbs', {
+                homeActive: true, username: username
+            });
+        }
+        else {
+            response.status(200).render('home.hbs', {
+                homeActive: true, username: username, recentCharacters: cookieObj
+            });
+        }
+
+    } catch (error) {
+        response.status(400).render('home.hbs', { homeActive: true, username: username, error: `Error getting the recent Characters list` });
+    }
+
 }
 
-async function getHomeLoggedOut(request, response){
-    response.status(200).render('home.hbs', {homeActive: true});
+async function getHomeLoggedOut(request, response) {
+    response.status(200).render('home.hbs', { homeActive: true });
 }
 
-router.get('/', (request, response) => {authenticationController.loadDifferentPagePerLoginStatus(request, response, getHomeLoggedIn, getHomeLoggedOut)});
-router.get('/home', (request, response) => {response.redirect('/');});
+router.get('/', (request, response) => { authenticationController.loadDifferentPagePerLoginStatus(request, response, getHomeLoggedIn, getHomeLoggedOut) });
+router.get('/home', (request, response) => { response.redirect('/'); });
 
 module.exports = {
     router,
