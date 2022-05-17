@@ -11,8 +11,8 @@
 .progress {
     background-color: var(--popColorHover);
     opacity: 0.3;
-    margin-left: 1rem;
-    margin-right: 1rem;
+    margin-left: 4rem;
+    margin-right: 4rem;
     height: 2rem;
 }
 

@@ -1,6 +1,5 @@
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl)
-{
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
 });
 
@@ -38,132 +37,106 @@ pbInput.addEventListener('input', enableSubmit);
 
 
 
-function enableSubmit()
-{
-    if (pbInput.value.length > 0)
-    {
+function enableSubmit() {
+    if (pbInput.value.length > 0) {
         document.getElementById('disabledSubmit').disabled = false;
         document.getElementById('toolTipSubmit').setAttribute('data-bs-original-title', 'Click to Create');
     }
-    else
-    {
+    else {
         document.getElementById('disabledSubmit').disabled = true;
         document.getElementById('toolTipSubmit').setAttribute('data-bs-original-title', 'Cannot Submit until character is fully created!');
     }
 }
 
-function submitCharacter()
-{
+function submitCharacter() {
 
 
 }
 
-function hideAlertDiv()
-{
+function hideAlertDiv() {
     document.getElementById('bsBannerInputNotFilled').hidden = true;
 }
 
-function goToCard1Prev()
-{
+function goToCard1Prev() {
     card2.hidden = true;
     card1.hidden = false;
 }
-function goToCard2Prev()
-{
+function goToCard2Prev() {
     card3.hidden = true;
     card2.hidden = false;
 }
 
-function goToCard3Prev()
-{
+function goToCard3Prev() {
     card4.hidden = true;
     card3.hidden = false;
 }
-function goToCard2()
-{
-    if (card1IsComplete())
-    {
+function goToCard2() {
+    if (card1IsComplete()) {
         card1.hidden = true;
         card2.hidden = false;
         progress0.hidden = true;
         progress25.hidden = false;
 
     }
-    else
-    {
+    else {
         document.getElementById('bsBannerInputNotFilled').hidden = false;
     }
 
 }
-function goToCard3()
-{
-    if (card2IsComplete())
-    {
+function goToCard3() {
+    if (card2IsComplete()) {
         card2.hidden = true;
         card3.hidden = false;
         progress25.hidden = true;
         progress50.hidden = false;
     }
-    else
-    {
+    else {
         document.getElementById('bsBannerInputNotFilled').hidden = false;
     }
 
 }
-function goToCard4()
-{
-    if (card3IsComplete())
-    {
+function goToCard4() {
+    if (card3IsComplete()) {
         card3.hidden = true;
         card4.hidden = false;
         progress50.hidden = true;
         progress75.hidden = false;
 
     }
-    else
-    {
+    else {
         document.getElementById('bsBannerInputNotFilled').hidden = false;
     }
 
 }
 
-function card3IsComplete()
-{
+function card3IsComplete() {
     const divElem = document.querySelector("#Card3");
     const inputElements = divElem.querySelectorAll("input, select, number, checkbox, textarea");
 
-    for (let i = 0; i < inputElements.length; i++)
-    {
-        if (inputElements[i].value.length === 0)
-        {
+    for (let i = 0; i < inputElements.length; i++) {
+        if (inputElements[i].value.length === 0) {
             return false;
         }
     }
     return true;
 }
-function card2IsComplete()
-{
+function card2IsComplete() {
     const divElem = document.querySelector("#Card2");
     const inputElements = divElem.querySelectorAll("input, select, number, checkbox, textarea");
 
-    for (let i = 0; i < inputElements.length; i++)
-    {
-        if (inputElements[i].value.length === 0)
-        {
+    for (let i = 0; i < inputElements.length; i++) {
+        if (inputElements[i].value.length === 0) {
             return false;
         }
     }
     return true;
 }
-function card1IsComplete()
-{
+function card1IsComplete() {
     const divElem = document.querySelector("#Card1");
     const inputElements = divElem.querySelectorAll("input, select, number, checkbox, textarea");
 
-    for (let i = 0; i < inputElements.length; i++)
-    {
-        if (inputElements[i].value.length === 0)
-        {
+    for (let i = 0; i < inputElements.length; i++) {
+        if (inputElements[i].value.length === 0) {
             return false;
         }
     }

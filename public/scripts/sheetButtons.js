@@ -1,6 +1,5 @@
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl)
-{
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
 });
 
@@ -26,27 +25,27 @@ let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
 let savingThrowModifiers = document.getElementsByClassName('abilityScoreModifierTd');
 
 
+// Inspired by https://stackoverflow.com/questions/23101966/bootstrap-alert-auto-close
+$(".alert").delay(4000).slideUp(750, function () {
+    $(this).alert('close');
+});
 
-for (let i = 0; i < abilityScoreModifiers.length; i++)
-{
+for (let i = 0; i < abilityScoreModifiers.length; i++) {
     let modifier = Math.floor((abilityScores[i].innerText - 10) / 2);
-    if (modifier < 0)
-    {
+    if (modifier < 0) {
         abilityScoreModifiers[i].classList.add('red');
         abilityScoreModifiers[i].innerText = modifier;
         savingThrowModifiers[i].classList.add('red');
         savingThrowModifiers[i].innerText = modifier;
 
     }
-    else if (modifier > 0)
-    {
+    else if (modifier > 0) {
         abilityScoreModifiers[i].classList.add('green');
-        abilityScoreModifiers[i].innerText = `+${ modifier }`;
+        abilityScoreModifiers[i].innerText = `+${modifier}`;
         savingThrowModifiers[i].classList.add('green');
-        savingThrowModifiers[i].innerText = `+${ modifier }`;
+        savingThrowModifiers[i].innerText = `+${modifier}`;
     }
-    else
-    {
+    else {
         abilityScoreModifiers[i].innerText = modifier;
         savingThrowModifiers[i].innerText = modifier;
     }
@@ -54,14 +53,12 @@ for (let i = 0; i < abilityScoreModifiers.length; i++)
 }
 
 
-function openFormExp(event)
-{
+function openFormExp(event) {
     document.getElementById('expInput').hidden = false;
     document.getElementById('submitExp').hidden = false;
 }
 
-function addProficiency(characterId, skillId)
-{
+function addProficiency(characterId, skillId) {
     let form = document.getElementById('addProficiencyForm');
     let characterIdInput = document.createElement('input');
     characterIdInput.hidden = true;
@@ -79,8 +76,7 @@ function addProficiency(characterId, skillId)
     form.submit();
 }
 
-function addExpertise(characterId, skillId)
-{
+function addExpertise(characterId, skillId) {
     let form = document.getElementById('addExpertiseForm');
 
     let characterIdInput = document.createElement('input');
@@ -98,8 +94,7 @@ function addExpertise(characterId, skillId)
     form.submit();
 }
 
-function removeAll(characterId, skillId)
-{
+function removeAll(characterId, skillId) {
     let form = document.getElementById('removeAllForm');
 
     let characterIdInput = document.createElement('input');
@@ -129,28 +124,24 @@ $(document).on('click', '#addItemFormButton', function (e) { addItemChangeValues
 
 
 
-function sendToUpdate()
-{
+function sendToUpdate() {
     let id = document.getElementById('characterIdHidden').value;
 
-    location.href = `/characters/forms/${ id }`;
+    location.href = `/characters/forms/${id}`;
 }
 
 
-function timeout(ms)
-{
+function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-async function addItemChangeValuesBeforeSending(event)
-{
+async function addItemChangeValuesBeforeSending(event) {
     let hiddenName = document.getElementById('hiddenItemName');
     let hiddenQuantity = document.getElementById('hiddenItemQuantity');
 
     let qty = document.getElementById('formItemQuantity').value;
     let name = document.getElementById('formItemName').value;
 
-    if (qty === "" && name === "")
-    {
+    if (qty === "" && name === "") {
         let nameForm = document.getElementById('formItemName');
         let qtyForm = document.getElementById('formItemQuantity');
         qtyForm.classList.add("shakeshakeshake");
@@ -160,8 +151,7 @@ async function addItemChangeValuesBeforeSending(event)
         qtyForm.classList.remove("shakeshakeshake");
         return;
     }
-    if (qty === "")
-    {
+    if (qty === "") {
         //shake
         let qtyForm = document.getElementById('formItemQuantity');
         qtyForm.classList.add("shakeshakeshake");
@@ -169,8 +159,7 @@ async function addItemChangeValuesBeforeSending(event)
         qtyForm.classList.remove("shakeshakeshake");
         return;
     }
-    if (name === "")
-    {
+    if (name === "") {
         //shake 
         let nameForm = document.getElementById('formItemName');
         nameForm.classList.add("shakeshakeshake");
@@ -185,10 +174,8 @@ async function addItemChangeValuesBeforeSending(event)
 }
 
 
-function addItemInternal(event)
-{
-    if ($("#addRow").length)
-    {
+function addItemInternal(event) {
+    if ($("#addRow").length) {
         //object already exists
         return;
     }
@@ -198,8 +185,7 @@ function addItemInternal(event)
     tableBody.insertAdjacentHTML('beforeend', tableRow);
     addItemFormButton = document.getElementById('addItemFormButton');
 }
-function addHp(event)
-{
+function addHp(event) {
     let hpValueChange = document.getElementById('hpValueInput').value;
     if (hpValueChange === "")
         hpValueChange = 1;
@@ -208,11 +194,9 @@ function addHp(event)
     form.submit();
 }
 
-function removeHp(event)
-{
+function removeHp(event) {
     let hpValueChange = document.getElementById('hpValueInput').value;
-    if (hpValueChange > 0)
-    {
+    if (hpValueChange > 0) {
         hpValueChange = Math.abs(hpValueChange) * -1;
     }
     if (hpValueChange === "")
@@ -222,8 +206,7 @@ function removeHp(event)
 
     form.submit();
 }
-function levelup(event)
-{
+function levelup(event) {
     let formLvl = document.getElementById('levelupForm');
     formLvl.submit();
 }
@@ -240,16 +223,14 @@ var $die = $('.die'),
     transitionDuration = 500,
     animationDuration = 3000;
 
-$('ul > li > a').click(function ()
-{
+$('ul > li > a').click(function () {
     reset();
     rollTo($(this).attr('href'));
 
     return false;
 });
 
-function randomFace()
-{
+function randomFace() {
     var face = Math.floor((Math.random() * sides)) + initialSide;
     lastFace = face == lastFace ? randomFace() : face;
 
@@ -257,8 +238,7 @@ function randomFace()
     return face;
 }
 
-function rollTo(face)
-{
+function rollTo(face) {
     clearTimeout(timeoutId);
 
     $('ul > li > a').removeClass('active');
@@ -268,23 +248,20 @@ function rollTo(face)
     //SAM
     //Now we can inject the face (int) into the DOM
     let h5 = document.createElement('h5');
-    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${ face }</b>`;
+    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${face}</b>`;
     let rollDiv = document.getElementById('rollBody');
     rollDiv.append(h5);
 }
 
-function reset()
-{
+function reset() {
     $die.attr('data-face', null).removeClass('rolling');
 }
 
-$('.randomize, .die').click(function ()
-{
+$('.randomize, .die').click(function () {
     $die.addClass('rolling');
     clearTimeout(timeoutId);
 
-    timeoutId = setTimeout(function ()
-    {
+    timeoutId = setTimeout(function () {
         $die.removeClass('rolling');
 
         rollTo(randomFace());
