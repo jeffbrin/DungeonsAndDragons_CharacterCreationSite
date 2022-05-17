@@ -397,7 +397,7 @@ async function getCharacter(id)
         throw new errors.DatabaseError('characterModel', 'getCharacter', `Database Error, couldn't get Owned Items: ${ error.message }`);
     }
 
-    //Initiative and Speed
+    //Initiative and Speed and exp
     try
     {
         const initiativeQ = `SELECT Initiative FROM PlayerCharacter WHERE Id = ${ id };`;
@@ -407,6 +407,19 @@ async function getCharacter(id)
         const speedQ = `SELECT Speed FROM PlayerCharacter WHERE Id = ${ id };`;
         let [rowsSpeed, cols] = await connection.query(speedQ);
         character.Speed = rowsSpeed[0].Speed;
+
+
+        const expQ = `Select Experience FROM ${ tableName } WHERE Id = ${ id };`;
+        let [rowExp, columnsExp] = await connection.query(expQ);
+        if (rowExp[0].Experience == null || rowExp[0].Experience < 0)
+        {
+            character.Experience = 0;
+        }
+        else
+        {
+            character.Experience = rowExp[0].Experience;
+        }
+
     } catch (error)
     {
         throw error;
@@ -480,11 +493,17 @@ async function getAllEthics()
  */
 async function addItem(characterId, itemName, itemCount)
 {
+    itemCount = parseInt(itemCount);
+    if (itemCount === NaN)
+    {
+        throw errors.InvalidInputError('characterModel', 'addItem', `Item Count  Must be a number`);
+    }
     //check characterId
     const characterS = `SELECT * FROM ${ tableName } WHERE Id = ${ characterId };`;
     let characters, columns;
     try
     {
+
         [characters, columns] = await connection.query(characterS);
     } catch (error)
     {
@@ -544,6 +563,7 @@ async function changeQuantityItem(characterId, itemName, itemCount)
 {
 
     let query;
+    itemCount = parseInt(itemCount);
     if (itemCount <= 0)
     {
         //delete
@@ -772,13 +792,11 @@ async function updateExp(characterId, experience)
         logger.info('Select query executed inside of updateExp function');
         if (rows.length === 0) throw new errors.InvalidInputError();
 
-        let currentExperience = parseInt(rows[0].Experience);
-        currentExperience += experience;
 
-        const updateQuery = `UPDATE ${ tableName } SET Experience = ${ currentExperience } WHERE Id = ${ characterId };`;
+        const updateQuery = `UPDATE ${ tableName } SET Experience = ${ experience } WHERE Id = ${ characterId };`;
 
         await connection.execute(updateQuery);
-        logger.info(`UPDATE query Success, character with id: ${ characterId }'s Experience is now ${ currentExperience }.`);
+        logger.info(`UPDATE query Success, character with id: ${ characterId }'s Experience is now ${ experience }.`);
 
     } catch (error)
     {

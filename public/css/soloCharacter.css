@@ -5,7 +5,7 @@ body {
     padding: 0;
 }
 
-body {}
+
 
 *,
 *:before,
@@ -29,13 +29,61 @@ body {}
     --midRed: #E96049;
 }
 
+.miniGridContainer {
+    margin-top: 1rem;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+        "profBonus characterName editBtn";
+}
+
+.profBonus {
+    grid-area: profBonus;
+    height: 100%;
+    width: 75%;
+    border-radius: 1rem;
+    background-color: var(--elevation2Color);
+    padding: 1rem;
+    margin-left: 3rem;
+}
+
+.characterName {
+    grid-area: characterName;
+    height: 100%;
+    width: 100%;
+}
+
+.editBtn {
+    grid-area: editBtn;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 75%;
+    background-color: var(--elevation2Color);
+    opacity: 0.3;
+    height: 100%;
+    text-align: center;
+    border-radius: 1rem;
+    margin-left: 2rem;
+}
+
+.editBtn:hover {
+    opacity: 1;
+}
+
+#buttonUpdateCharacter {}
+
 .containerGrid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     gap: 0px 0px;
     grid-auto-flow: row;
-    padding: 2rem;
+    padding: 3rem;
 }
 
 .alignment {
@@ -240,10 +288,15 @@ body {}
 }
 
 .abilityBonus {
-    border: 1px solid black;
-    border-radius: 1rem;
-    padding: .5rem;
+    font-size: 2.5rem;
     margin: auto;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+.abilityScoreName {
+    margin-left: .25rem;
+    font-weight: bolder;
 }
 
 .w-33 {
@@ -276,6 +329,8 @@ body {}
     margin: auto;
 }
 
+
+
 #expImg {
     display: inline;
     width: 20%;
@@ -295,7 +350,11 @@ body {}
 }
 
 .abilityScore {
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: .5rem;
     font-size: 2rem;
+    margin: auto;
 }
 
 td {
@@ -465,8 +524,11 @@ input[type=number]::-webkit-outer-spin-button {
     margin-top: 1rem !important;
 }
 
+
 .fs-2rem {
     font-size: 2rem;
+    margin-left: .5rem;
+    margin-right: .5rem;
 }
 
 .mw-100px {
@@ -477,8 +539,18 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: var(--elevation2Color) !important;
 }
 
+.modifyBtn {
+    margin-left: 1rem;
+
+}
+
 .colorText {
     color: var(--textColor) !important;
+}
+
+#itemTable {
+    max-height: 100%;
+    height: auto !important;
 }
 
 .mw-50 {
@@ -507,6 +579,7 @@ td {
 
 .table {
     table-layout: fixed !important;
+    height: 95% !important;
 }
 
 .mw-90 {
@@ -521,12 +594,6 @@ td {
 #removeHp {
     max-width: 100%;
     height: auto;
-}
-
-#btnUpdateCharacter {
-    float: right;
-    margin-top: 3rem;
-    margin-right: 3rem;
 }
 
 .inline-block {
@@ -552,7 +619,7 @@ td {
 }
 
 .profOrExpertise {
-    max-width: 25px;
+    max-width: 30px;
     height: auto;
 }
 
@@ -626,6 +693,17 @@ html {
         transform: translate(1px, -2px) rotate(-1deg);
     }
 }
+
+.numberInput {
+    background-color: var(--elevation2Color);
+    color: var(--textColor);
+}
+
+.numberInput::placeholder {
+    color: var(--popColor);
+}
+
+
 
 .btn-secondary2 {
     background-color: transparent !important;

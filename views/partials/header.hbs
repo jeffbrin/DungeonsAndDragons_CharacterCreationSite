@@ -152,7 +152,6 @@
               <figure class="face face-20"></figure>
             </div>
           </div>
-          <a href="" class="randomize">Roll!</a>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -168,20 +167,22 @@
 
   var myModal;
   var timesModalWasShown = 0;
-  document.addEventListener('DOMContentLoaded', () => {
-    myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {})
-    myModal.toggle()
+  document.addEventListener('DOMContentLoaded', () =>
+  {
+    myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {});
+    myModal.toggle();
 
     // Add an event to the modal to remove the test next time it's loaded
-    document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e) {
+    document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e)
+    {
 
-      console.log(timesModalWasShown)
+      console.log(timesModalWasShown);
       if (document.getElementById('loginErrorText') != null)
         document.getElementById('loginErrorText').remove();
 
 
       timesModalWasShown++;
-    })
+    });
 
   });
 
@@ -193,19 +194,21 @@
 
   var myModal;
   var timesModalWasShown = 0;
-  document.addEventListener('DOMContentLoaded', () => {
-    myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {})
-    myModal.toggle()
+  document.addEventListener('DOMContentLoaded', () =>
+  {
+    myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {});
+    myModal.toggle();
 
     // Add an event to the modal to remove the test next time it's loaded
-    document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e) {
+    document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e)
+    {
 
-      console.log(timesModalWasShown)
+      console.log(timesModalWasShown);
       if (document.getElementById('signupErrorText') != null)
         document.getElementById('signupErrorText').remove();
 
       timesModalWasShown++;
-    })
+    });
 
   });
 

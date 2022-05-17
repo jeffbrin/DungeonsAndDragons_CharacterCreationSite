@@ -16,6 +16,10 @@ let levelupBtn = document.getElementById('levelupBtn');
 let itemBtn = document.getElementById('itemBtn');
 let addItemFormButton;
 let updateCharacterButton = document.getElementById('btnUpdateCharacter');
+let expButtonModify = document.getElementById('openExperienceInput');
+expButtonModify.addEventListener('click', openFormExp);
+
+let submitExp = document.getElementById('submitExp');
 
 let abilityScores = document.getElementsByClassName('abilityScore');
 let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
@@ -44,12 +48,17 @@ for (let i = 0; i < abilityScoreModifiers.length; i++)
     else
     {
         abilityScoreModifiers[i].innerText = modifier;
+        savingThrowModifiers[i].innerText = modifier;
     }
 
 }
 
 
-
+function openFormExp(event)
+{
+    document.getElementById('expInput').hidden = false;
+    document.getElementById('submitExp').hidden = false;
+}
 
 function addProficiency(characterId, skillId)
 {

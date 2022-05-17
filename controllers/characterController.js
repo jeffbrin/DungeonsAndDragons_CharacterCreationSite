@@ -13,7 +13,6 @@ const raceModel = require('../models/raceModel');
 
 const errors = require('../models/errorModel');
 const { getBackground, getAllBackgrounds } = require('../models/backgroundModel');
-const { json } = require('express/lib/response');
 
 
 
@@ -558,6 +557,36 @@ async function removeAllExpertiseAndProficiencies(request, response)
     }
 }
 
+async function addExperiencePoints(request, response)
+{
+    let json = request.body;
+    try
+    {
+        await model.updateExp(request.params.id, json.experiencePoints);
+        logger.info(`Successfully updated exp or id: ${ request.params.id } to: ${ json.experiencePoints }`);
+        let built = await buildSheet(request.params.id);
+
+        response.status(200).render('sheet.hbs', { success: true, message: `Successfully updated Experience Points`, character: built.character, skills: built.skills, soloCharacter: built.css, skillProficiencies: built.skillProficiencies, skillExpertise: built.skillExpertise });
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error couldn't update Exp!` });
+            logger.error(`Database Error - From addExperiencePoints in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).render('home.hbs', { error: `Input error, Couldn't Update Exp!` });
+            logger.error(`input error - from addExperiencePoints in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From addExperiencePoints.');
+            response.status(500).render('home.hbs', { error: `Something went wrong... Try again` });
+        }
+    }
+}
+
 
 router.put('/:id', updateCharacter);
 router.post('/', sendCharacter);
@@ -574,6 +603,7 @@ router.get("/new", sendToCreatePage);
 router.put('/:id(\\d+)/proficiencies', addProficiencyController);
 router.put('/:id(\\d+)/expertise', addExpertiseController);
 router.delete('/:id(\\d+)/proficiencies', removeAllExpertiseAndProficiencies);
+router.put('/:id(\\d+)/experiencepoints', addExperiencePoints);
 
 
 module.exports = {

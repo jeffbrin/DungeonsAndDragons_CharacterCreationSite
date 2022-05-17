@@ -40,9 +40,13 @@
 {{#with character}}
 
 
-<div class="myTopContainer text-center">
-  <h1 class="text-center capitalize inline-block" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
-  <button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button" name="edit">Edit</button>
+<div class="miniGridContainer">
+  <div class="profBonus text-center">Proficiency Bonus: <h2>+{{ProficiencyBonus}}</h2>
+  </div>
+  <h1 class="text-center capitalize characterName" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
+  <div class="editBtn text-center"><button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button"
+      name="edit">Edit</button></div>
+
   <input hidden name="characterId" id="characterIdHidden" value="{{Id}}">
 </div>
 
@@ -89,9 +93,9 @@
   </div>
   {{#each AbilityScores}}
   <div class="{{AbilityName}} ability">
-    <h6>{{AbilityName}}</h6>
-    <h5 class="text-center abilityScore">{{Score}}</h5>
-    <h6 class="text-center abilityBonus w-33">FE</h6>
+    <h6 class="abilityScoreName">{{AbilityName}}</h6>
+    <h5 class="text-center abilityBonus">FE</h5>
+    <h6 class="text-center abilityScore w-50">{{Score}}</h6>
   </div>
   {{/each}}
 
@@ -100,9 +104,17 @@
     <img class="iconImg" src="/images/icons/proficiency.png">
     <h5 class="text-center">Proficiency Bonus: {{ProficiencyBonus}}</h5>
   </div>
+  <form id="experienceFrom" method="post" action="/characters/{{Id}}/experiencepoints" hidden><input hidden
+      name="choice" value='{"method":"Put"}'></form>
   <div class="experience">
     <img class="iconImg" src="/images/icons/xp.png">
     <h5 class="text-center">EXP: {{Experience}}</h5>
+    <button class="btn btn-secondary2 btn-no-padding modifyBtn" type="button" id="openExperienceInput"><img
+        class="profOrExpertise modifyImg" src="/images/icons/modify.png">
+    </button>
+    <input required type="number" form="experienceFrom" class="numberInput" min="0" placeholder="Enter New EXP"
+      name="experiencePoints" id="expInput" hidden>
+    <button class="btn btn-primary" type="submit" hidden id="submitExp" form="experienceFrom">Submit</button>
   </div>
   <div class="health">
   </div>
@@ -121,7 +133,7 @@
         <tr>
           <th class="w-20" scope="col"><button type="button" class="btn btn-secondary2 btn-no-padding"
               data-bs-toggle="tooltip" data-bs-placement="right"
-              title="+ Means Not Proficient (Click to Add). 'P' Means Proficient (Click to add Expertise). 'E' Means Expertise.">
+              title="+ Means Not Proficient (Click to Add). 'P' Means Proficient (Click to add Expertise). 'E' Means Expertise (Click to remove Expertise and Proficiency)">
               <img class="profOrExpertise" src="/images/icons/help.png">
             </button></th>
           <th class="w-40" scope="col">Name</th>
@@ -159,9 +171,9 @@
     <input id="hiddenItemName" hidden name="itemName">
   </form>
   <div class="items">
-    <table class="table mw-100">
-      <thead class="mw-100">
-        <tr class="mw-100">
+    <table class="table" id="itemTable">
+      <thead class="">
+        <tr class="">
           <th scope="col">Name</th>
           <th scope="col">Quantity</th>
           <th scope="col">
@@ -176,11 +188,11 @@
         </tr>
       </thead>
 
-      <tbody id="itemTBody" class="mw-100">
+      <tbody id="itemTBody" class="">
         {{#each character.OwnedItems}}
-        <tr class="mw-100">
-          <td class="capitalize mw-50">{{Name}}</td>
-          <td class="mw-50" colspan="2">{{Count}}</td>
+        <tr class="">
+          <td class="capitalize">{{Name}}</td>
+          <td class="" colspan="2">{{Count}}</td>
         </tr>
         {{/each}}
       </tbody>
