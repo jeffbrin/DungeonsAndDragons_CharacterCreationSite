@@ -6,6 +6,7 @@ const routeRoot = '/';
 async function getHomeLoggedIn(request, response, username){
     const currentRenderObj = {homeActive: true, username: username};
 
+    // Add redirect query norifications
     const query = request.query;
     if (query.error)
         currentRenderObj.error = query.error;
@@ -13,6 +14,8 @@ async function getHomeLoggedIn(request, response, username){
         currentRenderObj.warning = query.warning;
     if(query.confirmation)
         currentRenderObj.confirmation = query.confirmation;
+    if(query.status)
+        currentRenderObj.status = query.status;
 
     response.status(200).render('home.hbs', currentRenderObj);
 }
@@ -20,6 +23,7 @@ async function getHomeLoggedIn(request, response, username){
 async function getHomeLoggedOut(request, response){
     const currentRenderObj = {homeActive: true};
 
+    // Add redirect query norifications
     const query = request.query;
     if (query.error)
         currentRenderObj.error = query.error;
@@ -27,6 +31,8 @@ async function getHomeLoggedOut(request, response){
         currentRenderObj.warning = query.warning;
     if(query.confirmation)
         currentRenderObj.confirmation = query.confirmation;
+    if(query.status)
+        currentRenderObj.status = query.status;
 
     response.status(200).render('home.hbs', currentRenderObj);
 }
