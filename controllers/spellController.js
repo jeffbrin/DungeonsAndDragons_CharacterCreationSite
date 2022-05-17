@@ -9,8 +9,7 @@ const {DatabaseError, InvalidInputError, InvalidSessionError} = require('../mode
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
-const { request, response } = require('express');
-const { gateAccess } = require('./authenticationHelperController');
+const url = require('url');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -49,6 +48,16 @@ async function getRenderObject(additionalFields, userId) {
 }
 
 /**
+ * Gets a url format to be used in a redirect.
+ * @param {String} pathname The path to redirect to
+ * @param {Object} queryObject The object to put in the query.
+ * @returns A url format to use in a redirect
+ */
+function getUrlFormat(pathname, queryObject){
+    return url.format({pathname: pathname, query: queryObject});
+}
+
+/**
  * Adds a spell from the body of an http request to the database.
  * On a successful add, the spell is sent in the http response.
  * On a failure, a 400 status will be sent for bad input 
@@ -70,7 +79,6 @@ async function addSpell(request, response, sessionId) {
     if (spellToAdd.Classes.length == 1 && spellToAdd.Classes[0] == '')
         spellToAdd.Classes = [];
 
-    let username;
     try{
         spellToAdd.UserId = await userModel.getUserIdFromSessionId(sessionId);
         username = await userModel.getUsernameFromSessionId(sessionId);
@@ -81,27 +89,25 @@ async function addSpell(request, response, sessionId) {
     spellModel.addSpell(spellToAdd)
         .then(async spellAddedSuccessfully => {
             response.status(201);
-            const options = await getRenderObject({username: username, confirmation: 'Successfully added spell'}, spellToAdd.UserId);
             // Add a warning if the spell wasn't added properly
+            let urlFormat;
             if (!spellAddedSuccessfully) {
-                options.warning = "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead."
+                urlFormat = getUrlFormat('/spells', {warning: "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead."})
                 logger.warn(`The spell (${spellToAdd.name}) was not added successfully, since it already exists.`);
             }
-            response.render('spells.hbs', options);
+            else{
+                urlFormat = getUrlFormat('/spells', {confirmation: 'Successfully added spell!'})
+            }
+            // Redirect to avoid refresh re-adding
+            response.redirect(urlFormat)
         })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to add new spell: ${error.message}`);
                 response.status(400);
-                try{
                 response.render('spells.hbs', await getRenderObject({ error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }));
-                }catch(error){
-                    response.status(500);
-                    response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
-                    logger.error(error);
-                }
             }
-            if (error instanceof DatabaseError) {
+            else if (error instanceof DatabaseError) {
                 response.status(500);
                 response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
                 logger.error(error);
@@ -172,8 +178,19 @@ router.delete('/id/:id', (request, response) => authenticator.gateAccess(request
  * @param {Object} response An http response object.
  */
 async function showAllSpellsLoggedIn(request, response, username, userId) {
+        
     try {
-        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(), username: username}, userId))
+        const currentRenderObj = {Classes: await classModel.getAllClasses(), username: username};
+
+        const query = request.query;
+        if (query.error)
+            currentRenderObj.error = query.error;
+        if(query.warning)
+            currentRenderObj.warning = query.warning;
+        if(query.confirmation)
+            currentRenderObj.confirmation = query.confirmation;
+
+        response.render('spells.hbs', await getRenderObject(currentRenderObj, userId))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
@@ -195,8 +212,22 @@ async function showAllSpellsLoggedIn(request, response, username, userId) {
  * @param {Object} response An http response object.
  */
 async function showAllSpellsLoggedOut(request, response) {
+    
+    
+
     try {
-        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(),}))
+        const currentRenderObj = {Classes: await classModel.getAllClasses()};
+
+        const query = request.query;
+        if (query.error)
+            currentRenderObj.error = query.error;
+        if(query.warning)
+            currentRenderObj.warning = query.warning;
+        if(query.confirmation)
+            currentRenderObj.confirmation = query.confirmation;
+
+
+        response.render('spells.hbs', await getRenderObject(currentRenderObj))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);

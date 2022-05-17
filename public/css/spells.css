@@ -1,3 +1,7 @@
+body{
+    min-width:550px;        /* Suppose you want minimum width of 1000px */
+ }
+
 .deleteBtn:hover{
     transform: scale(1.4);
 }
