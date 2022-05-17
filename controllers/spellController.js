@@ -237,10 +237,7 @@ async function showFilteredSpells(request, response, username, userId) {
     filter.EffectRange = filter.EffectRange ? filter.EffectRange : null;
     filter.Concentration = filter.includeConcentration == 'on' ? filter.Concentration == 'on' : null;
     filter.Ritual = filter.includeRitual == 'on' ? filter.Ritual == 'on' : null;
-    filter.Classes = filter.filterByClass == 'on' ? 
-                                                filter.ClassIds && filter.ClassIds[0] ? 
-                                                filter.ClassIds.split(',') : null : 
-                                                null;
+    filter.Classes = filter.ClassIds ? filter.ClassIds.split(',') :  null;
     filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
 
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
