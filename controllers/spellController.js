@@ -204,15 +204,20 @@ async function showAllSpellsLoggedIn(request, response, username, userId) {
 
         response.render('spells.hbs', await getRenderObject(currentRenderObj, userId))
     } catch (error) {
-        if (error instanceof DatabaseError) {
+        if (error instanceof InvalidInputError) {
+            logger.error(`Failed to delete spell: ${error.message}`);
+            response.status(400);
+            response.redirect(getUrlFormat('/home', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 }));
+        }
+        else if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 })
+            response.redirect(getUrlFormat('/home', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 }));
             logger.error(error);
         }
         else{
-            response.status(500);
-            response.render('home.hbs', {error: 'Sorry, something went wrong.', status: 500});
             logger.error(error);
+            response.status(500)
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
         }
     }
 }
