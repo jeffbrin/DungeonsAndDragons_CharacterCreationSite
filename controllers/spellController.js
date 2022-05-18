@@ -408,8 +408,29 @@ async function editSpellWithId(request, response, sessionId) {
     const name = query.Name;
     const description = query.Description;
     const schoolId = query.SchoolId;
-    const castingTime = query.Casting
-    spellModel.updateSpellById(id, UserId, level, schoolId, description, name, )
+    const castingTime = query.CastingTime;
+    const duration = query.Duration;
+    const damage = query.Damage;
+    const range = query.EffectRange;
+    let somatic = query.Somatic;
+    let verbal = query.Verbal;
+    let material = query.Material;
+    let materials = query.Materials;
+    let concentration = query.Concentration;
+    let ritual = query.Ritual;
+
+    material = material == 'on' ? true : false
+    somatic = somatic == 'on' ? true : false
+    verbal = verbal == 'on' ? true : false
+    ritual = ritual == 'on' ? true : false
+    concentration = concentration == 'on' ? true : false
+    damage = query.damageDice ? damage : null;
+
+    query.Classes = query.ClassIds.split(',')
+    if (query.Classes.length == 1 && query.Classes[0] == '')
+        query.Classes = [];
+
+    spellModel.updateSpellById(id, UserId, level, schoolId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, query.Classes)
         .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully edited spell'})) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
@@ -417,12 +438,18 @@ async function editSpellWithId(request, response, sessionId) {
                 response.status(400)
                 response.redirect(getUrlFormat(`/spells/editform/${id}`, { error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
             }
-            if (error instanceof DatabaseError) {
+            else if (error instanceof DatabaseError) {
                 response.status(500);
                 response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
             }
+            else{
+                response.status(500);
+                response.redirect(getUrlFormat('/home', {error: 'Something went wrong', status: 400}))
+                logger.error(error);
+            }
         })
+        
 
 }
 router.put('/', (request, response) => authenticator.gateAccess(request, response, editSpellWithId));
