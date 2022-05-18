@@ -127,7 +127,7 @@ async function validateMaterials(material, materials){
         throw new Error('The material component value was not a valid type.');
 
     if(material && materials == null)
-        throw new Error('The material components must be indicated for a spell which require them.');
+        throw new Error('The material components must be indicated for a spell which requires them.');
         
     if(!material && materials != null)
         throw new Error('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')

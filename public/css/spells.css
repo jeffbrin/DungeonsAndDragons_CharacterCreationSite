@@ -1,29 +1,32 @@
-body {
-    min-width: 550px;
-    /* Suppose you want minimum width of 1000px */
-}
+body{
+    min-width:550px;        /* Suppose you want minimum width of 1000px */
+ }
 
-.deleteBtn:hover {
+.deleteBtn:hover{
     transform: scale(1.4);
 }
 
-.classCheckbox+label:hover {
+.editBtn:hover{
+    transform: scale(1.4);
+}
+
+.classCheckbox + label:hover{
     cursor: pointer;
 }
 
-.classCheckbox:checked+label img {
+.classCheckbox:checked + label img{
     background: var(--popColor) !important;
     box-shadow: black 0 8px;
 }
 
-.classImage {
-    background: var(--textColor);
-    border-radius: 50%;
+.classImage{
+    background: var(--textColor); 
+    border-radius: 50%; 
     height: 100px;
-
+    
 }
 
-input[type="checkbox"] {
+input[type="checkbox"]{
     height: 20px;
     width: 20px;
     background-color: #eee;

@@ -1,0 +1,152 @@
+<form id="additionForm" class="bg-dark my-5" action="/spells" method="POST">
+
+    <div id="top" class="d-flex">
+        <div id="left" class="container d-flex flex-column justify-content-around py-5 align-items-center">
+            <div>
+            <label for="schoolIdPicker">School</label>
+            {{!-- School picker --}}
+            <select required name="SchoolId" id="schoolIdPicker">
+                {{#each schools}}
+                <option value="{{Id}}">{{Name}}</option>
+                {{/each}}
+            </select>
+            </div>
+
+            {{!-- Level picker --}}
+            <div class="m-2">
+            <label for="levelPicker">Level</label>
+            <select required name="Level" id="levelPicker">
+                <option value="0">Cantrip</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+            </select>
+            </div>
+
+            {{!-- Name --}}
+            <div class="m-2">
+            <label for="spellName">Name</label>
+            <input required type="text" name="Name" id="spellName">
+            </div>
+
+            {{!-- Description --}}
+            <div class="m-2 py-5">
+            <label for="spellDescription">Description</label>
+            <textarea required name="Description" id="description" cols="30" rows="10"></textarea>
+
+            {{!-- Classes that can cast this spell --}}
+            <h3 class="mt-2">Classes that can cast this spell.</h3>
+            <div class="d-flex flex-align-between flex-wrap">
+            {{#each Classes}}
+            <div class="px-4">
+                <p>{{Name}}</p>
+                <input type="checkbox" class="classCheckbox" value="{{Id}}">
+            </div>
+            {{/each}}
+            <input type="text" hidden id="castableClasses" name="ClassIds">
+            </div>
+        </div>
+        </div>
+        <div class="container d-flex flex-column justify-content-around py-5 align-items-center">
+            {{!-- Casting Time --}}
+            <div id="castingTimeDiv" class="m-2">
+                <label for="castingTime">Casting Time</label>
+                <select required name="CastingTime" id="castingTime">
+                    <option value="1 Action">1 Action</option>
+                    <option value="1 Bonus Action">1 Bonus Action</option>
+                    <option value="1 Reaction">1 Reaction</option>
+                    <option value="1 Minute">1 Minute</option>
+                    <option value="10 Minutes">10 Minutes</option>
+                    <option value="1 Hour">1 Hour</option>
+                    <option value="Custom">Custom</option>
+                </select>
+                <input style="visibility: hidden;" type="text" id="customCastingTime" name="customCastingTime">
+            </div>
+
+            {{!-- Components --}}
+            <div id="componentsDiv" class="m-2">
+                <h2>Components</h2>
+                <label for="verbalButton">Verbal</label>
+                <input type="checkbox" name="Verbal" id="verbalButton">
+
+                <label for="somaticButton">Somatic</label>
+                <input type="checkbox" name="Somatic" id="somaticButton">
+
+                <label for="materialButton">Material</label>
+                <input type="checkbox" name="Material" id="materialButton">
+                <div id="materialsDiv" style="visibility: hidden;">
+                    <label for="materials">Required Materials</label>
+                    <input type="text" name="Materials" id="materials">
+                </div>
+            </div>
+
+            {{!-- Duration --}}
+            <div id="durationDiv" class="m-2">
+                <label for="durationSelect">Duration</label>
+                <select required name="Duration" id="durationSelect">
+                    <option value="Instantaneous">Instantaneous</option>
+                    <option value="1 Round">1 Round</option>
+                    <option value="1 Minute">1 Minute</option>
+                    <option value="10 Minutes">10 Minutes</option>
+                    <option value="30 Minutes">30 Minutes</option>
+                    <option value="1 Hour">1 Hour</option>
+                    <option value="8 Hours">8 Hours</option>
+                    <option value="Custom">Custom</option>
+                </select>
+                <input style="visibility: hidden;" type="text" id="customDuration" name="customDuration">
+            </div>
+
+            {{!-- Damage --}}
+            <div id="damageDiv" class="m-2">
+                <label for="damageInput">Damage</label>
+                <input required type="text" id="damageDiceQuantity">
+                <select required name="damageDice" id="damageDice">
+                    <option value="d4">d4</option>
+                    <option value="d6">d6</option>
+                    <option value="d8">d8</option>
+                    <option value="d10">d10</option>
+                    <option value="d12">d12</option>
+                    <option value="d20">d20</option>
+                    <option value="d100">d100</option>
+                    <option value="">n/a</option>
+                </select>
+                <input type="text" name="Damage" id="damage" hidden value="">
+            </div>
+
+            {{!-- Range --}}
+            <div id="rangeDiv" class="m-2">
+                <label for="rangeInput">Range</label>
+                <select required name="EffectRange" id="rangeInput">
+                    <option value="Self">Self</option>
+                    <option value="5 Feet">5 Feet</option>
+                    <option value="30 Feet">30 Feet</option>
+                    <option value="60 Feet">60 Feet</option>
+                    <option value="120 Feet">120 Feet</option>
+                    <option value="Custom">Custom</option>
+                </select>
+                <input style="visibility: hidden;" type="text" id="customRange" name="customRange">
+            </div>
+
+            <div id="concentrationDiv" class="m-2">
+                <label for="Concentration">Concentration</label>
+                <input type="checkbox" name="Concentration" id="Concentration">
+            </div>
+
+            <div id="ritualDiv" class="m-2">
+                <label for="Ritual">Ritual</label>
+                <input type="checkbox" name="Ritual" id="Ritual">
+            </div>
+        </div>
+        
+    </div>
+    <div class="d-flex justify-content-center">
+    <button class="btn btn-primary">Add</button>
+    </div>
+</form>
+<script src="/scripts/spellsPage.js"></script>

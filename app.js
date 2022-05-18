@@ -52,6 +52,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.action = choice.action;
         }
         catch(error){
             // Choice was not JSON
@@ -65,6 +67,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.action = choice.action;
         }
         catch(error){
             // Choice was not JSON

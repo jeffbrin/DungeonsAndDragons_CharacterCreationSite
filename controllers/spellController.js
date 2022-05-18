@@ -9,8 +9,7 @@ const {DatabaseError, InvalidInputError, InvalidSessionError} = require('../mode
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
-const { request, response } = require('express');
-const { gateAccess } = require('./authenticationHelperController');
+const url = require('url');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -49,6 +48,16 @@ async function getRenderObject(additionalFields, userId) {
 }
 
 /**
+ * Gets a url format to be used in a redirect.
+ * @param {String} pathname The path to redirect to
+ * @param {Object} queryObject The object to put in the query.
+ * @returns A url format to use in a redirect
+ */
+function getUrlFormat(pathname, queryObject){
+    return url.format({pathname: pathname, query: queryObject});
+}
+
+/**
  * Adds a spell from the body of an http request to the database.
  * On a successful add, the spell is sent in the http response.
  * On a failure, a 400 status will be sent for bad input 
@@ -70,40 +79,48 @@ async function addSpell(request, response, sessionId) {
     if (spellToAdd.Classes.length == 1 && spellToAdd.Classes[0] == '')
         spellToAdd.Classes = [];
 
-    let username;
     try{
         spellToAdd.UserId = await userModel.getUserIdFromSessionId(sessionId);
         username = await userModel.getUsernameFromSessionId(sessionId);
     }catch(error){
-        response.render('home.hbs', {error: 'Sorry, something went wrong while validating your login status.', status: 500});
+        response.status(500);
+        response.redirect(getUrlFormat('/home', {error: 'Sorry, something went wrong while validating your login status.', status: 500}));
     }
 
     spellModel.addSpell(spellToAdd)
         .then(async spellAddedSuccessfully => {
             response.status(201);
-            const options = await getRenderObject({username: username, confirmation: 'Successfully added spell'}, spellToAdd.UserId);
             // Add a warning if the spell wasn't added properly
+            let urlFormat;
             if (!spellAddedSuccessfully) {
-                options.warning = "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead."
+                urlFormat = getUrlFormat('/spells', {status: 201, warning: "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead."})
                 logger.warn(`The spell (${spellToAdd.name}) was not added successfully, since it already exists.`);
             }
-            response.render('spells.hbs', options);
+            else{
+                urlFormat = getUrlFormat('/spells', {status: 201, confirmation: 'Successfully added spell!'})
+            }
+            // Redirect to avoid refresh re-adding
+            response.redirect(urlFormat)
         })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to add new spell: ${error.message}`);
                 response.status(400);
-                try{
-                response.render('spells.hbs', await getRenderObject({ error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400 }));
-                }catch(error){
-                    response.status(500);
-                    response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
-                    logger.error(error);
+                if(spellToAdd.Damage){
+                    const damageStuff = spellToAdd.Damage.split('d');
+                    spellToAdd.damageDiceQuantity = damageStuff[0];
+                    spellToAdd.damageDie = 'd' + damageStuff[1];
                 }
+                response.redirect(getUrlFormat('/spells/spellAddition', {error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400, failedSpell: JSON.stringify(spellToAdd) }));
             }
-            if (error instanceof DatabaseError) {
+            else if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 })
+                response.redirect(getUrlFormat('/home', { error: `Sorry, a database error occured while trying to add the spell. Please wait a moment and try again.`, status: 500 }))
+                logger.error(error);
+            }
+            else{
+                response.status(500);
+                response.redirect(getUrlFormat('/home', { error: `Sorry, something went wrong.`, status: 500 }))
                 logger.error(error);
             }
         })
@@ -128,36 +145,41 @@ async function removeSpellById(request, response, sessionId) {
     catch(error){
         if (error instanceof InvalidSessionError){
             logger.error(error);
-            response.status(401).render('home.hbs', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401});
+            response.status(401)
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
         }
         else if (error instanceof DatabaseError){
             logger.error(error);
-            response.status(500).render('home.hbs', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
         }
         else{
             logger.error(error);
-            response.status(500).render('home.hbs', {error: 'Something went wrong.', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
         }
 
     }
 
     spellModel.removeSpellById(id, userId)
         .then(async spellDeleted => { 
-            response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully deleted spell.'}, userId)) })
+            response.status(200);
+            response.redirect(getUrlFormat('/spells', {confirmation: 'Successfully deleted spell.'}))})
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to delete spell: ${error.message}`);
                 response.status(400);
-                response.render('home.hbs', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 });
+                response.redirect(getUrlFormat('/home', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 }));
             }
             else if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 });
+                response.redirect(getUrlFormat('/home', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 }));
                 logger.error(error);
             }
             else{
                 logger.error(error);
-                response.status(500).render('home.hbs', {error: 'Something went wrong.', status: 500});
+                response.status(500)
+                response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
             }
         })
 }
@@ -172,18 +194,35 @@ router.delete('/id/:id', (request, response) => authenticator.gateAccess(request
  * @param {Object} response An http response object.
  */
 async function showAllSpellsLoggedIn(request, response, username, userId) {
+        
     try {
-        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(), username: username}, userId))
+        const currentRenderObj = {Classes: await classModel.getAllClasses(), username: username};
+
+        // Add redirect query notifications
+        const query = request.query;
+        if (query.error)
+            currentRenderObj.error = query.error;
+        if(query.warning)
+            currentRenderObj.warning = query.warning;
+        if(query.confirmation)
+            currentRenderObj.confirmation = query.confirmation;
+
+        response.render('spells.hbs', await getRenderObject(currentRenderObj, userId))
     } catch (error) {
-        if (error instanceof DatabaseError) {
+        if (error instanceof InvalidInputError) {
+            logger.error(`Failed to delete spell: ${error.message}`);
+            response.status(400);
+            response.redirect(getUrlFormat('/home', { error: `Failed to delete spell due to invalid input: ${error.message}`, status: 400 }));
+        }
+        else if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 })
+            response.redirect(getUrlFormat('/home', { error: `A database error was encountered while trying to delete the spell. Please wait a moment and try again.`, status: 500 }));
             logger.error(error);
         }
         else{
-            response.status(500);
-            response.render('home.hbs', {error: 'Sorry, something went wrong.', status: 500});
             logger.error(error);
+            response.status(500)
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
         }
     }
 }
@@ -195,8 +234,21 @@ async function showAllSpellsLoggedIn(request, response, username, userId) {
  * @param {Object} response An http response object.
  */
 async function showAllSpellsLoggedOut(request, response) {
+    
     try {
-        response.render('spells.hbs', await getRenderObject({Classes: await classModel.getAllClasses(),}))
+        const currentRenderObj = {Classes: await classModel.getAllClasses()};
+
+        // Add redirect query notifications
+        const query = request.query;
+        if (query.error)
+            currentRenderObj.error = query.error;
+        if(query.warning)
+            currentRenderObj.warning = query.warning;
+        if(query.confirmation)
+            currentRenderObj.confirmation = query.confirmation;
+
+
+        response.render('spells.hbs', await getRenderObject(currentRenderObj))
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
@@ -225,6 +277,7 @@ router.get('/', (request, response) => authenticator.loadDifferentPagePerLoginSt
 async function showFilteredSpells(request, response, username, userId) {
     filter = request.query;
 
+    const characterId = filter.characterId;
     userId = userId ? userId : 0;
     filter.Level = filter.Level ? filter.Level : null;
     filter.SchoolId = filter.SchoolId ? filter.SchoolId : null;
@@ -237,15 +290,15 @@ async function showFilteredSpells(request, response, username, userId) {
     filter.EffectRange = filter.EffectRange ? filter.EffectRange : null;
     filter.Concentration = filter.includeConcentration == 'on' ? filter.Concentration == 'on' : null;
     filter.Ritual = filter.includeRitual == 'on' ? filter.Ritual == 'on' : null;
-    filter.Classes = filter.filterByClass == 'on' ? 
-                                                filter.ClassIds && filter.ClassIds[0] ? 
-                                                filter.ClassIds.split(',') : null : 
-                                                null;
+    filter.Classes = filter.ClassIds ? filter.ClassIds.split(',') :  null;
     filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
 
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells => { 
-            response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
+            if (filter.characterId)
+                response.render('addSpellToCharacter.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+            else
+                response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
         })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
@@ -253,9 +306,14 @@ async function showFilteredSpells(request, response, username, userId) {
                 response.status(400)
                 response.render('home.hbs', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username });
             }
-            if (error instanceof DatabaseError) {
+            else if (error instanceof DatabaseError) {
                 response.status(500);
                 response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username });
+                logger.error(error);
+            }
+            else{
+                response.status(500);
+                response.render('home.hbs', { error: `Sorry, something went wrong.`, status: 500, username: username });
                 logger.error(error);
             }
         })
@@ -283,17 +341,18 @@ async function showSpellWithId(request, response, username, userId) {
         .catch(async error => {
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', { error: `Sorry, we couldn't get the spell you wanted to focus on due to a server issue. Please try again in a moment.`, status: 500 })
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on due to a server issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
             }
             else if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get spell: ${error.message}`);
                 response.status(400)
-                response.render('home.hbs', { error: `Sorry, we couldn't get the spell you wanted to focus on. Please try again in a moment.`, status: 400 })
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on. Please try again in a moment.`, status: 400 }))
             }
             else{
                 logger.error(error);
-                response.status(500).render('home.hbs', {error: 'Something went wrong', status: 500})
+                response.status(500)
+                response.redirect(getUrlFormat('/home', {error: 'Something went wrong', status: 500}))
             }
         });
 }
@@ -313,17 +372,18 @@ router.get('/id/:id', (request, response) => authenticator.loadDifferentPagePerL
 async function editSpellWithId(request, response) {
 
     // TODO:
+    const id = request.query.spellId;
     spellModel.updateSpellById()
-        .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject()) })
+        .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully edited spell'})) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get update spell with id ${id}: ${error.message}`);
                 response.status(400)
-                response.render('spells.hbs', await getRenderObject({ error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
+                response.redirect(getUrlFormat(`/spells/editform/${id}`, { error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', await getRenderObject({ error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
             }
         })
@@ -332,55 +392,104 @@ async function editSpellWithId(request, response) {
 router.put('/', (request, response) => authenticator.gateAccess(request, response, editSpellWithId));
 
 /**
- * Manages the requests to edit a spell
- * @param {Object} request The http request
- * @param {Object} response The http response
+ * Shows the spell edit page.
+ * @param {Object} request The http request.
+ * @param {Object} response The http response.
+ * @param {String} sessionId The new session id of the user.
  */
-async function editSpell(request, response) {
+async function showEditSpellPage(request, response, sessionId) {
 
-    const choice = request.body.choice;
-    let spellChoiceId;
+    let spellChoiceId = request.params.id;
+
+    // Add redirect query notifications
+    const query = request.query;
+    let queryError;
+    if (query.error)
+        queryError = query.error;
+
     try {
-        if (request.body.spellChoiceId != null)
-            spellChoiceId = Number(request.body.spellChoiceId);
+        const spellToEdit = await spellModel.getSpellById(spellChoiceId, await userModel.getUserIdFromSessionId(sessionId));
+        if(spellToEdit.Damage){
+            const damageStuff = spellToEdit.Damage.split('d');
+            spellToEdit.damageDiceQuantity = damageStuff[0];
+            spellToEdit.damageDie = 'd' + damageStuff[1];
+        }
+        spellToEdit.Classes = spellToEdit.Classes.map(Class => Class.Id);
+        let options = {error: queryError, schools: await spellModel.getAllSchools(), Classes: await classModel.getAllClasses(), username: await userModel.getUsernameFromSessionId(sessionId), spellsActive: true, spellToEdit: spellToEdit};
+        response.status(200);
+        response.render('spellEdit.hbs', options)
     } catch (error) {
-        logger.error(`Failed to get the id of the chosen spell: ${error.message}`);
-        response.status(400)
-        response.render('spells.hbs', { error: `Failed to get the id of the chosen spell: ${error.message}`, status: 400 })
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401)
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to edit a spell. Please log in and try again.', status: 401}));
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
+        }
+        else if (error instanceof InvalidInputError){
+            logger.error(error);
+            response.status(400);
+            response.redirect(getUrlFormat('/spells', {error: 'The spell you attempted to edit was not found.', status: 400}));
+        }
+        else{
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
+        }
     }
 
-    switch (choice) {
-        case 'editForm':
-            try {
-                let options = await getRenderObject({ spellToEditId: spellChoiceId })
-                response.render('spells.hbs', options)
-            } catch (error) {
-                if (error instanceof InvalidInputError) {
-                    logger.error(`Failed to get update spell page: ${error.message}`);
-                    response.status(400)
-                    response.render('spells.hbs', await getRenderObject({ error: `Sorry, an error occured while trying to update the page for editing, please try again in a moment.`, status: 400 }))
-                }
-                if (error instanceof DatabaseError) {
-                    response.status(500);
-                    response.render('spells.hbs', await getRenderObject({ error: `Sorry, a server side issue occured while trying to update the page for editing, please try again in a moment.`, status: 500 }))
-                    logger.error(error);
-                }
-            }
-            break;
-        default:
-            response.render('spells.hbs', await getRenderObject({ error: 'Something went wrong with that button you pressed. Please try again.', status: 400 }))
-            break;
-    }
 
 }
-router.post('/editform', editSpell)
+router.get('/editform/:id', (request, response) => authenticator.gateAccess(request, response, showEditSpellPage))
 
+/**
+ * Displays the page used by users to add spells.
+ * @param {Object} request An http request object
+ * @param {Object} response An http response object
+ * @param {String} sessionId The session id of the user trying to add a spell.
+ */
 async function getAddSpellForm(request, response, sessionId){
 
-    response.render('spellCreation.hbs', {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses()});
+    let currentRenderObj;
+    try{
+        currentRenderObj = {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses(), spellsActive: true}
+    }
+    catch(error){
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401)
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
+        }
+        else{
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
+        }
+    }
+
+    // Add redirect query notifications
+    const query = request.query;
+    if (query.error)
+        currentRenderObj.error = query.error;
+    if(query.warning)
+        currentRenderObj.warning = query.warning;
+    if(query.confirmation)
+        currentRenderObj.confirmation = query.confirmation;
+    if(query.failedSpell)
+        currentRenderObj.failedSpell = JSON.parse(query.failedSpell);
+
+    response.render('spellCreation.hbs', currentRenderObj);
 
 }
-router.get('/spellAddition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
+router.get('/spelladdition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
 
 hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     if(!arg1 && !arg2)
@@ -388,15 +497,15 @@ hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     return arg1 == arg2
 });
 hbs.handlebars.registerHelper('numEquals', (arg1, arg2) => {
-    if ((!arg1 || !arg2) && arg1 != arg2) 
+    if ((arg1 == null || arg2 == null) && arg1 != arg2) 
         return false
-    return Number(arg1) == Number(arg2)
+    return arg1 == arg2
 });
 hbs.handlebars.registerHelper('in', (item, container) => {
     return container ? container.includes(item) : false;
 });
 hbs.handlebars.registerHelper('stringIn', (item, container) => {
-    return container ? container.includes(String(item)) : false;
+    return container ? container.includes(String(item)) || container.includes(item) : false;
 });
 hbs.handlebars.registerHelper('trim', (text, length = 200) => {
     if(text.fn(this).length < length)
