@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const authenticationController = require('./authenticationHelperController')
 const routeRoot = '/';
+const url = require('url');
+
+/**
+ * Gets a url format to be used in a redirect.
+ * @param {String} pathname The path to redirect to
+ * @param {Object} queryObject The object to put in the query.
+ * @returns A url format to use in a redirect
+ */
+function getUrlFormat(pathname, queryObject){
+    return url.format({pathname: pathname, query: queryObject});
+}
 
 async function getHomeLoggedIn(request, response, username){
     const currentRenderObj = {homeActive: true, username: username};
@@ -38,7 +49,13 @@ async function getHomeLoggedOut(request, response){
 }
 
 router.get('/', (request, response) => { authenticationController.loadDifferentPagePerLoginStatus(request, response, getHomeLoggedIn, getHomeLoggedOut) });
-router.get('/home', (request, response) => { response.redirect('/'); });
+router.get('/home', (request, response) => { 
+    const query = request.query;
+    if(query)
+        response.redirect(getUrlFormat('/', query))
+    else
+        response.redirect('/');
+ });
 
 module.exports = {
     router,

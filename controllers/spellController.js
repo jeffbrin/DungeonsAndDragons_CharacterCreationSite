@@ -253,12 +253,12 @@ async function showAllSpellsLoggedOut(request, response) {
     } catch (error) {
         if (error instanceof DatabaseError) {
             response.status(500);
-            response.render('home.hbs', await getRenderObject({error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }))
+            response.redirect(getUrlFormat('/home', {error: `Sorry, a database error was encountered while trying to get the spells. Please wait a moment and try again.`, status: 500 }));
             logger.error(error);
         }
         else{
             response.status(500);
-            response.render('home.hbs', {error: 'Sorry, something went wrong.', status: 500});
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, something went wrong.', status: 500}));
             logger.error(error);
         }
     }
@@ -312,16 +312,16 @@ async function showFilteredSpells(request, response, username, userId) {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get filtered list of spells: ${error.message}`);
                 response.status(400)
-                response.render('home.hbs', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username });
+                response.redirect(getUrlFormat('/home', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username }));
             }
             else if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username });
+                response.redirect(getUrlFormat('/home', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username }));
                 logger.error(error);
             }
             else{
                 response.status(500);
-                response.render('home.hbs', { error: `Sorry, something went wrong.`, status: 500, username: username });
+                response.redirect(getUrlFormat('/home', { error: `Sorry, something went wrong.`, status: 500, username: username }));
                 logger.error(error);
             }
         })
@@ -344,6 +344,8 @@ async function showSpellWithId(request, response, username, userId) {
 
     spellModel.getSpellById(id, userId)
         .then(async spell => { 
+            if(spell.Damage == 'null')
+                spell.Damage = null
             response.render('focusSpell.hbs', {username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
         })
         .catch(async error => {
@@ -447,12 +449,12 @@ async function editSpellWithId(request, response, sessionId) {
             }
             else if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('home.hbs', {homeActive: true, username: username, error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 });
+                response.redirect(getUrlFormat('/home', {homeActive: true, username: username, error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }));
                 logger.error(error);
             }
             else{
                 response.status(500);
-                response.render('home.hbs', {homeActive: true, username: username, error: 'Something went wrong', status: 500});
+                response.redirect(getUrlFormat('/home', {homeActive: true, username: username, error: 'Something went wrong', status: 500}));
                 logger.error(error);
             }
     }
@@ -497,7 +499,7 @@ async function showEditSpellPage(request, response, sessionId) {
         else if (error instanceof DatabaseError){
             logger.error(error);
             response.status(500);
-            response.render('home.hbs', {username: username,  error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500});
+            response.redirect(getUrlFormat('/home', {username: username,  error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
         }
         else if (error instanceof InvalidInputError){
             logger.error(error);
@@ -507,7 +509,7 @@ async function showEditSpellPage(request, response, sessionId) {
         else{
             logger.error(error);
             response.status(500);
-            response.render('home.hbs', {username: username, error: 'Something went wrong.', status: 500});
+            response.redirect(getUrlFormat('/home', {username: username, error: 'Something went wrong.', status: 500}));
         }
     }
 

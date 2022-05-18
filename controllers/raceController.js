@@ -41,10 +41,12 @@ async function showAllRaces(request, response){
     }
     catch(error){
         if (error instanceof DatabaseError){
-            response.status(500).render('home.hbs', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
         }
         else{
-            response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
         }
     }
 }
@@ -72,13 +74,16 @@ async function showSpecificRace(request, response){
     }
     catch(error){
         if (error instanceof DatabaseError){
-            response.status(500).render('home.hbs', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
         }
         else if (error instanceof InvalidInputError){
-            response.status(400).render('home.hbs', {homeActive: true, error: 'You tried to access an invalid race.', status: 400});
+            response.status(400);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'You tried to access an invalid race.', status: 400}));
         }
         else{
-            response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong', status: 500});
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
         }
     }
 }
