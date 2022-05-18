@@ -226,12 +226,25 @@
   </div>
   {{/with}}
   {{#with character}}
+
+
   <div class="img">
     <img class="characterImg" src="/images/icons/characters/{{Race.Name}}_{{Class.Name}}.png">
   </div>
+
+
+
   <div class="spells">
     <h5 class="text-center">Spells</h5>
+    <form method="get" action="/spells/filter">
+      <button class="btn-elevated2 no-border" type="submit">
+        <input name="characterId" value="{{Id}}" hidden>
+        <img id="spellPlusImg" src="/images/icons/itemplus.png">
+      </button>
+    </form>
   </div>
+
+
   <div class="hpValues myContainer">
     <div class="verticalCenter">
       <h4 class="text-center textSizeBigger">{{CurrentHp}}</h4>

@@ -10,20 +10,24 @@ const backgroundModel = require('./models/backgroundModel');
 const logger = require('./logger.js');
 
 let dbName = process.argv[2];
-if (!dbName) {
+if (!dbName)
+{
     dbName = 'dnd_db';
 }
 
 
 startup()
-    .catch(error => {
+    .catch(error =>
+    {
         console.error(error.message);
         logger.error(error);
     });
 
 
-async function startup() {
-    try {
+async function startup()
+{
+    try
+    {
         await userModel.initialize(dbName, false);
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
@@ -37,17 +41,19 @@ async function startup() {
         await characterModel.updateSpeed(1, 30);
         await characterModel.addItem(1, 'boots', 3);
         await characterModel.addItem(1, 'boots', 4);
-        await characterModel.addCharacter(1, 2, "bob", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 2, 7);
+        await characterModel.addCharacter(1, 2, "bob", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
         let character2 = await characterModel.getCharacter(1);
         console.log(character2);
-        await characterModel.addCharacter(4, 5, "jeffrey", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 2, 7);
-        await characterModel.addCharacter(6, 3, "chase", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 2, 7);
-        await characterModel.addCharacter(1, 4, "Emperor Ligma", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 2, 7);
-    } catch (error) {
+        await characterModel.addCharacter(4, 5, "jeffrey", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
+        await characterModel.addCharacter(6, 3, "chase", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
+        await characterModel.addCharacter(1, 4, "Emperor Ligma", 10, 3, 3, 1, 4, [16, 9, 5, 4, 8, 9], [2], 4, 1, 7);
+    } catch (error)
+    {
         throw error;
     }
     // Always run the server even with failed initialization
-    finally {
+    finally
+    {
         app.listen(port);
     }
 }

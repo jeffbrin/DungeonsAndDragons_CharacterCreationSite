@@ -10,19 +10,23 @@ const authenticator = require('./authenticationHelperController');
 const userModel = require('../models/userModel');
 const charStatsModel = require('../models/characterStatisticsModel');
 const raceModel = require('../models/raceModel');
+const spellModel = require('../models/spellModel');
 
 const errors = require('../models/errorModel');
 const { getBackground, getAllBackgrounds } = require('../models/backgroundModel');
 
 
 
-hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
+hbs.handlebars.registerHelper('equals', (arg1, arg2) =>
+{
     return arg1 == arg2;
 });
 
 //https://stackoverflow.com/questions/8853396/logical-operator-in-a-handlebars-js-if-conditional
-hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
-    switch (operator) {
+hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options)
+{
+    switch (operator)
+    {
         case '==':
             return (v1 == v2) ? options.fn(this) : options.inverse(this);
         case '===':
@@ -48,25 +52,30 @@ hbs.handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
     }
 });
 
-hbs.handlebars.registerHelper('ifIn', function (elem, list, options) {
-    if (list.indexOf(elem) > -1) {
+hbs.handlebars.registerHelper('ifIn', function (elem, list, options)
+{
+    if (list.indexOf(elem) > -1)
+    {
         return options.fn(this);
     }
     return options.inverse(this);
 });
 
-async function buildSheet(id, recentCharacters) {
+async function buildSheet(id, recentCharacters)
+{
     let bigObject = {};
     bigObject.character = await model.getCharacter(id);
     bigObject.skills = await charStatsModel.getAllSkills();
     bigObject.css = 'soloCharacter.css';
     bigObject.skillProficiencies = await charStatsModel.getSkillProficiencies(id);
     bigObject.skillExpertise = await charStatsModel.getSkillExpertise(id);
-    if (!recentCharacters) {
+    if (!recentCharacters)
+    {
         //create new one
         bigObject.recentCookie = await model.createRecentCharactersCookie(bigObject.character.Id);
     }
-    else {
+    else
+    {
         // generate one from whats already there
         bigObject.recentCookie = await model.createRecentCharactersCookie(bigObject.character.Id, recentCharacters);
     }
@@ -79,17 +88,21 @@ async function buildSheet(id, recentCharacters) {
  * @param {Integer} userId 
  * @returns 
  */
-async function getCookieObjectFromRequestAndUserId(request, userId) {
+async function getCookieObjectFromRequestAndUserId(request, userId)
+{
     let recentCharacters = request.cookies.recentCharacters;
-    if (recentCharacters === undefined) {
+    if (recentCharacters === undefined)
+    {
         return false;
     }
     //make sure all the characters belong to the user ID
     let userCharacters = await model.getUserCharacters(userId);
     let result = userCharacters.map(a => a.Id);
 
-    for (let i = 0; i < recentCharacters.length; i++) {
-        if (!result.includes(recentCharacters[i].id)) {
+    for (let i = 0; i < recentCharacters.length; i++)
+    {
+        if (!result.includes(recentCharacters[i].id))
+        {
             return false;
         }
 
@@ -104,10 +117,12 @@ async function getCookieObjectFromRequestAndUserId(request, userId) {
  * @param {HTTPRequest} request The http Request object
  * @param {HTTPResponse} response The http Response object
  */
-async function sendCharacter(request, response) {
+async function sendCharacter(request, response)
+{
     requestJson = request.body;
     let charAddedId;
-    try {
+    try
+    {
         let abilityScores = [];
         abilityScores.push(requestJson.characterStrength);
         abilityScores.push(requestJson.characterDexterity);
@@ -120,27 +135,33 @@ async function sendCharacter(request, response) {
         charAddedId = await model.addCharacter(requestJson.characterClass, requestJson.characterRace, requestJson.characterName, requestJson.characterMaxHp,
             requestJson.characterBackground, requestJson.characterEthics, requestJson.characterMorality, requestJson.characterLevel, abilityScores, [],
             requestJson.characterProficiencyBonus, userId, requestJson.characterArmorClass);
-        if (charAddedId === null) {
+        if (charAddedId === null)
+        {
             response.status(400);
             response.render('home.hbs', { error: "Character was null... somehow", homeActive: true });
 
         }
-        else {
+        else
+        {
             await model.updateSpeed(charAddedId, requestJson.characterSpeed);
             await model.updateInitiative(charAddedId, requestJson.characterInitiative);
-            response.redirect(`/characters/${charAddedId}`);
+            response.redirect(`/characters/${ charAddedId }`);
         }
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500);
             logger.error("database error from sendCharacter in Character Controller");
             response.render('home.hbs', { error: "Couldn't Add Character There was a Database Error", homeActive: true });
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('home.hbs', { error: "Couldn't Add Character, Input was invalid", character: character });
             logger.error('input error - from sendCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
@@ -153,28 +174,34 @@ async function sendCharacter(request, response) {
  * @param {HTTPRequest} request the request made by the user
  * @param {HTTPResponse} response the response that will be sent back in this function depending on what happened
  */
-async function updateHitpoints(request, response, sessionId) {
+async function updateHitpoints(request, response, sessionId)
+{
     requestJson = request.body;
-    try {
+    try
+    {
         await model.addRemoveHp(request.params.id, requestJson.hp);
 
         response.status(201).redirect(url.format({
-            pathname: `/characters/${request.params.id}`,
+            pathname: `/characters/${ request.params.id }`,
             query: {
                 "success": "Hitpoints have been Modified!"
             }
         }));
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error, Couldn't update Character`, homeActive: true });
             logger.error("Database Error - From updateHitpoints in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('characters.hbs', { error: `Input error, Couldn't get Character`, charactersActive: true });
             logger.error('input error - from updateHitpoints in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
@@ -188,13 +215,16 @@ async function updateHitpoints(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getCharacter(request, response, sessionId) {
-    try {
+async function getCharacter(request, response, sessionId)
+{
+    try
+    {
         const id = request.params.id;
         const userId = await userModel.getUserIdFromSessionId(sessionId);
         let built = await buildSheet(id, request.cookies.recentCharacters);
         let error;
-        if (request.query.error) {
+        if (request.query.error)
+        {
             response.status(201)
                 .cookie(built.recentCookie.name, built.recentCookie.recentCharacters, { expires: built.recentCookie.expires, overwrite: true })
                 .render('sheet.hbs', {
@@ -203,7 +233,8 @@ async function getCharacter(request, response, sessionId) {
                     recentCharacters: built.recentCookie.recentCharacters, error: request.query.error, charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId)
                 });
         }
-        else if (request.query.success) {
+        else if (request.query.success)
+        {
             response.status(201)
                 .cookie(built.recentCookie.name, built.recentCookie.recentCharacters, { expires: built.recentCookie.expires, overwrite: true })
                 .render('sheet.hbs', {
@@ -212,7 +243,8 @@ async function getCharacter(request, response, sessionId) {
                     recentCharacters: built.recentCookie.recentCharacters, success: request.query.success, charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId)
                 });
         }
-        else {
+        else
+        {
             response.status(201)
                 .cookie(built.recentCookie.name, built.recentCookie.recentCharacters, { expires: built.recentCookie.expires, overwrite: true })
                 .render('sheet.hbs', {
@@ -222,16 +254,20 @@ async function getCharacter(request, response, sessionId) {
                 });
         }
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('characters.hbs', { error: `Database error, Couldn't get Character`, charactersActive: true });
             logger.error("Database Error - From getCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('characters.hbs', { error: `Input error, Couldn't get Character`, charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId) });
             logger.error('input error - from getCharacter in characterController');
         }
-        else {
+        else
+        {
             response.status(400).render('home.hbs', { error: `Catastrophic Failure`, homeActive: true });
             logger.error('Catastrophic Failure from getCharacter in characterController');
         }
@@ -245,28 +281,35 @@ async function getCharacter(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function getAllUserCharacters(request, response, sessionId) {
-    try {
+async function getAllUserCharacters(request, response, sessionId)
+{
+    try
+    {
         const userId = await userModel.getUserIdFromSessionId(sessionId);
         let userCharacters = await model.getUserCharacters(userId);
         // Get all the characters
         response.status(201).render('characters.hbs', { characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId), charactersActive: true, recentCharacters: await getCookieObjectFromRequestAndUserId(request, userId) });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('characters.hbs', { error: "Database error, Couldn't get Characters", charactersActive: true });
             logger.error("Database Error - From getAllCharacters in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('characters.hbs', { error: "Input Error, Couldn't get all Characters", charactersActive: true });
             logger.error('input error - from getAllCharacters in characterController');
         }
-        else if (error instanceof errors.InvalidSessionError) {
+        else if (error instanceof errors.InvalidSessionError)
+        {
             response.clearCookie('sessionId');
             response.status(400).render('home.hbs', { error: "Invalid input, couldn't get all user's characters.", homeActive: true });
             logger.error('tried to access /characters with an invalid session');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
@@ -281,10 +324,12 @@ async function getAllUserCharacters(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response
  */
-async function updateCharacter(request, response, sessionId) {
+async function updateCharacter(request, response, sessionId)
+{
     let json = request.body;
 
-    try {
+    try
+    {
         let abilityScores = [];
         abilityScores.push(json.strength);
         abilityScores.push(json.dexterity);
@@ -300,18 +345,22 @@ async function updateCharacter(request, response, sessionId) {
         await model.updateInitiative(characterId, json.initiative);
         await model.updateSpeed(characterId, json.speed);
 
-        response.redirect(`/characters/${characterId}`);
+        response.redirect(`/characters/${ characterId }`);
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error, Couldn't update Character.`, homeActive: true });
             logger.error("Database Error - From updateCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('characters.hbs', { error: `Input error, Couldn't update Character.`, charactersActive: true });
             logger.error('input error - from updateCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong... Try Again`, homeActive: true });
         }
@@ -326,24 +375,30 @@ async function updateCharacter(request, response, sessionId) {
  * @param {HTTPRequest} request 
  * @param {HTTPResponse} response 
  */
-async function deleteCharacter(request, response, sessionId) {
-    try {
+async function deleteCharacter(request, response, sessionId)
+{
+    try
+    {
         let userId = await userModel.getUserIdFromSessionId(sessionId);
         await model.removeCharacter(request.params.id);
         let userCharacters = await model.getUserCharacters(userId);
         response.status(201).render('characters.hbs', { success: "Character has been deleted", username: await userModel.getUsernameFromSessionId(sessionId), characters: userCharacters, charactersActive: true });
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error, Couldn't delete Character.`, homeActive: true });
             logger.error("Database Error - From deleteCharacter in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             let userCharacters = await model.getUserCharacters(userId);
-            response.status(400).render('characters.hbs', { error: `Input error, Couldn't delete Character with id: ${request.params.id}`, character: userCharacters, charactersActive: true });
+            response.status(400).render('characters.hbs', { error: `Input error, Couldn't delete Character with id: ${ request.params.id }`, character: userCharacters, charactersActive: true });
             logger.error('input error - from deleteCharacter in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong... Try Again`, homeActive: true });
         }
@@ -357,64 +412,76 @@ async function deleteCharacter(request, response, sessionId) {
  * @param {HTTP} request 
  * @param {HTTP} response 
  */
-async function updateLevel(request, response) {
-    try {
+async function updateLevel(request, response)
+{
+    try
+    {
         await model.levelUp(request.params.id);
         response.redirect(url.format({
-            pathname: `/characters/${request.params.id}`,
+            pathname: `/characters/${ request.params.id }`,
             query: {
                 "success": "You Leveled Up!"
             }
         }));
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${request.params.id}`, homeActive: true });
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }`, homeActive: true });
             logger.error("Database Error - From updateLevel in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).redirect(url.format({
-                pathname: `/characters/${request.params.id}`,
+                pathname: `/characters/${ request.params.id }`,
                 query: {
                     "error": "Input error, Couldn't Level Up"
                 }
             }));
             logger.error('input error - from updateLevel in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
     }
 }
 
-async function addItem(request, response, sessionId) {
+async function addItem(request, response, sessionId)
+{
     requestJson = request.body;
-    try {
+    try
+    {
         await model.addItem(parseInt(request.params.id), requestJson.itemName, requestJson.itemQuantity);
         response.redirect(url.format({
-            pathname: `/characters/${request.params.id}`,
+            pathname: `/characters/${ request.params.id }`,
             query: {
                 "success": "Item Added!"
             }
         }));
     }
-    catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${request.params.id}` });
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }` });
             logger.error("Database Error - From addItem in characterController");
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400);
             response.redirect(url.format({
-                pathname: `/characters/${request.params.id}`,
+                pathname: `/characters/${ request.params.id }`,
                 query: {
                     "error": "Input error, Couldn't Add Item!"
                 }
             }));
             logger.error('input error - from addItem in characterController');
         }
-        else {
+        else
+        {
             logger.error(error.message);
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
@@ -427,29 +494,35 @@ async function addItem(request, response, sessionId) {
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
  */
-async function sendToUpdateController(request, response, sessionId) {
-    try {
+async function sendToUpdateController(request, response, sessionId)
+{
+    try
+    {
         let classModel = require('../models/classModel');
         let races = await raceModel.getAllRaces();
         let classes = await classModel.getAllClasses();
         let built = await buildSheet(request.params.id);
         response.status(200).render('characterUpdate.hbs', { character: built.character, charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId) });
-        logger.info(`Navigated to Update Page with character ${request.params.id}`);
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${request.params.id}`, homeActive: true });
-            logger.error(`Database Error - From sendToUpdateController in characterController: ${error.message}`);
+        logger.info(`Navigated to Update Page with character ${ request.params.id }`);
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }`, homeActive: true });
+            logger.error(`Database Error - From sendToUpdateController in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).redirect(url.format({
-                pathname: `/characters/${request.params.id}`,
+                pathname: `/characters/${ request.params.id }`,
                 query: {
                     "error": "Input error, Couldn't send to Update Page!"
                 }
             }));
-            logger.error(`input error - from sendToUpdateController in characterController: ${error.message}`);
+            logger.error(`input error - from sendToUpdateController in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From sendToCreatePage.');
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
@@ -462,153 +535,218 @@ async function sendToUpdateController(request, response, sessionId) {
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
  */
-async function sendToCreatePage(request, response) {
-    try {
+async function sendToCreatePage(request, response)
+{
+    try
+    {
         let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
         response.status(200).render('newCharacter.hbs', { UserId: userId, createCharacterStyle: '/createStyling.css', backgrounds: await getAllBackgrounds(), races: await raceModel.getAllRaces(), charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId) });
-        logger.info(`Navigated to Create Page with user ${userId}`);
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+        logger.info(`Navigated to Create Page with user ${ userId }`);
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error`, homeActive: true });
-            logger.error(`Database Error - From sendToCreatePage in characterController: ${error.message}`);
+            logger.error(`Database Error - From sendToCreatePage in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('home.hbs', { error: `Input error, Couldn't Navigate to Create Page!`, homeActive: true });
-            logger.error(`input error - from sendToCreatePage in characterController: ${error.message}`);
+            logger.error(`input error - from sendToCreatePage in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidSessionError) {
+        else if (error instanceof errors.InvalidSessionError)
+        {
             response.status(400).render('home.hbs', { error: `You might not be logged in!`, homeActive: true });
-            logger.error(`invalid session error - from sendToCreatePage in characterController: ${error.message}`);
+            logger.error(`invalid session error - from sendToCreatePage in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From sendToCreatePage.');
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
     }
 }
 
-async function addProficiencyController(request, response, sessionId) {
+async function addProficiencyController(request, response, sessionId)
+{
     const json = request.body;
-    try {
+    try
+    {
         await charStatsModel.addSkillProficiency(json.characterId, json.skillId);
-        logger.info(`Successfully added skill proficiency with id: ${json.skillId} to character: ${json.characterId}`);
+        logger.info(`Successfully added skill proficiency with id: ${ json.skillId } to character: ${ json.characterId }`);
 
         response.redirect(url.format({
-            pathname: `/characters/${request.params.id}`,
+            pathname: `/characters/${ request.params.id }`,
             query: {
                 "success": "Proficiency Added!"
             }
         }));
 
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error couldn't add proficiency`, homeActive: true });
-            logger.error(`Database Error - From addProficiencyController in characterController: ${error.message}`);
+            logger.error(`Database Error - From addProficiencyController in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('home.hbs', { error: `Input error, Couldn't Add proficiency!`, homeActive: true });
-            logger.error(`input error - from addProficiencyController in characterController: ${error.message}`);
+            logger.error(`input error - from addProficiencyController in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From addProficiencyController.');
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
     }
 }
 
-async function addExpertiseController(request, response, sessionId) {
+async function addExpertiseController(request, response, sessionId)
+{
     const json = request.body;
-    try {
+    try
+    {
         await charStatsModel.addSkillExpertise(json.characterId, json.skillId);
-        logger.info(`Successfully added skill Expertise with id: ${json.skillId} to character: ${json.characterId}`);
+        logger.info(`Successfully added skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
         let built = await buildSheet(json.characterId);
 
         response.redirect(url.format({
-            pathname: `/characters/${json.characterId}`,
+            pathname: `/characters/${ json.characterId }`,
             query: {
                 "success": "Expertise Has Been Added!"
             }
         }));
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error couldn't add Expertise`, homeActive: true });
-            logger.error(`Database Error - From addSkillExpertise in characterController: ${error.message}`);
+            logger.error(`Database Error - From addSkillExpertise in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).redirect(url.format({
-                pathname: `/characters/${json.characterId}`,
+                pathname: `/characters/${ json.characterId }`,
                 query: {
                     "error": "Input Error, Couldn't add Expertise!"
                 }
             }));
-            logger.error(`input error - from addSkillExpertise in characterController: ${error.message}`);
+            logger.error(`input error - from addSkillExpertise in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From addSkillExpertise.');
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
     }
 }
 
-async function removeAllExpertiseAndProficiencies(request, response, sessionId) {
+async function removeAllExpertiseAndProficiencies(request, response, sessionId)
+{
     const json = request.body;
-    try {
+    try
+    {
         await charStatsModel.removeSkillExpertise(json.characterId, json.skillId);
-        logger.info(`Successfully removed skill Expertise with id: ${json.skillId} to character: ${json.characterId}`);
+        logger.info(`Successfully removed skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
 
         response.status(200).redirect(url.format({
-            pathname: `/characters/${json.characterId}`,
+            pathname: `/characters/${ json.characterId }`,
             query: {
                 "success": "Expertise and Proficiency Have Been Removed!"
             }
         }));
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error couldn't remove Expertise`, homeActive: true });
-            logger.error(`Database Error - From removeAllExpertiseAndProficiencies in characterController: ${error.message}`);
+            logger.error(`Database Error - From removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).render('home.hbs', { error: `Input error, Couldn't remove Expertise!`, homeActive: true });
-            logger.error(`input error - from removeAllExpertiseAndProficiencies in characterController: ${error.message}`);
+            logger.error(`input error - from removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From removeAllExpertiseAndProficiencies.');
             response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
         }
     }
 }
 
-async function addExperiencePoints(request, response, sessionId) {
+async function addExperiencePoints(request, response, sessionId)
+{
     let json = request.body;
-    try {
+    try
+    {
         await model.updateExp(request.params.id, json.experiencePoints);
-        logger.info(`Successfully updated exp or id: ${request.params.id} to: ${json.experiencePoints}`);
+        logger.info(`Successfully updated exp or id: ${ request.params.id } to: ${ json.experiencePoints }`);
 
         response.status(200).redirect(url.format({
-            pathname: `/characters/${request.params.id}`,
+            pathname: `/characters/${ request.params.id }`,
             query: {
                 "success": "Experience Points Have Been Updated!"
             }
         }));
-    } catch (error) {
-        if (error instanceof errors.DatabaseError) {
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
             response.status(500).render('home.hbs', { error: `Database error couldn't update Exp!`, homeActive: true });
-            logger.error(`Database Error - From addExperiencePoints in characterController: ${error.message}`);
+            logger.error(`Database Error - From addExperiencePoints in characterController: ${ error.message }`);
         }
-        else if (error instanceof errors.InvalidInputError) {
+        else if (error instanceof errors.InvalidInputError)
+        {
             response.status(400).redirect(url.format({
-                pathname: `/characters/${request.params.id}`,
+                pathname: `/characters/${ request.params.id }`,
                 query: {
                     "error": "Input error, Couldn't Add Experience Points."
                 }
             }));
-            logger.error(`input error - from addExperiencePoints in characterController: ${error.message}`);
+            logger.error(`input error - from addExperiencePoints in characterController: ${ error.message }`);
         }
-        else {
+        else
+        {
             logger.error(error.message + 'From addExperiencePoints.');
             response.status(500).render('home.hbs', { error: `Something went wrong... Try again`, homeActive: true });
         }
     }
+}
+
+async function sendToAddSpellPage(request, response, sessionId)
+{
+    let characterId = request.params.id;
+    try
+    {
+        let userId = await userModel.getUserIdFromSessionId(sessionId);
+        response.status(200).render('addSpellToCharacter.hbs', { Id: characterId, spells: await spellModel.getAllSpells(userId) });
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).render('home.hbs', { error: `Database error couldn't get Spells PAge!`, homeActive: true });
+            logger.error(`Database Error - From sendToAddSpellPage in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).redirect(url.format({
+                pathname: `/characters/${ request.params.id }`,
+                query: {
+                    "error": "Input error, Couldn't send to Spell Page."
+                }
+            }));
+            logger.error(`input error - from sendToAddSpellPage in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From sendToAddSpellPage.');
+            response.status(500).render('home.hbs', { error: `Something went wrong... Try again`, homeActive: true });
+        }
+    }
+
+
 }
 
 
@@ -626,6 +764,7 @@ router.put('/:id/levels', (request, response) => authenticator.gateAccess(reques
 router.put("/:id/items", (request, response) => authenticator.gateAccess(request, response, addItem));
 router.get("/forms/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToUpdateController));
 router.get("/new", sendToCreatePage);
+router.get("/spells/:id(\\d+)/", (request, response) => authenticator.gateAccess(request, response, sendToAddSpellPage));
 router.put('/:id(\\d+)/proficiencies', (request, response) => authenticator.gateAccess(request, response, addProficiencyController));
 router.put('/:id(\\d+)/expertise', (request, response) => authenticator.gateAccess(request, response, addExpertiseController));
 router.delete('/:id(\\d+)/proficiencies', (request, response) => authenticator.gateAccess(request, response, removeAllExpertiseAndProficiencies));
