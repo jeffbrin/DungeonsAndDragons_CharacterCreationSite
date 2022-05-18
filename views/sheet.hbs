@@ -145,24 +145,28 @@
       <tbody>
         {{#each skills}}
         <tr class="w-100">
-          <td class="w-20">
-            {{#ifIn Id ../skillProficiencies}}
+          <td class="w-20 cellClass">
+            <div style="display: inline-block; vertical-align:middle">
+              {{#ifIn Id ../skillProficiencies}}
 
-            <button type="button" form="addExpertiseForm" onclick="addExpertise({{../character.Id}},{{Id}})"
-              class="btn btn-secondary2 btn-no-padding"><img class="profOrExpertise" src="/images/icons/p.png"></button>
-            {{else}}
-            {{#ifIn Id ../skillExpertise}}<button type="button" form="removeAllForm"
-              onclick="removeAll({{../character.Id}},{{Id}})" class="btn btn-secondary2 btn-no-padding"><img
-                class="profOrExpertise" src="/images/icons/e.png"></button>
-            {{else}}
-            <button type="button" form="addProficiencyForm" onclick="addProficiency({{../character.Id}},{{Id}})"
-              class="btn btn-secondary2 btn-no-padding"><img src="/images/icons/profPlus.png"
-                class="profOrExpertise"></button>
-            {{/ifIn}}
-            {{/ifIn}}
+              <button type="button" form="addExpertiseForm" onclick="addExpertise({{../character.Id}},{{Id}})"
+                class="btn btn-secondary2 btn-no-padding"><img class="profOrExpertise"
+                  src="/images/icons/p.png"></button>
+              {{else}}
+              {{#ifIn Id ../skillExpertise}}<button type="button" form="removeAllForm"
+                onclick="removeAll({{../character.Id}},{{Id}})" class="btn btn-secondary2 btn-no-padding"><img
+                  class="profOrExpertise" src="/images/icons/e.png"></button>
+              {{else}}
+              <button type="button" form="addProficiencyForm" onclick="addProficiency({{../character.Id}},{{Id}})"
+                class="btn btn-secondary2 btn-no-padding"><img src="/images/icons/profPlus.png"
+                  class="profOrExpertise"></button>
+              {{/ifIn}}
+              {{/ifIn}}
+            </div>
+
           </td>
-          <td class="w-40">{{Name}}</td>
-          <td class="w-40">{{Ability.Name}}</td>
+          <td class="w-40 cellClass">{{Name}}</td>
+          <td class="w-40 cellClass">{{Ability.Name}}</td>
         </tr>
         {{/each}}
       </tbody>
@@ -182,7 +186,8 @@
             <form method="post" action="/characters/items" id="itemForm">
               <input name="choice" hidden value='{"method":"PUT"}'>
               <input name="characterId" hidden value="{{character.Id}}">
-              <button class="btn-elevated2 no-border" type="button" id="itemBtn">
+              <button class="btn-elevated2 no-border" type="button" id="itemBtn" data-bs-toggle="tooltip"
+                data-bs-placement="right" title="Click on the Image To Add an Item to your Character!">
                 <img id="itemImg" src="/images/icons/itemplus.png">
               </button>
             </form>
@@ -193,8 +198,8 @@
       <tbody id="itemTBody" class="">
         {{#each character.OwnedItems}}
         <tr class="">
-          <td class="capitalize">{{Name}}</td>
-          <td class="" colspan="2">{{Count}}</td>
+          <td class="capitalize cellClass">{{Name}}</td>
+          <td class="cellClass" colspan="2">{{Count}}</td>
         </tr>
         {{/each}}
       </tbody>
@@ -215,10 +220,10 @@
       <tbody>
         {{#each AbilityScores}}
         <tr>
-          <td scope="row"><button class="no-border btn-elevated2 roll20" data-bs-toggle="modal"
+          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
               data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
-          <td>{{AbilityName}}</td>
-          <td class="abilityScoreModifierTd">FE</td>
+          <td class="cellClass">{{AbilityName}}</td>
+          <td class="abilityScoreModifierTd cellClass">FE</td>
         </tr>
         {{/each}}
       </tbody>
@@ -235,13 +240,49 @@
 
 
   <div class="spells">
-    <h5 class="text-center">Spells</h5>
-    <form method="get" action="/spells/filter">
-      <button class="btn-elevated2 no-border" type="submit">
-        <input name="characterId" value="{{Id}}" hidden>
-        <img id="spellPlusImg" src="/images/icons/itemplus.png">
-      </button>
-    </form>
+    <div class="text-center pos-relative" style="margin-top: .5rem;">
+      <h5 style="display:inline-block;" class="text-center">Spells</h5><button id="deleteSpellBtn"
+        style="position:absolute;right:-1rem;top:-.25rem;" class="no-border btn-elevated2 roll20 cellClass"><img
+          id="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
+    </div>
+
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Damage</th>
+          <th scope="col">Name</th>
+          <th scope="col">Level</th>
+          <th scope="col">
+            <form method="get" action="/spells/filter">
+              <button class="btn-elevated2 no-border" type="submit" data-bs-toggle="tooltip" data-bs-placement="right"
+                title="Click on the Image To Add a Spell to your Character!">
+                <input name="characterId" value="{{Id}}" hidden>
+                <img id="spellPlusImg" src="/images/icons/itemplus.png">
+              </button>
+            </form>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+
+        {{#each Spells}}
+        <form id="deleteForm_{{Id}}" action="/characters/spells/{{Id}}" method="post" hidden><input hidden name="choice"
+            value='{"method":"Delete"}'></form>
+        <tr class="mh-35px spellRow">
+          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
+              data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
+          <td class="capitalize cellClass">{{Name}}</td>
+          <td class="checkCantrip cellClass">{{Level}}</td>
+          <td class="capitalize cellClass hiddenDeleteSpell">
+            <button class="no-border btn-elevated2 roll20 cellClass" type="submit" form="deleteForm_{{Id}}" hidden>
+              <img class="d20Skill" src="/images/icons/trash.png" hidden>
+            </button>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
   </div>
 
 
@@ -276,7 +317,7 @@
           <tbody>
             {{#each Race.Traits}}
             <tr>
-              <td><a class="lighterHoverA" href="/races/{{../Id}}">{{Name}}</a></td>
+              <td class="cellClass"><a class="lighterHoverA" href="/races/{{../Id}}">{{Name}}</a></td>
             </tr>
             {{/each}}
           </tbody>
@@ -299,7 +340,7 @@
           <tbody>
             {{#each Class.Features}}
             {{#ifCond Level '<=' ../Level}}<tr>
-              <td><a class="lighterHoverA" href="/classes/{{../Id}}">{{Name}}</a></td>
+              <td class="cellClass"><a class="lighterHoverA" href="/classes/{{../Id}}">{{Name}}</a></td>
               </tr>{{/ifCond}}
               {{/each}}
           </tbody>
@@ -321,7 +362,7 @@
           <tbody>
             {{#each Background.Features}}
             <tr>
-              <td><a class="lighterHoverA" href="/backgrounds/{{../Id}}">{{Name}}</a></td>
+              <td class="cellClass"><a class="lighterHoverA" href="/backgrounds/{{../Id}}">{{Name}}</a></td>
             </tr>
             {{/each}}
           </tbody>
@@ -335,3 +376,18 @@
 
 </div>
 <script src="/scripts/sheetButtons.js" defer></script>
+<script>
+  $(function ()
+  {
+    $("#hoverPlayImg").hover(
+      function ()
+      {
+        $(this).attr("src", "/images/icons/trash.gif");
+      },
+      function ()
+      {
+        $(this).attr("src", "/images/icons/trashStatic.png");
+      }
+    );
+  });
+</script>

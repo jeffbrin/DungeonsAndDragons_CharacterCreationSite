@@ -14,6 +14,8 @@ const spellModel = require('../models/spellModel');
 
 const errors = require('../models/errorModel');
 const { getBackground, getAllBackgrounds } = require('../models/backgroundModel');
+const { redirect } = require('express/lib/response');
+const { unregisterCustomQueryHandler } = require('puppeteer');
 
 
 
@@ -61,10 +63,10 @@ hbs.handlebars.registerHelper('ifIn', function (elem, list, options)
     return options.inverse(this);
 });
 
-async function buildSheet(id, recentCharacters)
+async function buildSheet(id, recentCharacters, userId)
 {
     let bigObject = {};
-    bigObject.character = await model.getCharacter(id);
+    bigObject.character = await model.getCharacter(id, userId);
     bigObject.skills = await charStatsModel.getAllSkills();
     bigObject.css = 'soloCharacter.css';
     bigObject.skillProficiencies = await charStatsModel.getSkillProficiencies(id);
@@ -138,7 +140,7 @@ async function sendCharacter(request, response)
         if (charAddedId === null)
         {
             response.status(400);
-            response.render('home.hbs', { error: "Character was null... somehow", homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Character was null... somehow" }));
 
         }
         else
@@ -153,17 +155,17 @@ async function sendCharacter(request, response)
         {
             response.status(500);
             logger.error("database error from sendCharacter in Character Controller");
-            response.render('home.hbs', { error: "Couldn't Add Character There was a Database Error", homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Couldn't Add Character There was a Database Error" }));
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('home.hbs', { error: "Couldn't Add Character, Input was invalid", character: character });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Couldn't Add Character, Input was invalid" }));
             logger.error('input error - from sendCharacter in characterController');
         }
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -192,7 +194,7 @@ async function updateHitpoints(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't update Character`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't update Character" }));
             logger.error("Database Error - From updateHitpoints in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -203,7 +205,7 @@ async function updateHitpoints(request, response, sessionId)
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -221,7 +223,7 @@ async function getCharacter(request, response, sessionId)
     {
         const id = request.params.id;
         const userId = await userModel.getUserIdFromSessionId(sessionId);
-        let built = await buildSheet(id, request.cookies.recentCharacters);
+        let built = await buildSheet(id, request.cookies.recentCharacters, userId);
         let error;
         if (request.query.error)
         {
@@ -268,7 +270,7 @@ async function getCharacter(request, response, sessionId)
         }
         else
         {
-            response.status(400).render('home.hbs', { error: `Catastrophic Failure`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
             logger.error('Catastrophic Failure from getCharacter in characterController');
         }
     }
@@ -305,13 +307,13 @@ async function getAllUserCharacters(request, response, sessionId)
         else if (error instanceof errors.InvalidSessionError)
         {
             response.clearCookie('sessionId');
-            response.status(400).render('home.hbs', { error: "Invalid input, couldn't get all user's characters.", homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Invalid input, couldn't get all user's characters." }));
             logger.error('tried to access /characters with an invalid session');
         }
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -351,7 +353,7 @@ async function updateCharacter(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't update Character.`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't update Character." }));
             logger.error("Database Error - From updateCharacter in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -362,7 +364,7 @@ async function updateCharacter(request, response, sessionId)
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong... Try Again`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -388,7 +390,7 @@ async function deleteCharacter(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't delete Character.`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't delete Character." }));
             logger.error("Database Error - From deleteCharacter in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -400,7 +402,7 @@ async function deleteCharacter(request, response, sessionId)
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong... Try Again`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -428,7 +430,7 @@ async function updateLevel(request, response)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't level up Character." }));
             logger.error("Database Error - From updateLevel in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -444,7 +446,7 @@ async function updateLevel(request, response)
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -466,7 +468,7 @@ async function addItem(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }` });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't level up Character." }));
             logger.error("Database Error - From addItem in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -483,7 +485,7 @@ async function addItem(request, response, sessionId)
         else
         {
             logger.error(error.message);
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -501,14 +503,15 @@ async function sendToUpdateController(request, response, sessionId)
         let classModel = require('../models/classModel');
         let races = await raceModel.getAllRaces();
         let classes = await classModel.getAllClasses();
-        let built = await buildSheet(request.params.id);
+        let userId = await userModel.getUserIdFromSessionId(sessionId);
+        let built = await buildSheet(request.params.id, request.cookies.recentCharacters, userId);
         response.status(200).render('characterUpdate.hbs', { character: built.character, charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId) });
         logger.info(`Navigated to Update Page with character ${ request.params.id }`);
     } catch (error)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error, Couldn't level up Character with id: ${ request.params.id }`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't level up Character." }));
             logger.error(`Database Error - From sendToUpdateController in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
@@ -524,7 +527,7 @@ async function sendToUpdateController(request, response, sessionId)
         else
         {
             logger.error(error.message + 'From sendToCreatePage.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -535,34 +538,34 @@ async function sendToUpdateController(request, response, sessionId)
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
  */
-async function sendToCreatePage(request, response)
+async function sendToCreatePage(request, response, sessionId)
 {
     try
     {
-        let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
+        let userId = await userModel.getUserIdFromSessionId(sessionId);
         response.status(200).render('newCharacter.hbs', { UserId: userId, createCharacterStyle: '/createStyling.css', backgrounds: await getAllBackgrounds(), races: await raceModel.getAllRaces(), charactersActive: true, username: await userModel.getUsernameFromSessionId(sessionId) });
         logger.info(`Navigated to Create Page with user ${ userId }`);
     } catch (error)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't get send to create Page!" }));
             logger.error(`Database Error - From sendToCreatePage in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('home.hbs', { error: `Input error, Couldn't Navigate to Create Page!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Input error, Couldn't Navigate to Create Page!" }));
             logger.error(`input error - from sendToCreatePage in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidSessionError)
         {
-            response.status(400).render('home.hbs', { error: `You might not be logged in!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "You might not be logged in!" }));
             logger.error(`invalid session error - from sendToCreatePage in characterController: ${ error.message }`);
         }
         else
         {
             logger.error(error.message + 'From sendToCreatePage.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -586,18 +589,18 @@ async function addProficiencyController(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error couldn't add proficiency`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't add proficiency." }));
             logger.error(`Database Error - From addProficiencyController in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('home.hbs', { error: `Input error, Couldn't Add proficiency!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper(`/character/${ json.characterId }`, { error: "Input error, Couldn't Add proficiency!" }));
             logger.error(`input error - from addProficiencyController in characterController: ${ error.message }`);
         }
         else
         {
             logger.error(error.message + 'From addProficiencyController.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -607,9 +610,10 @@ async function addExpertiseController(request, response, sessionId)
     const json = request.body;
     try
     {
+        let userId = await userModel.getUserIdFromSessionId(sessionId);
         await charStatsModel.addSkillExpertise(json.characterId, json.skillId);
         logger.info(`Successfully added skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
-        let built = await buildSheet(json.characterId);
+        let built = await buildSheet(json.characterId, request.cookies.recentCharacters, userId);
 
         response.redirect(url.format({
             pathname: `/characters/${ json.characterId }`,
@@ -621,7 +625,7 @@ async function addExpertiseController(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error couldn't add Expertise`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't add ExpertiseDatabase!" }));
             logger.error(`Database Error - From addSkillExpertise in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
@@ -637,7 +641,7 @@ async function addExpertiseController(request, response, sessionId)
         else
         {
             logger.error(error.message + 'From addSkillExpertise.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -660,18 +664,18 @@ async function removeAllExpertiseAndProficiencies(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error couldn't remove Expertise`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't remove Expertise" }));
             logger.error(`Database Error - From removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('home.hbs', { error: `Input error, Couldn't remove Expertise!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper(`/characters/${ json.characterId }`, { error: "Input error, Couldn't remove Expertise!" }));
             logger.error(`input error - from removeAllExpertiseAndProficiencies in characterController: ${ error.message }`);
         }
         else
         {
             logger.error(error.message + 'From removeAllExpertiseAndProficiencies.');
-            response.status(500).render('home.hbs', { error: `Something went wrong...`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -694,7 +698,7 @@ async function addExperiencePoints(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error couldn't update Exp!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't update Exp!" }));
             logger.error(`Database Error - From addExperiencePoints in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
@@ -710,7 +714,7 @@ async function addExperiencePoints(request, response, sessionId)
         else
         {
             logger.error(error.message + 'From addExperiencePoints.');
-            response.status(500).render('home.hbs', { error: `Something went wrong... Try again`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 }
@@ -726,7 +730,7 @@ async function sendToAddSpellPage(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).render('home.hbs', { error: `Database error couldn't get Spells PAge!`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't get Spells Page!" }));
             logger.error(`Database Error - From sendToAddSpellPage in characterController: ${ error.message }`);
         }
         else if (error instanceof errors.InvalidInputError)
@@ -742,14 +746,104 @@ async function sendToAddSpellPage(request, response, sessionId)
         else
         {
             logger.error(error.message + 'From sendToAddSpellPage.');
-            response.status(500).render('home.hbs', { error: `Something went wrong... Try again`, homeActive: true });
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
+        }
+    }
+}
+
+async function addSpellToCharacter(request, response, sessionId)
+{
+    let theJson = request.body;
+    let userId;
+    let characterId = request.params.id;
+    try
+    {
+        userId = await userModel.getUserIdFromSessionId(sessionId);
+        await model.addKnownSpell(characterId, theJson.spellId, userId);
+        response.redirect(url.format({
+            pathname: `/characters/${ parseInt(characterId) }`,
+            query: {
+                "success": "Added Spell to Character!"
+            }
+        }));
+        logger.info(`Success, added Spell (${ theJson.spellId }) to character (${ characterId })`);
+
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't get Spells Page!" }));
+            logger.error(`Database Error - From addSpellToCharacter in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).redirect(url.format({
+                pathname: `/characters/${ request.params.id }`,
+                query: {
+                    "error": "Input error, Couldn't send to Spell Page."
+                }
+            }));
+            logger.error(`input error - from addSpellToCharacter in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From addSpellToCharacter.');
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
+        }
+    }
+}
+
+async function deleteSpellFromCharacter(request, response, sessionId)
+{
+    let theJson = request.body;
+    let userId;
+    let characterId = request.params.id;
+    try
+    {
+        userId = await userModel.getUserIdFromSessionId(sessionId);
+        await model.removeKnownSpell(characterId, theJson.spellId, userId);
+        response.redirect(url.format({
+            pathname: `/characters/${ characterId }`,
+            query: {
+                "success": "Removed Spell From Character!"
+            }
+        }));
+        logger.info(`Success, Removed Spell (${ theJson.spellId }) From character (${ characterId })`);
+
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't get Spells Page!" }));
+            logger.error(`Database Error - From addSpellToCharacter in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).redirect(url.format({
+                pathname: `/characters/${ request.params.id }`,
+                query: {
+                    "error": "Input error, Couldn't send to Spell Page."
+                }
+            }));
+            logger.error(`input error - from addSpellToCharacter in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From addSpellToCharacter.');
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
         }
     }
 
 
 }
 
-
+function getUrlFormatHelper(path, queryParams)
+{
+    return url.format({
+        pathname: path,
+        query: queryParams
+    });
+}
 
 
 router.put('/:id', (request, response) => authenticator.gateAccess(request, response, updateCharacter));
@@ -763,8 +857,10 @@ router.put('/:id(\\d+)/hp', (request, response) => authenticator.gateAccess(requ
 router.put('/:id/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
 router.put("/:id/items", (request, response) => authenticator.gateAccess(request, response, addItem));
 router.get("/forms/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToUpdateController));
-router.get("/new", sendToCreatePage);
-router.get("/spells/:id(\\d+)/", (request, response) => authenticator.gateAccess(request, response, sendToAddSpellPage));
+router.get("/new", (request, response) => authenticator.gateAccess(request, response, sendToCreatePage));
+router.get("/spells/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToAddSpellPage));
+router.put("/spells/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, addSpellToCharacter));
+router.delete("/spells/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, deleteSpellFromCharacter));
 router.put('/:id(\\d+)/proficiencies', (request, response) => authenticator.gateAccess(request, response, addProficiencyController));
 router.put('/:id(\\d+)/expertise', (request, response) => authenticator.gateAccess(request, response, addExpertiseController));
 router.delete('/:id(\\d+)/proficiencies', (request, response) => authenticator.gateAccess(request, response, removeAllExpertiseAndProficiencies));
