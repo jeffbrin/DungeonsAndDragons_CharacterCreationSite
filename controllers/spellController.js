@@ -277,6 +277,7 @@ router.get('/', (request, response) => authenticator.loadDifferentPagePerLoginSt
 async function showFilteredSpells(request, response, username, userId) {
     filter = request.query;
 
+    const characterId = filter.characterId;
     userId = userId ? userId : 0;
     filter.Level = filter.Level ? filter.Level : null;
     filter.SchoolId = filter.SchoolId ? filter.SchoolId : null;
@@ -294,7 +295,10 @@ async function showFilteredSpells(request, response, username, userId) {
 
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells => { 
-            response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
+            if (filter.characterId)
+                response.render('addSpellToCharacter.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+            else
+                response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
         })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
