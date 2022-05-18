@@ -65,15 +65,14 @@
         <div id="classesDiv" class="d-flex align-items-center justify-content-center flex-wrap align-items-around pt-3"
             style="flex: 5;">
             {{!-- Classes that can cast this spell --}}
-            {{#each Classes}}
+            {{#with filter.Class}}
             <div class="px-4">
-                <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}" {{#if (stringIn
-                    Id ../filter.Classes)}}checked{{/if}}>
+                <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}" checked>
                 <label for="{{Name}}checkbox"><img class="classImage" src="/images/icons/class/{{Name}}.png"
                         alt="{{Name}}"></label>
                 <p class="text-center">{{Name}}</p>
             </div>
-            {{/each}}
+            {{/with}}
             <input type="text" hidden id="castableClasses" name="ClassIds">
         </div>
 
