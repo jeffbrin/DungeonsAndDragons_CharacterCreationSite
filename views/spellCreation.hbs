@@ -1,0 +1,228 @@
+{{#if error}}
+<div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+  <h4>{{status}} Error</h4>
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+    <use xlink:href="#exclamation-triangle-fill" />
+  </svg>{{error}}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
+<form id="additionForm" class="bg-dark my-5 d-flex container" style="border:2px solid black; flex: 2;  border-radius: 30px; position: relative;" action="/spells" method="POST">
+  <h2 style="position: absolute; top: -42px">Add Spell</h2>
+  <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 2;">
+
+    <div id="classesDiv" class="d-flex align-items-center justify-content-center flex-wrap align-items-around pt-3" style="flex: 5;">
+            {{!-- Classes that can cast this spell --}}
+            {{#each Classes}}
+            <div class="px-4">
+              <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}"
+                {{#if (stringIn Id ../failedSpell.Classes)}}checked{{/if}}>
+                <label for="{{Name}}checkbox"><img class="classImage" src="/images/icons/class/{{Name}}.png" alt="{{Name}}"></label>
+                <p class="text-center">{{Name}}</p>
+            </div>
+            {{/each}}
+            <input type="text" hidden id="castableClasses" name="ClassIds">
+    </div>
+
+    <div id="basicsDiv" class="d-flex justify-content-evenly align-items-end pb-5" style="flex: 1;">
+
+      {{!-- Schools picker --}}
+      <div id="schoolsDiv" class="d-flex flex-column align-items-center">
+        <label for="schoolIdPicker">School</label>
+        <select name="SchoolId" id="schoolIdPicker" class="px-2 py-1" style="border-radius: 5px;">
+          {{#each schools}}
+          <option {{#if (numEquals ../failedSpell.SchoolId Id)}} selected {{/if}} value="{{Id}}">{{Name}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      {{!-- Levels --}}
+      <div id="levelsDiv" class="d-flex flex-column align-items-center">
+        <label for="levelPicker">Level</label>
+        <select name="Level" id="levelPicker" class="px-2 py-1" style="border-radius: 5px;">
+          <option {{#if (numEquals failedSpell.Level 0)}} selected {{/if}} value="0">Cantrip</option>
+          <option {{#if (numEquals failedSpell.Level 1)}} selected {{/if}} value="1">1</option>
+          <option {{#if (numEquals failedSpell.Level 2)}} selected {{/if}} value="2">2</option>
+          <option {{#if (numEquals failedSpell.Level 3)}} selected {{/if}} value="3">3</option>
+          <option {{#if (numEquals failedSpell.Level 4)}} selected {{/if}} value="4">4</option>
+          <option {{#if (numEquals failedSpell.Level 5)}} selected {{/if}} value="5">5</option>
+          <option {{#if (numEquals failedSpell.Level 6)}} selected {{/if}} value="6">6</option>
+          <option {{#if (numEquals failedSpell.Level 7)}} selected {{/if}} value="7">7</option>
+          <option {{#if (numEquals failedSpell.Level 8)}} selected {{/if}} value="8">8</option>
+          <option {{#if (numEquals failedSpell.Level 9)}} selected {{/if}} value="9">9</option>
+        </select>
+      </div>
+
+      {{!-- Name --}}
+      <div class="d-flex flex-column align-items-center">
+        <label for="spellName">Name</label>
+        <input required type="text" name="Name" id="spellName" {{#if failedSpell.Name}}value="{{failedSpell.Name}}" {{/if}}>
+      </div>
+
+      {{!-- Description --}}
+        <div class="d-flex flex-column align-items-center">
+            <label for="spellDescription">Description</label>
+            <textarea required name="Description" id="description" cols="20" rows="2">{{#if failedSpell.Description}}{{failedSpell.Description}}{{/if}}</textarea>
+        </div>
+
+    </div>
+  </div>
+  <div id="right" style="flex: 1;" class="d-flex flex-column">
+    <div id="castingDetailsDiv" style="border-bottom: 2px solid black; flex:1;" class="p-2 d-flex flex-column justify-content-evenly align-items-center">
+      
+      {{!-- Casting Time --}}
+      <div id="castingTimeDiv" class="d-flex m-2 align-items-end justify-content-center flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="castingTime">Casting Time</label>
+        <select name="CastingTime" id="castingTime">
+          <option {{#if (equals failedSpell.CastingTime "1 action")}}selected{{/if}} value="1 action">1 action</option>
+          <option {{#if (equals failedSpell.CastingTime "1 bonus action")}}selected{{/if}} value="1 bonus action">1 bonus
+            action</option>
+          <option {{#if (equals failedSpell.CastingTime "1 reaction")}}selected{{/if}} value="1 reaction">1 reaction</option>
+          <option {{#if (equals failedSpell.CastingTime "1 minute")}}selected{{/if}} value="1 minute">1 minute</option>
+          <option {{#if (equals failedSpell.CastingTime "10 minutes")}}selected{{/if}} value="10 minutes">10 minutes</option>
+          <option {{#if (equals failedSpell.CastingTime "1 hour")}}selected{{/if}} value="1 hour">1 hour</option>
+          <option
+            {{#if (isNoneOf failedSpell.CastingTime '["1 action","1 bonus action","1 reaction","1 minute","10 minutes","1 hour",null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf failedSpell.CastingTime '["1 action","1 bonus action","1 reaction","1 minute","10 minutes","1 hour",null]')}}value="{{failedSpell.CastingTime}}"
+          {{else}}style="visibility: hidden;"{{/if}} type="text" id="customCastingTime" name="customCastingTime">
+          </div>
+      </div>
+
+      {{!-- Duration --}}
+      <div id="durationDiv" class="d-flex m-2 align-items-end justify-content-center flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="durationSelect">Duration</label>
+        <select name="Duration" id="durationSelect">
+          <option {{#if (equals failedSpell.Duration "Instantaneous")}}selected{{/if}} value="Instantaneous">Instantaneous
+          </option>
+          <option {{#if (equals failedSpell.Duration "1 Round")}}selected{{/if}} value="1 Round">1 Round</option>
+          <option {{#if (equals failedSpell.Duration "1 Minute")}}selected{{/if}} value="1 Minute">1 Minute</option>
+          <option {{#if (equals failedSpell.Duration "10 Minutes")}}selected{{/if}} value="10 Minutes">10 Minutes</option>
+          <option {{#if (equals failedSpell.Duration "30 Minutes")}}selected{{/if}} value="30 Minutes">30 Minutes</option>
+          <option {{#if (equals failedSpell.Duration "1 Hour")}}selected{{/if}} value="1 Hour">1 Hour</option>
+          <option {{#if (equals failedSpell.Duration "8 Hours")}}selected{{/if}} value="8 Hours">8 Hours</option>
+          <option
+            {{#if (isNoneOf failedSpell.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf failedSpell.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}value="{{failedSpell.Duration}}"
+          {{else}}style="visibility: hidden;" {{/if}} type="text" id="customDuration" name="customDuration">
+          </div>
+      </div>
+
+      {{!-- Range --}}
+      <div id="rangeDiv" class="d-flex m-2 align-items-end justify-content-center flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="rangeInput">Range</label>
+        <select name="EffectRange" id="rangeInput">
+          <option {{#if (equals failedSpell.EffectRange "Self")}}selected{{/if}} value="Self">Self</option>
+          <option {{#if (equals failedSpell.EffectRange "5 Feet")}}selected{{/if}} value="5 Feet">5 Feet</option>
+          <option {{#if (equals failedSpell.EffectRange "30 Feet")}}selected{{/if}} value="30 Feet">30 Feet</option>
+          <option {{#if (equals failedSpell.EffectRange "60 Feet")}}selected{{/if}} value="60 Feet">60 Feet</option>
+          <option {{#if (equals failedSpell.EffectRange "120 Feet")}}selected{{/if}} value="120 Feet">120 Feet</option>
+          <option
+            {{#if (isNoneOf failedSpell.EffectRange '["Self","5 Feet","30 Feet","60 Feet","120 Feet", null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf failedSpell.EffectRange '["Self","5 Feet","30 Feet","60 Feet","120 Feet", null]')}}value="{{failedSpell.EffectRange}}"
+          {{else}}style="visibility: hidden;" {{/if}} type="text" id="customRange" name="customRange">
+          </div>
+      </div>
+
+      {{!-- Damage --}}
+        <div id="damageDiv" class="m-2">
+            <label for="damageInput">Damage</label>
+            <input {{#if failedSpell}}{{#if failedSpell.damageDie}}required style="width: 30%;"{{else}}style="width: 0; visibility: hidden;"{{/if}}{{else}}required style="width: 30%;"{{/if}} placeholder="#quantity" type="text" id="damageDiceQuantity" value="{{failedSpell.damageDiceQuantity}}" >
+            <select required name="damageDice" id="damageDice">
+                <option {{#if (equals failedSpell.damageDie "d4")}}selected{{/if}} value="d4">d4</option>
+                <option {{#if (equals failedSpell.damageDie "d6")}}selected{{/if}} value="d6">d6</option>
+                <option {{#if (equals failedSpell.damageDie "d8")}}selected{{/if}} value="d8">d8</option>
+                <option {{#if (equals failedSpell.damageDie "d10")}}selected{{/if}} value="d10">d10</option>
+                <option {{#if (equals failedSpell.damageDie "d12")}}selected{{/if}} value="d12">d12</option>
+                <option {{#if (equals failedSpell.damageDie "d20")}}selected{{/if}} value="d20">d20</option>
+                <option {{#if (equals failedSpell.damageDie "d100")}}selected{{/if}} value="d100">d100</option>
+                <option {{#if failedSpell}}{{#if failedSpell.damageDie}}{{else}}selected{{/if}}{{/if}} value="">n/a</option>
+            </select>
+            <input type="text" name="Damage" id="damage" hidden value="">
+        </div>
+
+    </div>
+    <div id="booleansDiv" style="flex: 1;" class="d-flex flex-column align-items-center pt-2">
+
+      {{!-- Components --}}
+      <div id="componentsDiv" class="d-flex align-items-start flex-column" style="flex: 3;">
+        {{!-- Verbal --}}
+        <div class="d-flex justify-content-center w-100" style="flex: 1;">
+          <div>
+          <labelid="verbalLabel"
+            for="verbalButton">Verbal</label>
+          <input type="checkbox" name="Verbal" {{#if failedSpell.Verbal}}checked{{/if}}
+            id="verbalButton">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center w-100" style="flex: 1;">
+          <div>
+          <label  id="somaticLabel"
+            for="somaticButton">Somatic</label>
+          <input  type="checkbox" name="Somatic" {{#if failedSpell.Somatic}}checked{{/if}}
+            id="somaticButton" >
+            </div>
+        </div>
+
+        <div class="d-flex flex-column justify-content-center w-100 py-1" style="flex: 1;">
+          
+        <div class="text-center">
+          <label  id="materialLabel"
+            for="materialButton">Material</label>
+          <input  type="checkbox" name="Material" id="materialButton" {{#if failedSpell.Material}}checked{{/if}}>
+            </div>
+            <div id="materialsDiv" {{#if failedSpell.Material}}{{else}}style="visibility: hidden;"{{/if}} class="d-flex">
+                    <label class="px-1" for="materials">Required Materials</label>
+                    <input type="text" name="Materials" id="materials" {{#if failedSpell.Materials}}value="{{failedSpell.Materials}}"{{/if}}>
+            </div>
+        </div>
+      </div>
+ 
+      {{!-- Concentration --}}
+      <div id="concentrationDiv" class="d-flex justify-content-center w-100 flex-wrap" style="flex: 1;">
+          <div>
+        <label id="concentrationLabel"
+          for="Concentration">Concentration</label>
+        <input type="checkbox"
+          name="Concentration" id="Concentration" {{#if failedSpell.Concentration}}checked{{/if}}>
+          </div>
+      </div>
+
+      {{!-- Ritual --}}
+      <div id="ritualDiv" class="d-flex justify-content-center w-100" style="flex: 1;">
+        <div>
+        <label id="ritualLabel"
+          for="Ritual">Ritual</label>
+        <input type="checkbox" name="Ritual" {{#if failedSpell.Ritual}}checked{{/if}}
+          id="Ritual">
+          </div>
+      </div>
+
+      <div class="d-flex justify-content-center" style="flex: 1;">
+      <button class="btn btn-primary px-5 mb-2" style="margin: auto;">Add</button>
+      </div>
+
+    </div>
+  </div>
+
+</form>
+<script src="/scripts/spellsPage.js"></script>
+<link rel="stylesheet" href="/css/spells.css">

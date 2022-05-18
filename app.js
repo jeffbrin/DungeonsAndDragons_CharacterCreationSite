@@ -4,10 +4,13 @@ const {engine} = require('express-handlebars');
 const bodyParser = require('body-parser');
 const expressListRoutes = require('express-list-routes');
 const cookieParser = require('cookie-parser');
+const characterController = require('./controllers/characterController')
 
 // Logger
 const logger = require('./logger');
 const pinohttp = require('pino-http');
+const userModel = require('./models/userModel');
+const { request } = require('express');
 const httpLogger = pinohttp({
     logger: logger
 });
@@ -37,6 +40,18 @@ app.use((request, response, next) => {
     alterMethodWhenIndicatedByChoice(request, response, next);
 })
 
+app.use((request, response, next) => {addRecentCharactersCookie(request, response, next);} );
+
+async function addRecentCharactersCookie(request, response, next) {
+    try{
+        response.locals.recentCharacters = await characterController.getCookieObjectFromRequestAndUserId(request, await userModel.getUserIdFromSessionId(request.cookies.sessionId));
+    }
+    catch(error){
+        logger.info(`Unable to get recent characters for a user: ${error}`)
+    }
+    next();
+}
+
 /**
  * Changes the method of an http request if the body contains a property called choice
  * with the following format. choice: '{"method": "METHOD_VALUE"}'
@@ -52,6 +67,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.action = choice.action;
         }
         catch(error){
             // Choice was not JSON
@@ -65,6 +82,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.action = choice.action;
         }
         catch(error){
             // Choice was not JSON

@@ -1,5 +1,6 @@
 const userModel = require('../models/userModel');
 const { InvalidSessionError, DatabaseError } = require('../models/errorModel');
+const logger = require('../logger');
 
 
 /**
@@ -20,24 +21,27 @@ async function gateAccess(request, response, callback) {
     }
     else {
         // Get the cookie and authenticate
+        let username;
         await userModel.refreshSession(request.cookies.sessionId)
             .then(async newSession => {
                 response.status(200);
                 response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
+                username = await userModel.getUsernameFromSessionId(newSession.sessionId);
                 // Verify authentication
                 await callback(request, response, newSession.sessionId);
             })
             .catch(error => {
+                logger.error(error);
                 if (error instanceof InvalidSessionError) {
                     // Delete the cookie since their session is invalid
                     response.clearCookie('sessionId');
                     response.status(400).render('home.hbs', { homeActive: true, error: "You don't have access to the page you were just trying to reach, please log in and try again.", status: 401 });
                 }
                 else if (error instanceof DatabaseError) {
-                    response.status(500).render('home.hbs', { homeActive: true, error: 'Something went wrong on our end, you may have been logged out.', status: 500 });
+                    response.status(500).render('home.hbs', {username: username, homeActive: true, error: 'Something went wrong on our end, you may have been logged out.', status: 500 });
                 }
                 else {
-                    response.status(500).render('home.hbs', { homeActive: true, error: 'Something went wrong, if you were logged in, you may have been logged out.', status: 500 });
+                    response.status(500).render('home.hbs', {username: username, homeActive: true, error: 'Something went wrong, if you were logged in, you may have been logged out.', status: 500 });
                 }
             })
     }
@@ -47,7 +51,7 @@ async function gateAccess(request, response, callback) {
 /**
  * Calls a different controller function depending on the user's login status.
  * If the user is logged in, their session is refreshed and the loggedInCallback is called, otherwise the loggedOutCallback is called.
- * The callbacks are called with the request and response objects as well as the user's username if the logged in function is called.
+ * The callbacks are called with the request and response objects as well as the user's username and id if the logged in function is called.
  * On a DatabaseError, the user is redirected to the home page with an error displayed.
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
@@ -64,9 +68,10 @@ async function loadDifferentPagePerLoginStatus(request, response, loggedInCallba
         await userModel.refreshSession(request.cookies.sessionId)
             .then(async newSession => {
                 response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
-                await loggedInCallback(request, response, await userModel.getUsernameFromSessionId(newSession.sessionId));
+                await loggedInCallback(request, response, await userModel.getUsernameFromSessionId(newSession.sessionId), await userModel.getUserIdFromSessionId(newSession.sessionId));
             })
             .catch(async error => {
+                logger.error(error);
                 if (error instanceof InvalidSessionError) {
                     // Delete the cookie
                     response.clearCookie('sessionId');
