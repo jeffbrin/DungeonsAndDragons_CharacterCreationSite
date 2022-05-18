@@ -335,6 +335,31 @@ async function showFilteredSpells(request, response, username, userId)
     filter.Classes = filter.ClassIds ? filter.ClassIds.split(',') : null;
     filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
 
+    try{
+        if(characterId){
+            filter.Classes = [(await characterModel.getCharacter(characterId, userId)).Class.Id];
+        }
+    }
+    catch(error){
+        if (error instanceof InvalidInputError) {
+            logger.error(`Failed to get filtered list of spells: ${error.message}`);
+            response.status(400)
+            response.redirect(getUrlFormat('/home', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username }));
+        }
+        else if (error instanceof DatabaseError)
+        {
+            response.status(500);
+            response.redirect(getUrlFormat('/home', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username }));
+            logger.error(error);
+        }
+        else
+        {
+            response.status(500);
+            response.redirect(getUrlFormat('/home', { error: `Sorry, something went wrong.`, status: 500, username: username }));
+            logger.error(error);
+        }
+    }
+
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells =>
         {
