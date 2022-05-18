@@ -19,7 +19,7 @@ materialButton.addEventListener('change', e => {
 
 // Try catch since not all pages have this element
 try {
-    const originalDamageWidth = damageDiceQuantityInput.style.width;
+    const originalDamageWidth = '30%';
     damageSelect.addEventListener('change', e => {
         if (damageSelect.value == '') {
             damageDiceQuantityInput.style.visibility = 'hidden';

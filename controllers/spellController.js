@@ -106,6 +106,11 @@ async function addSpell(request, response, sessionId) {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to add new spell: ${error.message}`);
                 response.status(400);
+                if(spellToAdd.Damage){
+                    const damageStuff = spellToAdd.Damage.split('d');
+                    spellToAdd.damageDiceQuantity = damageStuff[0];
+                    spellToAdd.damageDie = 'd' + damageStuff[1];
+                }
                 response.redirect(getUrlFormat('/spells/spellAddition', {error: `That spell couldn't be added due to invalid input: ${error.message}`, status: 400, failedSpell: JSON.stringify(spellToAdd) }));
             }
             else if (error instanceof DatabaseError) {
@@ -141,7 +146,7 @@ async function removeSpellById(request, response, sessionId) {
         if (error instanceof InvalidSessionError){
             logger.error(error);
             response.status(401)
-            response.redirect(getUrlFormat('/home', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
         }
         else if (error instanceof DatabaseError){
             logger.error(error);
@@ -363,17 +368,18 @@ router.get('/id/:id', (request, response) => authenticator.loadDifferentPagePerL
 async function editSpellWithId(request, response) {
 
     // TODO:
+    const id = request.query.spellId;
     spellModel.updateSpellById()
-        .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject()) })
+        .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully edited spell'})) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
                 logger.error(`Failed to get update spell with id ${id}: ${error.message}`);
                 response.status(400)
-                response.render('spells.hbs', await getRenderObject({ error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
+                response.redirect(getUrlFormat(`/spells/editform/${id}`, { error: `The spell was not edited due to invalid input: ${error.message}`, status: 400 }))
             }
             if (error instanceof DatabaseError) {
                 response.status(500);
-                response.render('spells.hbs', await getRenderObject({ error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to edit due to a server side issue. Please try again in a moment.`, status: 500 }))
                 logger.error(error);
             }
         })
@@ -382,48 +388,58 @@ async function editSpellWithId(request, response) {
 router.put('/', (request, response) => authenticator.gateAccess(request, response, editSpellWithId));
 
 /**
- * Manages the requests to edit a spell
- * @param {Object} request The http request
- * @param {Object} response The http response
+ * Shows the spell edit page.
+ * @param {Object} request The http request.
+ * @param {Object} response The http response.
+ * @param {String} sessionId The new session id of the user.
  */
-async function editSpell(request, response) {
+async function showEditSpellPage(request, response, sessionId) {
 
-    const choice = request.body.choice;
-    let spellChoiceId;
+    let spellChoiceId = request.params.id;
+
+    // Add redirect query notifications
+    const query = request.query;
+    let queryError;
+    if (query.error)
+        queryError = query.error;
+
     try {
-        if (request.body.spellChoiceId != null)
-            spellChoiceId = Number(request.body.spellChoiceId);
+        const spellToEdit = await spellModel.getSpellById(spellChoiceId, await userModel.getUserIdFromSessionId(sessionId));
+        if(spellToEdit.Damage){
+            const damageStuff = spellToEdit.Damage.split('d');
+            spellToEdit.damageDiceQuantity = damageStuff[0];
+            spellToEdit.damageDie = 'd' + damageStuff[1];
+        }
+        spellToEdit.Classes = spellToEdit.Classes.map(Class => Class.Id);
+        let options = {error: queryError, schools: await spellModel.getAllSchools(), Classes: await classModel.getAllClasses(), username: await userModel.getUsernameFromSessionId(sessionId), spellsActive: true, spellToEdit: spellToEdit};
+        response.status(200);
+        response.render('spellEdit.hbs', options)
     } catch (error) {
-        logger.error(`Failed to get the id of the chosen spell: ${error.message}`);
-        response.status(400)
-        response.render('spells.hbs', { error: `Failed to get the id of the chosen spell: ${error.message}`, status: 400 })
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401)
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to edit a spell. Please log in and try again.', status: 401}));
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
+        }
+        else if (error instanceof InvalidInputError){
+            logger.error(error);
+            response.status(400);
+            response.redirect(getUrlFormat('/spells', {error: 'The spell you attempted to edit was not found.', status: 400}));
+        }
+        else{
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
+        }
     }
 
-    switch (choice) {
-        case 'editForm':
-            try {
-                let options = await getRenderObject({ spellToEditId: spellChoiceId })
-                response.render('spells.hbs', options)
-            } catch (error) {
-                if (error instanceof InvalidInputError) {
-                    logger.error(`Failed to get update spell page: ${error.message}`);
-                    response.status(400)
-                    response.render('spells.hbs', await getRenderObject({ error: `Sorry, an error occured while trying to update the page for editing, please try again in a moment.`, status: 400 }))
-                }
-                if (error instanceof DatabaseError) {
-                    response.status(500);
-                    response.render('spells.hbs', await getRenderObject({ error: `Sorry, a server side issue occured while trying to update the page for editing, please try again in a moment.`, status: 500 }))
-                    logger.error(error);
-                }
-            }
-            break;
-        default:
-            response.render('spells.hbs', await getRenderObject({ error: 'Something went wrong with that button you pressed. Please try again.', status: 400 }))
-            break;
-    }
 
 }
-router.post('/editform', editSpell)
+router.get('/editform/:id', (request, response) => authenticator.gateAccess(request, response, showEditSpellPage))
 
 /**
  * Displays the page used by users to add spells.
@@ -435,13 +451,13 @@ async function getAddSpellForm(request, response, sessionId){
 
     let currentRenderObj;
     try{
-        currentRenderObj = {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses()}
+        currentRenderObj = {username: await userModel.getUsernameFromSessionId(sessionId), schools: await getAllSchools(), Classes: await classModel.getAllClasses(), spellsActive: true}
     }
     catch(error){
         if (error instanceof InvalidSessionError){
             logger.error(error);
             response.status(401)
-            response.redirect(getUrlFormat('/home', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
         }
         else if (error instanceof DatabaseError){
             logger.error(error);
@@ -469,7 +485,7 @@ async function getAddSpellForm(request, response, sessionId){
     response.render('spellCreation.hbs', currentRenderObj);
 
 }
-router.get('/spellAddition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
+router.get('/spelladdition', (request, response) => authenticator.gateAccess(request, response, getAddSpellForm));
 
 hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     if(!arg1 && !arg2)
@@ -477,15 +493,15 @@ hbs.handlebars.registerHelper('equals', (arg1, arg2) => {
     return arg1 == arg2
 });
 hbs.handlebars.registerHelper('numEquals', (arg1, arg2) => {
-    if ((!arg1 || !arg2) && arg1 != arg2) 
+    if ((arg1 == null || arg2 == null) && arg1 != arg2) 
         return false
-    return Number(arg1) == Number(arg2)
+    return arg1 == arg2
 });
 hbs.handlebars.registerHelper('in', (item, container) => {
     return container ? container.includes(item) : false;
 });
 hbs.handlebars.registerHelper('stringIn', (item, container) => {
-    return container ? container.includes(String(item)) : false;
+    return container ? container.includes(String(item)) || container.includes(item) : false;
 });
 hbs.handlebars.registerHelper('trim', (text, length = 200) => {
     if(text.fn(this).length < length)
