@@ -366,8 +366,10 @@ async function showFilteredSpells(request, response, username, userId)
             if (filter.characterId)
             {
                 const character = await characterModel.getCharacter(characterId, userId);
-                if ((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id)))
+                if ((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id))){
+                    filter.Class = await classModel.getClass(filter.Classes[0]);
                     response.render('addSpellToCharacter.hbs', await getRenderObject({ characterId: characterId, character: character, spells: filteredSpells, filter: filter, username: username }, userId));
+                }
                 else
                 {
                     response.status(400);
