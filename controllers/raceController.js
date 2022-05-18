@@ -7,6 +7,7 @@ const logger = require('../logger');
 const {DatabaseError, InvalidInputError} = require('../models/errorModel')
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
+const url = require('url');
 
 let allClasses;
 
