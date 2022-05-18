@@ -296,7 +296,7 @@ async function showFilteredSpells(request, response, username, userId) {
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells => { 
             if (filter.characterId)
-                response.render('addSpellToCharacter.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+                response.render('addSpellToCharacter.hbs', await getRenderObject({characterId: characterId, spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
             else
                 response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
         })

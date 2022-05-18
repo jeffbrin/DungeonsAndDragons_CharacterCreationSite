@@ -64,7 +64,7 @@
       {{!-- Description --}}
         <div class="d-flex flex-column align-items-center">
             <label for="spellDescription">Description</label>
-            <textarea required name="Description" id="description" cols="20" rows="2">{{spellToEdit.Description}}</textarea>
+            <textarea required name="Description" id="description" cols="20" rows="2">{{#if spellToEdit.Description}}{{spellToEdit.Description}}{{/if}}</textarea>
         </div>
 
     </div>
@@ -146,7 +146,7 @@
       {{!-- Damage --}}
         <div id="damageDiv" class="m-2">
             <label for="damageInput">Damage</label>
-            <input {{#if spellToEdit.damageDie}}required style="width: 30%;"{{else}}style="width: 0; visibility: hidden;"{{/if}} placeholder="#quantity" type="text" id="damageDiceQuantity" value="{{spellToEdit.damageDiceQuantity}}" >
+            <input {{#if spellToEdit.damageDie}}required style="width: 30%;"{{else}}style="width: 0; visibility: hidden;"{{/if}} placeholder="#quantity" type="text" id="damageDiceQuantity" {{#if spellToEdit.damageDiceQuantity}}value="{{spellToEdit.damageDiceQuantity}}"{{/if}}>
             <select required name="damageDice" id="damageDice">
                 <option {{#if (equals spellToEdit.damageDie "d4")}}selected{{/if}} value="d4">d4</option>
                 <option {{#if (equals spellToEdit.damageDie "d6")}}selected{{/if}} value="d6">d6</option>
@@ -219,7 +219,7 @@
       </div>
 
       <div class="d-flex justify-content-center" style="flex: 1;">
-      <button class="btn btn-primary px-5" style="margin: auto;">Edit</button>
+      <button class="btn btn-primary px-5 mb-2" style="margin: auto;">Edit</button>
       </div>
 
     </div>
