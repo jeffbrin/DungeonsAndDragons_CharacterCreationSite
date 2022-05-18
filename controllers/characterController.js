@@ -117,7 +117,7 @@ async function getCookieObjectFromRequestAndUserId(request, userId)
  * @param {HTTPRequest} request The http Request object
  * @param {HTTPResponse} response The http Response object
  */
-async function sendCharacter(request, response)
+async function sendCharacter(request, response, sessionId)
 {
     requestJson = request.body;
     let charAddedId;
