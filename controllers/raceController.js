@@ -7,12 +7,24 @@ const logger = require('../logger');
 const {DatabaseError, InvalidInputError} = require('../models/errorModel')
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
+const url = require('url');
 
 let allClasses;
 
 hbs.handlebars.registerHelper('randomClass', () => {
     return allClasses[Math.floor(Math.random() * allClasses.length)].Name;
 });
+
+/**
+ * Gets a url format to be used in a redirect.
+ * @param {String} pathname The path to redirect to
+ * @param {Object} queryObject The object to put in the query.
+ * @returns A url format to use in a redirect
+ */
+function getUrlFormat(pathname, queryObject)
+{
+    return url.format({ pathname: pathname, query: queryObject });
+}
 
 // Get all races
 async function showAllRaces(request, response){
