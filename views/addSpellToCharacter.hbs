@@ -371,7 +371,7 @@
 <h1 class="text-center mt-0">Spells</h1>
 <div class="d-flex flex-wrap  justify-content-center">
     {{#each spells}}
-    <form action="/characters/spells" method="post"
+    <form action="/characters/spells/{{../character.Id}}" method="post"
         class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
         <div class="card-header d-flex justify-content-between">
             <h5>{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
@@ -399,3 +399,4 @@
 </div>
 
 <link rel="stylesheet" href="/css/spells.css">
+<script src="/scripts/addSpellToCharacterScript.js"></script>

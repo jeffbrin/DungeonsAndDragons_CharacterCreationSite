@@ -331,7 +331,7 @@ async function addRemoveHp(id, hpValueChange)
  * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int}, OwnedItem: {Name, Count},  }
  * @throws {InvalidInputError} If the character is not found 
  */
-async function getCharacter(id)
+async function getCharacter(id, userId)
 {
 
     //First Check to see if the character exists
@@ -452,11 +452,15 @@ async function getCharacter(id)
     try
     {
         let [spellIds, columnsDefs] = await connection.query(spellsQ);
-        for (let i = 0; i < spellIds.length; i++)
+        if (spellIds.length != 0)
         {
-            spells.push(await spellModel.getSpellById(spellIds[i].SpellId));
+            for (let i = 0; i < spellIds.length; i++)
+            {
+                spells.push(await spellModel.getSpellById(spellIds[i].SpellId, userId));
+            }
+            character.Spells = spells;
         }
-        character.Spells = spells;
+
     } catch (error)
     {
         throw error;
@@ -673,6 +677,96 @@ async function removeItem(characterId, itemName, itemCount)
         throw new errors.InvalidInputError('characterModel', 'removeItem', `Couldn't remove Item because there is no item that exists with that name.`);
     }
 }
+
+
+/**
+ * Adds a known spell to the KnownSpell table
+ * @param {Integer} characterId - Id of the charcater to add the Spell to
+ * @param {Integer} spellId - The Id of the spell that will be added
+ * @param {Integer} userId - The userId whose character will add a spell
+ * @throws {InvalidInputError} If the User doesn't own the character, the spell doesn't exist
+ * @throws {DatabaseError} If there is an error with the connection to the Database
+ */
+async function addKnownSpell(characterId, spellId, userId)
+{
+    const query = `SELECT Id FROM PlayerCharacter WHERE UserId = ${ userId } and Id = ${ characterId };`;
+    try
+    {
+        let [rows, cols] = await connection.query(query);
+        if (rows.length === 0)
+            throw new errors.InvalidInputError('characterModel', 'addKnownSpell', 'User has no characters to add a spell to.');
+        let [rowsS, colsS] = await connection.query(`SELECT 1 FROM Spell WHERE Id = ${ spellId };`);
+        if (rowsS.length === 0)
+            throw new errors.InvalidInputError('characterModel', 'addKnownSpell', 'Spell You\'re trying to add doesn\'t exists');
+        logger.info(`Spell Id, userId and characterId authenticated. In addKnownSpell`);
+    } catch (error)
+    {
+        if (error instanceof errors.InvalidInputError)
+        {
+            throw error;
+        }
+        else
+        {
+            throw new errors.DatabaseError('characterModel', 'addKnownSpell', 'Database Error, couldn\'t query the database to see if user has any characters to add a spell to');
+        }
+
+    }
+
+    const addQ = `INSERT INTO KnownSpell (SpellId, CharacterId) VALUES (${ spellId }, ${ characterId });`;
+    try
+    {
+        await connection.execute(addQ);
+        logger.info(`Spell with Id ${ spellId } added to character with Id ${ characterId }'s known spells - addKnownSpell`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('characterModel', 'addKnownSpell', 'Database Error, couldn\'t execute the Add KnownSpell query.');
+    }
+}
+
+
+/**
+ * Removes a known spell from the KnownSpell Table
+* @param {Integer} characterId - Id of the charcater that will have a spell removed
+ * @param {Integer} spellId - The Id of the spell that will be removed
+ * @param {Integer} userId - The userId whose character will remove a spell
+ * @throws {InvalidInputError} If the User doesn't own the character, the spell doesn't exist
+ * @throws {DatabaseError} If there is an error with the connection to the Database
+ */
+async function removeKnownSpell(characterId, spellId, userId)
+{
+    const query = `SELECT Id FROM PlayerCharacter WHERE UserId = ${ userId } and Id = ${ characterId };`;
+    try
+    {
+        let [rows, cols] = await connection.query(query);
+        if (rows.length === 0)
+            throw new errors.InvalidInputError('characterModel', 'removeKnownSpell', 'User does not own the character.');
+        let [rowsS, colsS] = await connection.query(`SELECT 1 FROM Spell WHERE Id = ${ spellId };`);
+        if (rowsS.length === 0)
+            throw new errors.InvalidInputError('characterModel', 'removeKnownSpell', 'Spell You\'re trying to remove doesn\'t exists');
+        logger.info(`Spell Id, userId and characterId authenticated. In removeKnownSpell`);
+    } catch (error)
+    {
+        if (error instanceof errors.InvalidInputError)
+        {
+            throw error;
+        }
+        else
+        {
+            throw new errors.DatabaseError('characterModel', 'removeKnownSpell', 'Database Error, couldn\'t query the database to see if user has any characters to add a spell to');
+        }
+
+    }
+    const deleteQ = `DELETE FROM KnownSpell WHERE SpellId = ${ spellId } AND CharacterId = ${ characterId };`;
+    try
+    {
+        await connection.execute(deleteQ);
+        logger.info(`Spell with Id ${ spellId } deleted from character with Id ${ characterId }'s known spells - removeKnownSpell`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('characterModel', 'removeKnownSpell', 'Database Error, couldn\'t execute the Delete KnownSpell query.');
+    }
+}
+
 /**
  * Gets all the Characters corresponding to a given User's Id.
  * @param {Integer} userId - The Id of the user whose characters will be retrieved
@@ -707,7 +801,7 @@ async function getUserCharacters(userId)
     characters = [];
     for (row of rows)
     {
-        characters.push(await getCharacter(row.Id));
+        characters.push(await getCharacter(row.Id, userId));
     }
 
     return characters;
@@ -948,9 +1042,18 @@ async function updateInitiative(characterId, initiative)
 }
 
 
+/**
+ * Generates a new Object based off of the current object and the current Id of the character being visited
+ * Adds the new one to the top
+ * If not new then moves it to the top (max 3 Objects)
+ * If there is no previous cookie then create a new object with the visited character
+ * @param {Integer} characterIdVisited - Current Character being visited (Id)
+ * @param {Array} previousCookie - Previous array of integers of characterIds
+ * @returns {Array} - Array of objects containing name of cookie, recentCharacters Array of integers, expires with new date
+ */
 async function createRecentCharactersCookie(characterIdVisited, previousCookie)
 {
-
+    const MAX_LENGTH = 3;
     if (previousCookie)
     {
         //take data from old one and see
@@ -976,7 +1079,7 @@ async function createRecentCharactersCookie(characterIdVisited, previousCookie)
             {
                 if (i === index) continue;
 
-                if (newArray.length === 3) break;
+                if (newArray.length === MAX_LENGTH) break;
 
                 newArray.push({ id: oldRecents.recentCharacters[i].id, name: oldRecents.recentCharacters[i].name });
             }
@@ -987,7 +1090,7 @@ async function createRecentCharactersCookie(characterIdVisited, previousCookie)
         //it's not in the array so just add to [0] and make sure length is 3
         else
         {
-            if (oldRecents.recentCharacters.length === 3)
+            if (oldRecents.recentCharacters.length === MAX_LENGTH)
             {
                 oldRecents.recentCharacters.pop();
                 try
@@ -1025,6 +1128,13 @@ async function createRecentCharactersCookie(characterIdVisited, previousCookie)
     }
 }
 
+/**
+ * Internal helper method used to get name of a Character based off of ID
+ * @param {Integer} id 
+ * @returns {String} - Name of the Character
+ * @throws {InvalidInputError} if the Id provided is invalid
+ * @throws {DatabaseError} if the connection experiences an error
+ */
 async function getNameInternal(id)
 {
     const q = `SELECT Name from PlayerCharacter WHERE Id = ${ id }`;
@@ -1223,5 +1333,7 @@ module.exports = {
     addCharacterObject,
     addItem,
     removeItem,
-    createRecentCharactersCookie
+    createRecentCharactersCookie,
+    addKnownSpell,
+    removeKnownSpell
 };

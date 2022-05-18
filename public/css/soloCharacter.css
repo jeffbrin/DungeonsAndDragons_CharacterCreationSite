@@ -52,7 +52,8 @@ body {
     padding: 1rem;
     margin-left: 3rem;
 }
-.h2PB{
+
+.h2PB {
     margin-top: -2rem;
     font-size: 3rem;
 }
@@ -81,7 +82,6 @@ body {
     opacity: 1;
 }
 
-#buttonUpdateCharacter {}
 
 .containerGrid {
     display: grid;
@@ -379,6 +379,14 @@ tr {
     max-height: min-content;
 }
 
+.mh-35px {
+    max-height: 35px !important;
+}
+
+#spellPlusImg {
+    max-height: 25px !important;
+}
+
 #hrhp {
     margin: auto !important;
     width: 100%;
@@ -428,6 +436,11 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+#hoverPlayImg {
+    max-height: 25px;
+    width: auto;
 }
 
 .inputNumber {
@@ -583,9 +596,12 @@ td {
     word-wrap: break-word;
 }
 
+.cellClass {
+    vertical-align: middle;
+}
+
 .table {
     table-layout: fixed !important;
-    height: 95% !important;
 }
 
 .mw-90 {
@@ -723,6 +739,11 @@ html {
 
 .btn-secondary2:hover {
     background-color: var(--popColorHover) !important;
+}
+
+.pos-relative {
+    position: relative !important;
+    vertical-align: middle;
 }
 
 @media only screen and (max-width: 1300px) {
