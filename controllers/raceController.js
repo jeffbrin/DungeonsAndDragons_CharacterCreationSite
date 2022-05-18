@@ -59,6 +59,7 @@ async function showSpecificRace(request, response){
         let username = null;
         try{
             const newSession = await userModel.refreshSession(request.cookies.sessionId);
+            response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
             username = await userModel.getUsernameFromSessionId(newSession.sessionId);
         }
         catch(error){
