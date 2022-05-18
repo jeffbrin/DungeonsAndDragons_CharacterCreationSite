@@ -7,7 +7,7 @@
         </svg>
       </a>
 
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+      <ul style="gap: 10px;" class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
         <li><a id="homeHeaderLink" href="/"
             class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
         <li><a id="spellsHeaderLink" href="/spells"
@@ -19,7 +19,7 @@
 
         <li class="dropdown">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if backgroundsActive}}Backgrounds{{else}}Other{{/if}}
+            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if backgroundsActive}}Backgrounds{{else}}More{{/if}}
           </a>
 
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
@@ -30,9 +30,6 @@
       </li>
       </ul>
 
-      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
-        <input type="search" id="search" class="form-control form-control-dark " placeholder="Search..." aria-label="Search">
-      </form>
       <div class="text-end d-flex" style="gap: 8px;">
         {{#if username}}
           <h2 id="usernameDisplay">{{username}}</h2>
