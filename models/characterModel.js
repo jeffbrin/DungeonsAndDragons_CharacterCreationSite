@@ -454,7 +454,7 @@ async function getCharacter(id)
         let [spellIds, columnsDefs] = await connection.query(spellsQ);
         for (let i = 0; i < spellIds.length; i++)
         {
-            spells.push(spellModel.getSpellById(spellIds[i].SpellId));
+            spells.push(await spellModel.getSpellById(spellIds[i].SpellId));
         }
         character.Spells = spells;
     } catch (error)
