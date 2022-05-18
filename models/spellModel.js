@@ -636,7 +636,7 @@ async function getClassesObjectListFromSpellId(spellId){
 async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription, newName, newCastingTime, newVerbal, newSomatic, newMaterial, newMaterials, newDuration, newDamage, newEffectRange, newConcentration, newRitual, newClassIds) {
 
     if (newLevel == null && newName == null && newSchoolId == null && newDescription == null && newCastingTime == null && newVerbal == null && newSomatic == null &&
-        newMaterial == null && newDuration == null && newDamage == null && newEffectRange == null && newConcentration == null && newRitual == null && newClassIds == null) {
+        newMaterial == null && newDuration == null && newEffectRange == null && newConcentration == null && newRitual == null && newClassIds == null) {
         throw new InvalidInputError('spellModel', 'updateSpellById', 'At least one field should be changed (not null).')
     }
 
@@ -665,7 +665,7 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
         if(newMaterial != null)
             await validationModel.validateMaterials(newMaterial, newMaterials);
         if(newDuration != null)
-            await validationModel.validateSpellComponentBool(newDuration);
+            await validationModel.validateSpellGenericString(newDuration, 'duration');
         if(newEffectRange != null)
             await validationModel.validateSpellGenericString(newEffectRange, 'range');
         if(newConcentration != null)
@@ -687,7 +687,9 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
 
     // Check if the spell would become a duplicate if it is changed and delete it
     try{
-        let selectQuery = `SELECT Id FROM Spell S WHERE UserId = ${userId} AND 
+        // DO NOT CHANGE THE SPACING AND INDENTATION OF THE STRING
+        // will mess up the substring
+        let selectQuery = `SELECT Id FROM Spell S WHERE UserId = ${userId} AND S.Id != ${Id} AND 
                     ${newLevel == null ? '' : `Level = ${newLevel} AND `}
                     ${newName == null ? '' : `Name = '${newName.toLowerCase().replace(/'/g, "''")}' AND `}
                     ${newSchoolId == null ? '' : `SchoolId = ${newSchoolId} AND `}
@@ -700,8 +702,8 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
                     ${newConcentration == null ? '' : `Concentration = ${newConcentration} AND `}
                     ${newRitual == null ? '' : `Ritual = ${newRitual} AND `}
                     ${newDescription == null ? '' : `Description = '${newDescription.replace(/'/g, "''")}' AND `}
-                    ${newDamage == null ? '' : `Damage = '${newDamage.toLowerCase().replace(/'/g, "''")}' AND `}`;
-        selectQuery = selectQuery.substring(0, selectQuery.length - 4);
+                    ${newDamage == null ? 'Damage is null AND ' : `Damage = '${newDamage.toLowerCase().replace(/'/g, "''")}' AND `}`;
+        selectQuery = selectQuery.substring(0, selectQuery.length - 5);
         let selectedSpell = await connection.query(selectQuery);
         selectedSpell = selectedSpell[0];
         if(selectedSpell.length > 0){
@@ -759,7 +761,9 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
     if(newRitual != null)
     tempUpdateQuery += ` Ritual = ${newRitual},`
     if(newDamage != null)
-    tempUpdateQuery += ` Damage = '${newDamage.replace(/'/g, "''")}',`
+        tempUpdateQuery += ` Damage = '${newDamage.toLowerCase().replace(/'/g, "''")}',`
+    else
+        tempUpdateQuery += ` Damage = null,`
 
     // Remove the last comma
     let updateQuery = tempUpdateQuery.slice(0, -1);
@@ -770,10 +774,11 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
     let executionData, spellInDatabase;
     try {
         [executionData] = await connection.execute(updateQuery);
-        spellInDatabase = await getSpellById(Id, userId);
     } catch (error) {
         throw new DatabaseError('spellModel', 'updateSpellById' `Failed to update Spell table: ${error}`)
     }
+
+    spellInDatabase = await getSpellById(Id, userId);
 
     // If class ids was passed, edit those
     if(newClassIds != null){
