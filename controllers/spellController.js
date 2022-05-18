@@ -298,8 +298,8 @@ async function showFilteredSpells(request, response, username, userId) {
         .then(async filteredSpells => { 
             if (filter.characterId){
                 const character = await characterModel.getCharacter(characterId);
-                if(character.UserId == userId)
-                    response.render('addSpellToCharacter.hbs', await getRenderObject({characterId: characterId, character: character, spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+                if((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id)))
+                    response.render('addSpellToCharacter.hbs', await getRenderObject({characterId: characterId, character: character, spells: filteredSpells, filter: filter, username: username }, userId))
                 else{
                     response.status(400);
                     response.redirect(getUrlFormat('/home', {error: 'You are not authorized to add spells to that character.', status: 400}));
