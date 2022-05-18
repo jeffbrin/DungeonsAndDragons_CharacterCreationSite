@@ -9,8 +9,10 @@ const { default: isAlpha } = require('validator/lib/isAlpha');
 const { removeSpellsWithMatchingName } = require('./spellModel');
 const ABILITY_SCORE_LENGTH = 6;
 
-class ValidationError extends errors.InvalidInputError {
-    constructor(message) {
+class ValidationError extends errors.InvalidInputError
+{
+    constructor(message)
+    {
         super();
         this.message = message;
     }
@@ -36,93 +38,118 @@ class ValidationError extends errors.InvalidInputError {
  * @param {Integer} userId - The Id of the user this character will belong to if created
  * @throws {InvalidInputError} If the Character is not valid, builds up an error message with all the things wrong with the Input.
  */
-async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId, armorClass) {
+async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpoints, backgroundId, ethicsId, moralityId, level, abilityScoreValues, savingThrowIds, userId, armorClass)
+{
 
-    let bigErrorMessage = `Character is NOT valid: `
+    let bigErrorMessage = `Character is NOT valid: `;
     let caught = false;
 
     connection = passedConnection;
-    try {
+    try
+    {
         checkName(name);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkRace(raceId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkClass(charClassId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         checkMaxHitPoints(maxHitpoints);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkBackground(backgroundId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkEthics(ethicsId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkMorality(moralityId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         checkLevel(level);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         checkAbilityScores(abilityScoreValues);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkSavingThrowProficiencies(savingThrowIds);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
 
-    try {
+    try
+    {
         await checkUserID(userId);
-    } catch (error) {
+    } catch (error)
+    {
         caught = true;
         bigErrorMessage += error.message;
     }
-    if (armorClass < 0) {
-        throw new errors.InvalidInputError('validateCharacter', 'isCharValid', `Armor Class not valid, must be above 0: ${armorClass}`)
+    if (armorClass < 0)
+    {
+        throw new errors.InvalidInputError('validateCharacter', 'isCharValid', `Armor Class not valid, must be above 0: ${ armorClass }`);
     }
 
-    if (caught) {
+    if (caught)
+    {
         throw new errors.InvalidInputError('validateCharacter', 'isCharValid', bigErrorMessage);
     }
 
@@ -137,12 +164,14 @@ async function isCharValid(passedConnection, name, raceId, charClassId, maxHitpo
  * @param {String} name 
  * @throws {ValidationError} If The name can't be validated
  */
-function checkName(name) {
-    if (name === '') {
+function checkName(name)
+{
+    if (name === '')
+    {
         logger.error("Name cannot be empty.");
-        throw new ValidationError(`\nName, ${name}, must not have any special characters or numbers. `);
+        throw new ValidationError(`\nName, ${ name }, must not have any special characters or numbers. `);
     }
-    logger.info(`Name, ${name}, was validated inside of validateCharacter module in checkName.`);
+    logger.info(`Name, ${ name }, was validated inside of validateCharacter module in checkName.`);
 }
 /**
  * Queries the database for the rows then
@@ -150,23 +179,28 @@ function checkName(name) {
  * @param {Integer} raceId The Id of the selected race
  * @throws {ValidationError} If the raceId was not found in the database.
  */
-async function checkRace(raceId) {
+async function checkRace(raceId)
+{
     const racesQuery = `SELECT Id FROM Race;`;
-    try {
+    try
+    {
         var [races, column_definitions] = await connection.query(racesQuery);
         logger.info("validateCharacter - select Query to retrieve races completed - checkRace");
 
         races = races.map((race) => race.Id);
+        raceId = parseInt(raceId);
 
 
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkRace', `Couldn\`t execute the races select Query: ${error.message}`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkRace', `Couldn\`t execute the races select Query: ${ error.message }`);
     }
-    if (!races.includes(raceId)) {
-        logger.error(`Race must be one of the Valid Races. ${raceId} is not a valid Id of a race`);
+    if (!races.includes(raceId))
+    {
+        logger.error(`Race must be one of the Valid Races. ${ raceId } is not a valid Id of a race`);
         throw new ValidationError(`\nRace, must be one of the valid races`);
     }
-    logger.info(`Race, ${raceId}, was validated inside of validateCharacter module in checkRace.`);
+    logger.info(`Race, ${ raceId }, was validated inside of validateCharacter module in checkRace.`);
 }
 
 /**
@@ -175,34 +209,42 @@ async function checkRace(raceId) {
  * @param {Integer} charClassId - The class Id of the character being validated.
  * @throws {ValidationError} If the charClassId was not found in the database.
  */
-async function checkClass(charClassId) {
+async function checkClass(charClassId)
+{
     const classesQuery = 'SELECT Id FROM Class;';
-    try {
+    try
+    {
+        charClassId = parseInt(charClassId);
         var [classes, column_definitions] = await connection.query(classesQuery);
         logger.info("validateCharacter - select Query to retrieve classes completed - checkClass");
 
         classes = classes.map((thisClass) => thisClass.Id);
 
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${error.message}`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${ error.message }`);
     }
-    if (!classes.includes(charClassId)) {
+    if (!classes.includes(charClassId))
+    {
         logger.error("Class must be one of the Valid Classes. Input: " + charClassId);
-        throw new ValidationError(`\nClass, ${charClassId}, must be one of the valid classes`);
+        throw new ValidationError(`\nClass, ${ charClassId }, must be one of the valid classes`);
     }
-    logger.info(`Class, ${charClassId}, was validated inside of validateCharacter module in checkClass.`);
+    logger.info(`Class, ${ charClassId }, was validated inside of validateCharacter module in checkClass.`);
 }
 /**
  * Validates the Max Hit Points of the character being validated
  * @param {Integer} maxHitpoints - The Number of Max Hit Points the Character will have.
  * @throws {ValidationError} If the maxHitpoints is < 1.
  */
-function checkMaxHitPoints(maxHitpoints) {
-    if (maxHitpoints < 0) {
+function checkMaxHitPoints(maxHitpoints)
+{
+    maxHitpoints = parseInt(maxHitpoints);
+    if (maxHitpoints < 0)
+    {
         logger.error("Hit Points must be greater than 0. Input: " + maxHitpoints);
-        throw new ValidationError(`\nMaximum Hit Points, ${maxHitpoints}, must be more than 0`);
+        throw new ValidationError(`\nMaximum Hit Points, ${ maxHitpoints }, must be more than 0`);
     }
-    logger.info(`Max HP, ${maxHitpoints}, was validated inside of validateCharacter module in checkMaxHitPoints.`);
+    logger.info(`Max HP, ${ maxHitpoints }, was validated inside of validateCharacter module in checkMaxHitPoints.`);
 }
 /**
  * Queries the database for the rows then
@@ -210,22 +252,27 @@ function checkMaxHitPoints(maxHitpoints) {
  * @param {Integer} backgroundId - The Background Id that needs to be validated.
  * @throws {ValidationError} If the backgroundId was not found in the database.
  */
-async function checkBackground(backgroundId) {
+async function checkBackground(backgroundId)
+{
     const backgroundsQuery = 'SELECT Id FROM Background;';
-    try {
+    try
+    {
+        backgroundId = parseInt(backgroundId);
         var [backgrounds, column_definitions] = await connection.query(backgroundsQuery);
         logger.info("validateCharacter - select Query to retrieve backgrounds completed - checkBackground");
 
         backgrounds = backgrounds.map((background) => background.Id);
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkBackground', `Couldn\`t execute the backgrounds select Query: ${error.message}`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkBackground', `Couldn\`t execute the backgrounds select Query: ${ error.message }`);
     }
-    if (!backgrounds.includes(backgroundId)) {
-        logger.error(`Background with id ${backgroundId} was not found inside of validateCharacter module in checkBackground`);
-        throw new ValidationError(`\nBackground  of id ${backgroundId}must be a valid background. There is no background that matches.`);
+    if (!backgrounds.includes(backgroundId))
+    {
+        logger.error(`Background with id ${ backgroundId } was not found inside of validateCharacter module in checkBackground`);
+        throw new ValidationError(`\nBackground  of id ${ backgroundId }must be a valid background. There is no background that matches.`);
     }
 
-    logger.info(`Background with ID: ${backgroundId} was validated inside of validateCharacter module in checkBackground`);
+    logger.info(`Background with ID: ${ backgroundId } was validated inside of validateCharacter module in checkBackground`);
 }
 /**
  * Queries the database for the rows then
@@ -233,21 +280,26 @@ async function checkBackground(backgroundId) {
  * @param {Integer} ethicsId - The Ethics Id that needs to be validated
  * @throws {ValidationError} If the ethicsId was not found in the database.
  */
-async function checkEthics(ethicsId) {
+async function checkEthics(ethicsId)
+{
     const ethicsQuery = 'SELECT Id FROM Ethics;';
-    try {
+    try
+    {
         var [ethics, column_definitions] = await connection.query(ethicsQuery);
         logger.info("validateCharacter - select Query to retrieve ethics completed - checkEthics");
 
         ethics = ethics.map((ethic) => ethic.Id);
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkEthics', `Couldn\`t execute the ethics select Query: ${error.message}`);
+        ethicsId = parseInt(ethicsId);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkEthics', `Couldn\`t execute the ethics select Query: ${ error.message }`);
     }
-    if (!ethics.includes(ethicsId)) {
-        logger.error(`ethics with id ${ethicsId} was not found inside of validateCharacter module in checkEthics`);
-        throw new ValidationError(`\nethics  of id ${ethicsId}must be a valid ethics. There is no ethics that matches.`);
+    if (!ethics.includes(ethicsId))
+    {
+        logger.error(`ethics with id ${ ethicsId } was not found inside of validateCharacter module in checkEthics`);
+        throw new ValidationError(`\nethics  of id ${ ethicsId }must be a valid ethics. There is no ethics that matches.`);
     }
-    logger.info(`ethics with ID: ${ethicsId} was validated inside of validateCharacter module in checkEthics`);
+    logger.info(`ethics with ID: ${ ethicsId } was validated inside of validateCharacter module in checkEthics`);
 }
 /**
  * Queries the database for the rows then
@@ -255,32 +307,40 @@ async function checkEthics(ethicsId) {
  * @param {Integer} moralityId - The Morality Id that needs to be validated
  * @throws {ValidationError} If the moralityId was not found in the database.
  */
-async function checkMorality(moralityId) {
+async function checkMorality(moralityId)
+{
     const moralitiesQuery = 'SELECT Id FROM Morality;';
-    try {
+    try
+    {
         var [moralities, column_definitions] = await connection.query(moralitiesQuery);
         logger.info("validateCharacter - select Query to retrieve moralities completed - checkMorality");
         moralities = moralities.map((morality) => morality.Id);
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkMorality', `Couldn\`t execute the moralities select Query: ${error.message}`);
+        moralityId = parseInt(moralityId);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkMorality', `Couldn\`t execute the moralities select Query: ${ error.message }`);
     }
-    if (!moralities.includes(moralityId)) {
-        logger.error(`Morality with id ${moralityId} was not found inside of validateCharacter module in checkMorality`);
-        throw new ValidationError(`\nMorality  of id ${moralityId}must be a valid Morality. There is no morality that matches.`);
+    if (!moralities.includes(moralityId))
+    {
+        logger.error(`Morality with id ${ moralityId } was not found inside of validateCharacter module in checkMorality`);
+        throw new ValidationError(`\nMorality  of id ${ moralityId }must be a valid Morality. There is no morality that matches.`);
     }
-    logger.info(`Morality with ID: ${moralityId} was validated inside of validateCharacter module in checkMorality`);
+    logger.info(`Morality with ID: ${ moralityId } was validated inside of validateCharacter module in checkMorality`);
 }
 /**
  * Validates the level to make sure it is > 0
  * @param {Integer} level - The level that needs validating
  * @throws {ValidationError} If the level passed is < 0.
  */
-function checkLevel(level) {
-    if (level < 1) {
-        logger.error(`Level: ${level} is not a valid level inside of validateCharacter module in checkLevel`);
+function checkLevel(level)
+{
+    level = parseInt(level);
+    if (level < 1)
+    {
+        logger.error(`Level: ${ level } is not a valid level inside of validateCharacter module in checkLevel`);
         throw new ValidationError(`\nLevel must be greater than 0.`);
     }
-    logger.info(`Level: ${level} was validated inside of validateCharacter module in checkLevel`);
+    logger.info(`Level: ${ level } was validated inside of validateCharacter module in checkLevel`);
 }
 /**
  * Validates the ability score values array to ensure it is 6 long and has all integers in it.
@@ -288,8 +348,10 @@ function checkLevel(level) {
  * @throws {ValidationError} If the ability scores array does not have a length of 6.
  * If any of the entries in the array are alpha.
  */
-function checkAbilityScores(abilityScoreValues) {
-    if (abilityScoreValues.length != ABILITY_SCORE_LENGTH) {
+function checkAbilityScores(abilityScoreValues)
+{
+    if (abilityScoreValues.length != ABILITY_SCORE_LENGTH)
+    {
         logger.error(`AbilityScores must have 6 entries in the array inside of validateCharacter module in checkAbilityScores`);
         throw new ValidationError(`\nAbility Scores MUST have 6 values.`);
     }
@@ -301,23 +363,28 @@ function checkAbilityScores(abilityScoreValues) {
  * @param {IntegerArray} savingThrowIds 
  * @throws {ValidationError} If any savingThrowId was not found in the database.
  */
-async function checkSavingThrowProficiencies(savingThrowIds) {
+async function checkSavingThrowProficiencies(savingThrowIds)
+{
     const savingThrowsQuery = 'SELECT Id FROM Ability;';
-    try {
+    try
+    {
         var [savingThrows, column_definitions] = await connection.query(savingThrowsQuery);
         logger.info("validateCharacter - select Query to retrieve savingThrows completed - checkSavingThrowProficiencies");
         savingThrows = savingThrows.map((savingThrow) => savingThrow.Id);
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkSavingThrowProficiencies', `Couldn\`t execute the savingThrows select Query: ${error.message}`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkSavingThrowProficiencies', `Couldn\`t execute the savingThrows select Query: ${ error.message }`);
     }
 
-    for (let i = 0; i < savingThrowIds.length; i++) {
-        if (!savingThrows.includes(savingThrowIds[i])) {
-            logger.error(`savingThrows with id ${savingThrowIds[i]} was not found inside of validateCharacter module in checkSavingThrowProficiencies`);
-            throw new ValidationError(`\savingThrows  of id ${savingThrowIds[i]}must be a valid background. There is no background that matches.`);
+    for (let i = 0; i < savingThrowIds.length; i++)
+    {
+        if (!savingThrows.includes(savingThrowIds[i]))
+        {
+            logger.error(`savingThrows with id ${ savingThrowIds[i] } was not found inside of validateCharacter module in checkSavingThrowProficiencies`);
+            throw new ValidationError(`\savingThrows  of id ${ savingThrowIds[i] }must be a valid background. There is no background that matches.`);
         }
     }
-    logger.info(`savingThrows with ID: ${savingThrowIds} was validated inside of validateCharacter module in checkSavingThrowProficiencies`);
+    logger.info(`savingThrows with ID: ${ savingThrowIds } was validated inside of validateCharacter module in checkSavingThrowProficiencies`);
 }
 /**
  * Queries the database for the rows then
@@ -325,21 +392,26 @@ async function checkSavingThrowProficiencies(savingThrowIds) {
  * @param {Integer} userId - The Id of the user who is creating a character
  * @throws {ValidationError} If the userId was not found in the database.
  */
-async function checkUserID(userId) {
+async function checkUserID(userId)
+{
     const usersQuery = 'SELECT Id FROM User;';
-    try {
+    try
+    {
         var [users, column_definitions] = await connection.query(usersQuery);
         logger.info("validateCharacter - select Query to retrieve users completed - checkUserID");
         users = users.map((user) => user.Id);
-    } catch (error) {
-        throw new errors.DatabaseError('validateCharacter', 'checkUserID', `Couldn\`t execute the users select Query: ${error.message}`);
+        userId = parseInt(userId);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('validateCharacter', 'checkUserID', `Couldn\`t execute the users select Query: ${ error.message }`);
     }
 
-    if (!users.includes(userId)) {
-        logger.error(`User with id ${userId} was not found inside of validateCharacter module in checkUserID`);
-        throw new ValidationError(`\nUser  of id ${userId}must be a valid User. There is no User that matches.`);
+    if (!users.includes(userId))
+    {
+        logger.error(`User with id ${ userId } was not found inside of validateCharacter module in checkUserID`);
+        throw new ValidationError(`\nUser  of id ${ userId }must be a valid User. There is no User that matches.`);
     }
-    logger.info(`User with ID: ${userId} was validated inside of validateCharacter module in checkUserID`);
+    logger.info(`User with ID: ${ userId } was validated inside of validateCharacter module in checkUserID`);
 }
 
 /**
@@ -348,16 +420,19 @@ async function checkUserID(userId) {
  * @throws {InvalidInputError} Thrown when the character id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-async function checkCharacterId(characterId) {
-
+async function checkCharacterId(characterId)
+{
+    characterId = parseInt(characterId);
     if (characterId < 1)
-        throw new errors.InvalidInputError('Character id must be greater than 0.')
-        
+        throw new errors.InvalidInputError('Character id must be greater than 0.');
+
     let rows, columns;
-    try {
-        [rows, columns] = await connection.query(`SELECT 1 FROM PlayerCharacter WHERE Id = ${characterId};`);
-    } catch (error) {
-        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkCharacterId', `Could not query for character id: ${error}`);
+    try
+    {
+        [rows, columns] = await connection.query(`SELECT 1 FROM PlayerCharacter WHERE Id = ${ characterId };`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkCharacterId', `Could not query for character id: ${ error }`);
     }
 
     if (rows.length == 0)
@@ -371,16 +446,19 @@ async function checkCharacterId(characterId) {
  * @throws {InvalidInputError} Thrown when the skill id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-async function checkSkillId(skillId) {
-
+async function checkSkillId(skillId)
+{
+    skillId = parseInt(skillId);
     if (skillId < 1)
-        throw new errors.InvalidInputError('Character id must be greater than 0.')
+        throw new errors.InvalidInputError('Character id must be greater than 0.');
 
     let rows, columns;
-    try {
-        [rows, columns] = await connection.query(`SELECT 1 FROM Skill WHERE Id = ${skillId};`);
-    } catch (error) {
-        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkSkillId', `Could not query for character id: ${error}`);
+    try
+    {
+        [rows, columns] = await connection.query(`SELECT 1 FROM Skill WHERE Id = ${ skillId };`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkSkillId', `Could not query for character id: ${ error }`);
     }
 
     if (rows.length == 0)
@@ -394,16 +472,19 @@ async function checkSkillId(skillId) {
  * @throws {InvalidInputError} Thrown when the ability id is invalid or not found in the database.
  * @throws {DatabaseError} Thrown when the connection is undefined.
  */
-async function checkAbility(abilityId) {
-
+async function checkAbility(abilityId)
+{
+    abilityId = parseInt(abilityId);
     if (abilityId < 1)
-        throw new errors.InvalidInputError('Character id must be greater than 0.')
+        throw new errors.InvalidInputError('abilityId must be greater than 0.');
 
     let rows, columns;
-    try {
-        [rows, columns] = await connection.query(`SELECT 1 FROM Ability WHERE Id = ${abilityId};`);
-    } catch (error) {
-        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkAbility', `Could not query for character id: ${error}`);
+    try
+    {
+        [rows, columns] = await connection.query(`SELECT 1 FROM Ability WHERE Id = ${ abilityId };`);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('vaidateCharacterAndStatistics', 'checkAbility', `Could not query for character id: ${ error }`);
     }
 
     if (rows.length == 0)

@@ -5,16 +5,16 @@ body {
     padding: 0;
 }
 
-body {
 
+
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -ms-box-sizing: border-box;
 }
-
-* , *:before, *:after{ 
-    box-sizing:border-box; 
-    -moz-box-sizing:border-box; 
-    -webkit-box-sizing:border-box; 
-    -ms-box-sizing:border-box;
-  }
 
 :root {
     --backgroundColor: #313431;
@@ -29,74 +29,129 @@ body {
     --midRed: #E96049;
 }
 
-.containerGrid {  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-  gap: 0px 0px;
-  grid-auto-flow: row;
-  padding: 2rem;
+.miniGridContainer {
+    margin-top: 1rem;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+        "profBonus characterName editBtn";
 }
 
-.charName { 
-    grid-area: 1 / 1 / 2 / 2; 
+.profBonus {
+    grid-area: profBonus;
+    height: 100%;
+    width: 75%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    background-color: var(--elevation2Color);
+    padding: 1rem;
+    margin-left: 3rem;
+}
+.h2PB{
+    margin-top: -2rem;
+    font-size: 3rem;
 }
 
-.level { 
-    grid-area: 1 / 2 / 2 / 3; 
+.characterName {
+    grid-area: characterName;
+    height: 100%;
+    width: 100%;
 }
 
-.class { 
+.editBtn {
+    grid-area: editBtn;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 75%;
+    background-color: var(--elevation2Color);
+    opacity: 0.3;
+    height: 100%;
+    text-align: center;
+    border-radius: 1rem;
+    margin-left: 2rem;
+}
+
+.editBtn:hover {
+    opacity: 1;
+}
+
+#buttonUpdateCharacter {}
+
+.containerGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    padding: 3rem;
+}
+
+.alignment {
+    grid-area: 1 / 7 / 2 / 8;
+}
+
+.level {
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+.class {
+    grid-area: 1 / 2 / 2 / 3;
+}
+
+.race {
     grid-area: 1 / 3 / 2 / 4;
 }
 
-.race { 
-    grid-area: 1 / 4 / 2 / 5; 
+.AC {
+    grid-area: 1 / 4 / 2 / 5;
 }
 
-.AC { 
-    grid-area: 1 / 5 / 2 / 6; 
+.initiative {
+    grid-area: 1 / 5 / 2 / 6;
 }
 
-.initiative { 
-    grid-area: 1 / 6 / 2 / 7; 
+.speed {
+    grid-area: 1 / 6 / 2 / 7;
 }
 
-.speed { 
-    grid-area: 1 / 7 / 2 / 8; 
-}
-
-.Abilities { 
-    grid-area: 2 / 1 / 8 / 2; 
+.Abilities {
+    grid-area: 2 / 1 / 8 / 2;
     background-color: var(--elevationColor);
     border-radius: 1rem;
 }
 
-.strength { 
-    grid-area: 2 / 1 / 3 / 2; 
+.Strength {
+    grid-area: 2 / 1 / 3 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
     padding: .25rem;
 }
 
-.dexterity { 
-    grid-area: 3 / 1 / 4 / 2; 
+.Dexterity {
+    grid-area: 3 / 1 / 4 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
     padding: .25rem;
 }
 
-.constitution { 
-    grid-area: 4 / 1 / 5 / 2; 
+.Constitution {
+    grid-area: 4 / 1 / 5 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
     padding: .25rem;
 }
 
-.intelligence { 
-    grid-area: 5 / 1 / 6 / 2; 
+.Intelligence {
+    grid-area: 5 / 1 / 6 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
@@ -104,121 +159,170 @@ body {
 }
 
 
-.wisdom { 
-    grid-area: 6 / 1 / 7 / 2; 
+.Wisdom {
+    grid-area: 6 / 1 / 7 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
     padding: .25rem;
 }
 
-.charisma { 
-    grid-area: 7 / 1 / 8 / 2; 
+.Charisma {
+    grid-area: 7 / 1 / 8 / 2;
     background-color: var(--elevation2Color);
     margin: 1rem;
     border: 1px solid black;
     padding: .25rem;
 }
 
-.experience { 
-    grid-area: 2 / 4 / 3 / 6;
+.experience {
+    grid-area: 8 / 1 / 9 / 2;
     background-color: var(--elevationColor);
     border-radius: 1rem;
-    margin-bottom: 1rem;
-    margin-left: 1rem;
-    margin-right: 1rem;
-
+    margin-top: 1rem;
 }
 
-.health { 
-    grid-area: 3 / 2 / 4 / 5; 
+.health {
+    grid-area: 3 / 2 / 4 / 5;
     margin-left: 1rem;
 }
-.expLogo{
-    grid-area: 2 / 3 / 3 / 4;
-    margin-left: 1rem;
-}
-.proficiency{
+
+.proficiency {
     grid-area: 2 / 2 / 3 / 3;
     margin-left: 1rem;
     background-color: var(--elevationColor);
     border-radius: 1rem;
 }
-.proficiency h5{
+
+.proficiency h5 {
     font-size: small;
 }
-.hpLogo{
-    grid-area: 3 / 2 / 4 / 3;
+
+.hpValues {
+    grid-area: 2 / 4 / 4 / 5;
+    z-index: 100;
+}
+
+.hpform {
+    grid-area: 2 / 5 / 4 / 6;
+    z-index: 100;
+}
+
+
+.hp {
+    grid-area: 2 / 4 / 4 / 6;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
     margin-left: 1rem;
+    margin-bottom: 1rem;
 }
 
-.hpbtn { 
-    grid-area: 3 / 5 / 4 / 6; 
-}
-
-.skills { 
-    grid-area: 4 / 2 / 8 / 4; 
+.skills {
+    grid-area: 4 / 2 / 8 / 4;
     background-color: var(--elevationColor);
     border-radius: 1rem;
     margin-left: 1rem;
 }
 
-.items { 
-    grid-area: 4 / 4 / 8 / 6; 
+.items {
+    grid-area: 4 / 4 / 8 / 6;
     background-color: var(--elevationColor);
     border-radius: 1rem;
     margin-left: 1rem;
 }
 
-.savingthrows { 
-    grid-area: 8 / 1 / 9 / 2; 
+.savingthrows {
+    grid-area: 2 / 2 / 4 / 4;
     background-color: var(--elevationColor);
     border-radius: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+}
+
+.features {
+    grid-area: 8 / 2 / 9 / 8;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
     margin-top: 1rem;
 }
 
-.img { 
-    grid-area: 2 / 6 / 8 / 8; 
+.raceFeats {
+    grid-area: 8 / 2 / 9 / 4;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.classFeats {
+    grid-area: 8 / 4 / 9 / 6;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.backgroundFeats {
+    grid-area: 8 / 6 / 9 / 8;
+    background-color: var(--elevationColor);
+    border-radius: 1rem;
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.img {
+    grid-area: 2 / 6 / 5 / 8;
     position: relative;
 }
 
-.spells { 
-    grid-area: 8 / 2 / 9 / 8; 
+.spells {
+    grid-area: 5 / 6 / 8 / 8;
     background-color: var(--elevationColor);
-    border-radius: 1rem;
     margin-left: 1rem;
-    margin-top: 1rem;
+    border-radius: 1rem;
 }
 
-.green{
+.green {
     color: var(--midGreen);
     font-weight: bold;
 }
-.red{
+
+.red {
     color: var(--midRed);
     font-weight: bold;
 }
-.abilityBonus{
-    border: 1px solid black;
-    border-radius: 1rem;
-    padding: .5rem;
+
+.abilityBonus {
+    font-size: 2.5rem;
     margin: auto;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
 }
-.w-33{
+
+.abilityScoreName {
+    margin-left: .25rem;
+    font-weight: bolder;
+}
+
+.w-33 {
     width: 33%;
 }
-.iconImg{
+
+.iconImg {
     width: 50%;
-  margin: auto;
-  display: block;
+    margin: auto;
+    display: block;
+    margin-top: 1rem;
 }
-.iconDiv{
+
+.iconDiv {
     background-color: var(--elevationColor);
     margin: 1rem;
-    margin-top: 0;
     border-radius: 1rem;
 }
-.characterImg{
+
+.characterImg {
     max-height: 100%;
     max-width: 100%;
     width: auto;
@@ -230,29 +334,403 @@ body {
     right: 0;
     margin: auto;
 }
-#expImg{
+
+
+
+#expImg {
     display: inline;
     width: 20%;
 }
-#expDiv{
+
+#expDiv {
     margin-left: 1rem;
 }
-.inline{
+
+.inline {
     display: inline;
 }
-#expText{
+
+#expText {
     font-size: 2rem;
     margin-left: 6rem;
 }
-#hpImg{
+
+.abilityScore {
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: .5rem;
+    font-size: 2rem;
+    margin: auto;
+}
+
+td {
+    color: var(--textColor);
+}
+
+tr {
+    color: var(--textColor);
+}
+
+.table {
+    max-height: 100% !important;
+}
+
+#savingThrowTable {
+    max-height: min-content;
+}
+
+#hrhp {
+    margin: auto !important;
+    width: 100%;
+    color: var(--textColor);
+    height: 5px;
+    opacity: 50%;
+}
+
+.myContainer {
+    position: relative;
+    align-items: center;
+}
+
+.verticalCenter {
+    margin: 0;
+    position: absolute;
+    top: 44%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 
 }
-.abilityScore{
+
+.textSizeBigger {
+    font-size: 8rem;
+}
+
+.plusIcon {
+    margin: 0;
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.minusIcon {
+    margin: 0;
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.inputNumber {
+    background: transparent;
+    color: var(--textColor);
+    width: 75%;
+    border-radius: .5rem;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.btnhp {
+    height: 25%;
+    width: auto;
+    background: transparent;
+    border: none;
+}
+
+.btnhp:hover {
+    background-color: var(--popColorHover);
+    border-radius: 1rem;
+}
+
+.d20Skill {
+    max-height: 25px;
+}
+
+#characterName {
+    margin: 0 !important;
+}
+
+#btnAdd {
+    margin-top: 0;
+}
+
+#btnRemove {
+    margin-top: 0;
+}
+
+.no-border {
+    border: none !important;
+}
+
+.bg-trans {
+    background-color: transparent !important;
+}
+
+#levelupBtn:hover {
+    background-color: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
+
+#levelupBtn {
+    margin-top: 0;
+}
+
+#levelupImg {
+    max-height: 25px !important;
+}
+
+#itemBtn {
+    margin-top: 0;
+}
+
+#itemBtn:hover {
+    background-color: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
+
+#itemImg {
+    max-height: 25px !important;
+}
+
+.roll20:hover {
+    background-color: var(--popColorHover) !important;
+}
+
+.btn-elevated2 {
+    background-color: var(--elevation2Color) !important;
+    border-radius: 1rem;
+}
+
+.btn-elevated2:hover {
+    background-color: var(--popColorHover) !important;
+}
+
+.bolded {
+    font-weight: bold;
+}
+
+.ability {
+    border-radius: 1rem;
+}
+
+.mtop-1rem {
+    margin-top: 1rem !important;
+}
+
+
+.fs-2rem {
     font-size: 2rem;
+    margin-left: .5rem;
+    margin-right: .5rem;
 }
-td{
+
+.mw-100px {
+    max-width: 100px !important;
+}
+
+.bg-elevated2 {
+    background-color: var(--elevation2Color) !important;
+}
+
+.modifyBtn {
+    margin-left: 1rem;
+
+}
+
+.colorText {
+    color: var(--textColor) !important;
+}
+
+#itemTable {
+    max-height: 100%;
+    height: auto !important;
+}
+
+.mw-50 {
+    max-width: 50% !important;
+}
+
+.mw-25 {
+    max-width: 25% !important;
+}
+
+.w-20 {
+    width: 20% !important;
+}
+
+.w-40 {
+    width: 40% !important;
+}
+
+#addRow {
+    max-width: 100%;
+}
+
+td {
+    word-wrap: break-word;
+}
+
+.table {
+    table-layout: fixed !important;
+    height: 95% !important;
+}
+
+.mw-90 {
+    max-width: 90%;
+}
+
+#addHp {
+    max-width: 100%;
+    height: auto;
+}
+
+#removeHp {
+    max-width: 100%;
+    height: auto;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.myTopContainer {
+    position: relative;
+    height: 100%;
+}
+
+.table-wrapper table {
+    width: 100%;
+}
+
+.table-wrapper {
+    position: relative;
+}
+
+.table-scroll {
+    max-height: 190px;
+    overflow: scroll;
+}
+
+.profOrExpertise {
+    max-width: 30px;
+    height: auto;
+}
+
+/* Taken from https://www.w3schools.com/howto/howto_css_shake_image.asp */
+.shakeshakeshake {
+    animation: shake 0.5s !important;
+    animation-iteration-count: 2 !important;
+}
+
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    background: var(--popColorHover) !important;
+    border-radius: 1rem;
+}
+
+.lighterHoverA:hover {
+    color: var(--brightGreen);
+}
+
+@keyframes shake {
+    0% {
+        transform: translate(1px, 1px) rotate(0deg);
+    }
+
+    10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+    }
+
+    20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+    }
+
+    30% {
+        transform: translate(3px, 2px) rotate(0deg);
+    }
+
+    40% {
+        transform: translate(1px, -1px) rotate(1deg);
+    }
+
+    50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+    }
+
+    60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+    }
+
+    70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+    }
+
+    80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+    }
+
+    90% {
+        transform: translate(1px, 2px) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+    }
+}
+
+.numberInput {
+    background-color: var(--elevation2Color);
     color: var(--textColor);
 }
-tr{
-    color: var(--textColor);
+
+.numberInput::placeholder {
+    color: var(--popColor);
+}
+
+
+
+.btn-secondary2 {
+    background-color: transparent !important;
+    border: none;
+    max-height: 30px;
+}
+
+.btn-no-padding {
+    padding: 0 !important;
+}
+
+.btn-secondary2:hover {
+    background-color: var(--popColorHover) !important;
+}
+
+@media only screen and (max-width: 1300px) {
+    .fs-2rem {
+        font-size: 1rem;
+    }
+
+    .textSizeBigger {
+        font-size: 3rem;
+    }
 }

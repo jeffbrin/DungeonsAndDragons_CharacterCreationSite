@@ -235,10 +235,23 @@ async function createAbilityScoreTable() {
  * @throws {DatabaseError} Thrown usually when the connection is closed or invalid.
  */
 async function dropTables() {
-    const dropCommand = "DROP TABLE IF EXISTS AbilityScore; "
+    const dropAS = "DROP TABLE IF EXISTS AbilityScore;";
+    const dropSkill = "DROP TABLE IF EXISTS Skill;";
+    const dropSTP = "DROP TABLE IF EXISTS SavingThrowProficiency;";
+    const dropSkillP = "DROP TABLE IF EXISTS SkillProficiency;";
+    const dropSE = "DROP TABLE IF EXISTS SkillExpertise;";
+    const dropSTB = "DROP TABLE IF EXISTS SavingThrowBonus;";
+    const dropA = "DROP TABLE IF EXISTS Ability;";
 
     try {
-        await connection.execute(dropCommand);
+        await connection.execute(dropAS);
+        await connection.execute(dropSTB);
+        await connection.execute(dropSE);
+        await connection.execute(dropSkillP);
+        await connection.execute(dropSTP);
+        await connection.execute(dropSkill);
+        await connection.execute(dropA);
+
     }
     catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'dropTables', `Failed to drop the statistics table from the database: ${error}`);
@@ -270,7 +283,7 @@ async function createTables() {
  * @throws {InvalidInputError} Thrown when the ability scores array doesn't contain 6 integers or when the character id is invalid.
  */
 async function setAbilityScores(characterId, abilityScores) {
-    
+
 
     // Validate the ability scores
     await validationModel.checkAbilityScores(abilityScores);
@@ -280,20 +293,20 @@ async function setAbilityScores(characterId, abilityScores) {
 
 
     // Delete existing ability scores
-    try{
+    try {
         await connection.execute(`DELETE FROM AbilityScore WHERE CharacterId = ${characterId};`);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to delete the existing ability scores from the database for the character with id ${characterId}: ${error}`);
     }
 
     // Add each ability score
-    try{
-        for (let i = 1; i <= abilityScores.length; i++){
-            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i-1]});`);
+    try {
+        for (let i = 1; i <= abilityScores.length; i++) {
+            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i - 1]});`);
         }
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to add the ability scores for character ${characterId}: ${error}`);
     }
 
@@ -318,18 +331,18 @@ async function addSkillProficiency(characterId, skillId) {
     await validationModel.checkCharacterId(characterId);
 
     // Drop existing expertise and proficiency in this skill
-    try{
+    try {
         await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
         await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
-    }catch(error){
+    } catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'addSkillProficiency', `Failed to delete existing expertise and proficiency for the character with id ${characterId} in the skill with id ${skillId}: ${error}}`);
     }
-    
+
     // Add the new proficiency in this skill.
-    try{
+    try {
         await connection.execute(`INSERT INTO SkillProficiency (CharacterId, SkillId) values (${characterId}, ${skillId});`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'addSkillProficiency', `Failed to add make the character with id ${characterId} proficient in the skill with id ${skillId}: ${error}`);
     }
 
@@ -355,18 +368,18 @@ async function addSkillExpertise(characterId, skillId) {
 
 
     // Drop existing expertise and proficiency in this skill
-    try{
+    try {
         await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
         await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
-    }catch(error){
+    } catch (error) {
         throw new InvalidInputError('characterStatisticsModel', 'addSkillExpertise', `Failed to delete existing expertise and proficiency for the character with id ${characterId} in the skill with id ${skillId}: ${error}}`);
     }
-    
+
     // Add the new proficiency in this skill.
-    try{
+    try {
         await connection.execute(`INSERT INTO SkillExpertise (CharacterId, SkillId) values (${characterId}, ${skillId});`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'addSkillExpertise', `Failed to add make the character with id ${characterId} proficient in the skill with id ${skillId}: ${error}`);
     }
 }
@@ -391,17 +404,17 @@ async function addSavingThrowProficiency(characterId, abilityId) {
 
 
     // Drop existing proficiency in this saving throw
-    try{
+    try {
         await connection.execute(`DELETE FROM SavingThrowProficiency WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId};`);
-    }catch(error){
+    } catch (error) {
         throw new InvalidInputError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to delete existing proficiency for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}}`);
     }
-    
+
     // Add the new proficiency in this ability.
-    try{
+    try {
         await connection.execute(`INSERT INTO SavingThrowProficiency (CharacterId, AbilityId) values (${characterId}, ${abilityId});`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to add make the character with id ${characterId} proficient in the saving throw with ability id ${abilityId}: ${error}`);
     }
 }
@@ -429,19 +442,19 @@ async function setSavingThrowBonus(characterId, abilityId, bonus) {
 
 
     // Remove the existing bonus from the character in this saving throw
-    try{
+    try {
         await connection.execute(`DELETE FROM SavingThrowBonus WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId};`);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to delete the existing bonus for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}`);
     }
 
     // Add the new bonus if bonus isn't 0
-    if (bonus != 0){
-        try{
+    if (bonus != 0) {
+        try {
             await connection.execute(`INSERT INTO SavingThrowBonus (CharacterId, AbilityId, Bonus) values (${characterId}, ${abilityId}, ${bonus});`);
         }
-        catch(error){
+        catch (error) {
             throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to add the bonus for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}`);
         }
     }
@@ -454,10 +467,10 @@ async function setSavingThrowBonus(characterId, abilityId, bonus) {
  * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
 async function getAllAbilities() {
-    try{
+    try {
         [abilities, columns] = await connection.query('SELECT Name, Id FROM Ability;');
         return abilities;
-    }catch(error){
+    } catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getAllAbilities', `Failed to get the list of abilities from the database: ${error}`);
     }
 }
@@ -469,18 +482,18 @@ async function getAllAbilities() {
  * @returns An array containing all the skills in the database with their corresponding ability.
  * @throws {DatabaseError} Thrown when the database connection is undefined.
  */
-async function getAllSkills(){
-    try{
+async function getAllSkills() {
+    try {
         [skills, columns] = await connection.query('SELECT S.Name, S.Id, A.Name as AbilityName, A.Id as AbilityId FROM Ability A, Skill S WHERE A.Id = S.AbilityId ORDER BY Name ASC;');
         skills = skills.map(skill => {
-            skill.Ability = {Id: skill.AbilityId, Name: skill.AbilityName};
+            skill.Ability = { Id: skill.AbilityId, Name: skill.AbilityName };
             delete skill.AbilityId;
             delete skill.AbilityName;
             return skill;
         });
-        
+
         return skills;
-    }catch(error){
+    } catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getAllSkills', `Failed to get the list of skills from the database: ${error}`);
     }
 }
@@ -488,12 +501,12 @@ async function getAllSkills(){
 /**
  * Closes the connection to the database.
  */
-async function closeConnection(){
-    try{
-        if(connection)
+async function closeConnection() {
+    try {
+        if (connection)
             connection.end();
     }
-    catch(error){
+    catch (error) {
         logger.error(error);
     }
 }
@@ -505,18 +518,18 @@ async function closeConnection(){
  * @throws {InvalidInputError} Thrown when the characterId is invalid.
  * @throws {DatabaseError} Thrown when the function failed to query from the database.
  */
-async function getSkillProficiencies(characterId){
+async function getSkillProficiencies(characterId) {
 
     // Validate the character id
     await validationModel.checkCharacterId(characterId);
 
 
     let skillIdObjects;
-    try{
+    try {
         [skillIdObjects, columns] = await connection.query(`SELECT SkillId FROM SkillProficiency WHERE CharacterId = ${characterId}`);
         return skillIdObjects.map(x => x.SkillId);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getSkillProficiencies', `Failed to get the skill proficiency ids from the database: ${error}`);
     }
 
@@ -529,17 +542,17 @@ async function getSkillProficiencies(characterId){
  * @throws {InvalidInputError} Thrown when the characterId is invalid.
  * @throws {DatabaseError} Thrown when the function failed to query from the database.
  */
-async function getSkillExpertise(characterId){
+async function getSkillExpertise(characterId) {
     // Validate the character id
     await validationModel.checkCharacterId(characterId);
 
 
     let skillIdObjects;
-    try{
+    try {
         [skillIdObjects, columns] = await connection.query(`SELECT SkillId FROM SkillExpertise WHERE CharacterId = ${characterId}`);
         return skillIdObjects.map(x => x.SkillId);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getSkillExpertise', `Failed to get the skill expertise ids from the database: ${error}`);
     }
 }
@@ -551,17 +564,17 @@ async function getSkillExpertise(characterId){
  * @throws {InvalidInputError} Thrown when the characterId is invalid.
  * @throws {DatabaseError} Thrown when the function failed to query from the database.
  */
-async function getSavingThrowProficiencies(characterId){
+async function getSavingThrowProficiencies(characterId) {
     // Validate the character id
     await validationModel.checkCharacterId(characterId);
 
 
     let savingThrowIdObjects;
-    try{
+    try {
         [savingThrowIdObjects, columns] = await connection.query(`SELECT AbilityId FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
         return savingThrowIdObjects.map(x => x.AbilityId);
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getSavingThrowProficiencies', `Failed to get the saving throw proficiency ids from the database: ${error}`);
     }
 }
@@ -573,17 +586,17 @@ async function getSavingThrowProficiencies(characterId){
  * @throws {InvalidInputError} Thrown when the characterId is invalid.
  * @throws {DatabaseError} Thrown when the function failed to query from the database.
  */
-async function getSavingThrowBonuses(characterId){
+async function getSavingThrowBonuses(characterId) {
     // Validate the character id
     await validationModel.checkCharacterId(characterId);
 
 
     let savingThrowBonusObjects;
-    try{
+    try {
         [savingThrowBonusObjects, columns] = await connection.query(`SELECT AbilityId, Bonus FROM SavingThrowBonus WHERE CharacterId = ${characterId}`);
         return savingThrowBonusObjects;
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getSavingThrowBonuses', `Failed to get the saving throw bonuses from the database: ${error}`);
     }
 
@@ -596,21 +609,21 @@ async function getSavingThrowBonuses(characterId){
  * @throws {InvalidInputError} Thrown when the characterId is invalid.
  * @throws {DatabaseError} Thrown when the function failed to query from the database.
  */
-async function getAbilityScores(characterId){
+async function getAbilityScores(characterId) {
     // Validate the character id
-    try{
+    try {
         await validationModel.checkCharacterId(characterId);
     }
-    catch(error){
+    catch (error) {
         throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowBonuses', error.message);
     }
 
     let abilityScores;
-    try{
+    try {
         [abilityScores, columns] = await connection.query(`SELECT Score, AbilityId, Name as AbilityName FROM AbilityScore, Ability A WHERE AbilityId = Id AND CharacterId = ${characterId};`);
         return abilityScores;
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'getAbilityScores', `Failed to get the ability scores from the database: ${error}`);
     }
 }
@@ -622,7 +635,7 @@ async function getAbilityScores(characterId){
  * @throws {InvalidInputError} Thrown when the character or skill id is invalid.
  * @throws {DatabaseError} Thrown when the function fails to execute on the database.
  */
-async function removeSkillProficiency(characterId, skillId){
+async function removeSkillProficiency(characterId, skillId) {
 
     // Validate character id
     await validationModel.checkCharacterId(characterId);
@@ -630,10 +643,10 @@ async function removeSkillProficiency(characterId, skillId){
     // Validate skill id
     await validationModel.checkSkillId(skillId);
 
-    try{
+    try {
         await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId}`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'removeSkillProficiency', `Failed to delete a skill proficiency in the skill ${skillId} for character ${characterId}: ${error}`);
     }
 }
@@ -645,7 +658,7 @@ async function removeSkillProficiency(characterId, skillId){
  * @throws {InvalidInputError} Thrown when the character or skill id is invalid.
  * @throws {DatabaseError} Thrown when the function fails to execute on the database.
  */
- async function removeSkillExpertise(characterId, skillId){
+async function removeSkillExpertise(characterId, skillId) {
 
     // Validate character id
     await validationModel.checkCharacterId(characterId);
@@ -653,10 +666,10 @@ async function removeSkillProficiency(characterId, skillId){
     // Validate skill id
     await validationModel.checkSkillId(skillId);
 
-    try{
+    try {
         await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId}`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'removeSkillExpertise', `Failed to delete a skill expertise in the skill ${skillId} for character ${characterId}: ${error}`);
     }
 }
@@ -668,7 +681,7 @@ async function removeSkillProficiency(characterId, skillId){
  * @throws {InvalidInputError} Thrown when the character or ability id is invalid.
  * @throws {DatabaseError} Thrown when the function fails to execute on the database.
  */
- async function removeSavingThrowProficiency(characterId, abilityId){
+async function removeSavingThrowProficiency(characterId, abilityId) {
 
     // Validate character id
     await validationModel.checkCharacterId(characterId);
@@ -676,23 +689,23 @@ async function removeSkillProficiency(characterId, skillId){
     // Validate skill id
     await validationModel.checkAbility(abilityId);
 
-    try{
+    try {
         await connection.execute(`DELETE FROM SavingThrowProficiency WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId}`)
     }
-    catch(error){
+    catch (error) {
         throw new DatabaseError('characterStatisticsModel', 'removeSavingThrowProficiency', `Failed to delete a saving throw proficiency in the skill ${skillId} for character ${characterId}: ${error}`);
     }
 }
-    
 
-module.exports = { 
+
+module.exports = {
     initialize,
     closeConnection,
-    dropTables, 
-    createTables, 
-    setAbilityScores, 
-    addSkillProficiency, 
-    addSkillExpertise, 
+    dropTables,
+    createTables,
+    setAbilityScores,
+    addSkillProficiency,
+    addSkillExpertise,
     addSavingThrowProficiency,
     setSavingThrowBonus,
     getAllAbilities,

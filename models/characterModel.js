@@ -5,9 +5,9 @@ const tableName = 'PlayerCharacter';
 const logger = require('../logger');
 const errors = require('./errorModel');
 const characterStatsModel = require('./characterStatisticsModel');
-const raceModel = require('./raceModel')
-const backgroundModel = require('./backgroundModel')
-const classModel = require('./classModel')
+const raceModel = require('./raceModel');
+const backgroundModel = require('./backgroundModel');
+const classModel = require('./classModel');
 
 
 /**
@@ -29,12 +29,21 @@ async function initialize(databaseNameTmp, reset) {
     //if reset true, drop all the tables in reverse creation order.
     await characterStatsModel.initialize(databaseNameTmp);
     if (reset) {
-        const deleteDbQuery = `DROP TABLE IF EXISTS OwnedItem, KnownSpell, ${tableName}, Morality, Ethics;`;
+        const dropItem = `DROP TABLE IF EXISTS OwnedItem;`;
+        const dropSpell = `DROP TABLE IF EXISTS KnownSpell;`;
+        const dropPlayer = `DROP TABLE IF EXISTS PlayerCharacter;`;
+        const dropMorality = `DROP TABLE IF EXISTS Morality;`;
+        const dropEthics = `DROP TABLE IF EXISTS Ethics;`;
         try {
             await characterStatsModel.dropTables();
-            await connection.execute(deleteDbQuery);
+            await connection.execute(dropItem);
+            await connection.execute(dropSpell);
+            await connection.execute(dropPlayer);
+            await connection.execute(dropMorality);
+            await connection.execute(dropEthics);
+
             logger.info(`Tables: OwnedItem, KnownSpell, ${tableName}, Morality deleted if existed to reset the Db and reset increment in initialize()`);
-            
+
         } catch (error) {
             throw new errors.DatabaseError(`characterModel', 'initialize', "Couldn't connect to the database: ${error.message}`);
         }
@@ -46,7 +55,7 @@ async function initialize(databaseNameTmp, reset) {
     await createKnownSpellTable();
     await createOwnedItemTable();
 
-    
+
     await characterStatsModel.createTables();
 }
 
@@ -103,7 +112,7 @@ async function addCharacterObject(character) {
 async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, moralityId, level, abilityScoreValues, savingThrowProficienciesIds, proficiencyBonus, userId, armorClass) {
 
     //select from character table and select the next highest available id top order by ID
-    const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`
+    const idQuery = `SELECT Id from ${tableName} ORDER BY Id DESC LIMIT 1;`;
     let characterId = 1;
     try {
         let [rows, column_definitions] = await connection.query(idQuery);
@@ -136,7 +145,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
             await characterStatsModel.addSavingThrowProficiency(characterId, savingThrowProficienciesIds[i]);
         }
 
-        
+
         //Add Ability Score Values
         await characterStatsModel.setAbilityScores(characterId, abilityScoreValues);
 
@@ -171,7 +180,7 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
  */
 async function updateCharacter(characterId, classId, raceId, ethicsId, moralityId, backgroundId, name, maxHp, level, abilities, savingThrows, proficiencyBonus, userId, armorClass) {
     try {
-        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilities, savingThrows, userId)
+        await valUtils.isCharValid(connection, name, raceId, classId, maxHp, backgroundId, ethicsId, moralityId, level, abilities, savingThrows, userId);
     } catch (error) {
         throw new errors.InvalidInputError('characterModel', 'updateCharacter', `Invalid Character, cannot update character: ${error.message}`);
     }
@@ -204,10 +213,12 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 
     try {
         await connection.execute(query);
-        logger.info("Update Query Executed - updateCharacter(), will update characterStatistics in a sec...")
+        logger.info("Update Query Executed - updateCharacter(), will update characterStatistics in a sec...");
     } catch (error) {
         throw new errors.DatabaseError('characterModule', 'updateCharacter', `Update Failed, Database error: ${error.message}`);
     }
+
+
 
     //Character Statistics Table
     try {
@@ -246,6 +257,7 @@ async function updateCharacter(characterId, classId, raceId, ethicsId, moralityI
 async function addRemoveHp(id, hpValueChange) {
     let selectQ = `Select CurrentHp from ${tableName} WHERE Id = ${id};`;
     let rows, column_definitions;
+    hpValueChange = parseInt(hpValueChange);
     try {
         [rows, column_definitions] = await connection.query(selectQ);
         logger.info("select Query before CurrentHp change Executed - addRemoveHp");
@@ -325,8 +337,6 @@ async function getCharacter(id) {
         throw error;
     }
 
-
-
     try {
         let abilityScores = await characterStatsModel.getAbilityScores(id);
         character.AbilityScores = abilityScores;
@@ -345,7 +355,30 @@ async function getCharacter(id) {
     } catch (error) {
         throw new errors.DatabaseError('characterModel', 'getCharacter', `Database Error, couldn't get Owned Items: ${error.message}`);
     }
-    
+
+    //Initiative and Speed and exp
+    try {
+        const initiativeQ = `SELECT Initiative FROM PlayerCharacter WHERE Id = ${id};`;
+        let [rows, col] = await connection.query(initiativeQ);
+        character.Initiative = rows[0].Initiative;
+
+        const speedQ = `SELECT Speed FROM PlayerCharacter WHERE Id = ${id};`;
+        let [rowsSpeed, cols] = await connection.query(speedQ);
+        character.Speed = rowsSpeed[0].Speed;
+
+
+        const expQ = `Select Experience FROM ${tableName} WHERE Id = ${id};`;
+        let [rowExp, columnsExp] = await connection.query(expQ);
+        if (rowExp[0].Experience == null || rowExp[0].Experience < 0) {
+            character.Experience = 0;
+        }
+        else {
+            character.Experience = rowExp[0].Experience;
+        }
+
+    } catch (error) {
+        throw error;
+    }
 
     //Get race, class, background
     character.Race = await raceModel.getRace(character.raceId);
@@ -355,7 +388,7 @@ async function getCharacter(id) {
     delete character.classId;
 
     character.Background = await backgroundModel.getBackground(character.backgroundId);
-    delete character.backgroundId
+    delete character.backgroundId;
 
     return character;
 }
@@ -366,7 +399,7 @@ async function getCharacter(id) {
  * @returns {Array} - An array of String Names for each of the three moralities
  * @throws {DatabaseError} - If the query fails
  */
-async function getAllMoralities(){
+async function getAllMoralities() {
     let query = `SELECT Name from Morality;`;
 
     let rows;
@@ -384,7 +417,7 @@ async function getAllMoralities(){
  * @returns {Array} - An array of String Names for each of the three Ethics
  * @throws {DatabaseError} - If the query fails
  */
- async function getAllEthics(){
+async function getAllEthics() {
     let query = `SELECT Name from Ethics;`;
 
     let rows;
@@ -397,6 +430,142 @@ async function getAllMoralities(){
     return rows;
 }
 
+
+/**
+ * Adds an item to the OwnedItem table. Checks if user is valid and if item already exists
+ * If already exists then calls the helper function to increase the number of that item in the table
+ * @param {Integer} characterId - The Id of the character that will owned this item
+ * @param {String} itemName - The name of the Item
+ * @param {Integer} itemCount - The amount of this item
+ * @throws {DatabaseError} - Thrown when there is a database error and one of the queries wasn't completed
+ * @throws {InvalidInputError} - Thrown if there was an error with the User ID not being in the Database
+ */
+async function addItem(characterId, itemName, itemCount) {
+    itemCount = parseInt(itemCount);
+    if (itemCount === NaN) {
+        throw errors.InvalidInputError('characterModel', 'addItem', `Item Count  Must be a number`);
+    }
+    //check characterId
+    const characterS = `SELECT * FROM ${tableName} WHERE Id = ${characterId};`;
+    let characters, columns;
+    try {
+
+        [characters, columns] = await connection.query(characterS);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    if (characters.length === 0) {
+        throw new errors.InvalidInputError('characterModel', 'addItem', `Invalid character Id.`);
+    }
+
+
+    //check to see if there already is this item
+    itemName = itemName.toLowerCase();
+    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName.replace(/'/g, "''")}';`;
+    let rows, cols;
+    try {
+        [rows, cols] = await connection.query(selectQ);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+
+    if (rows.length != 0) {
+        try {
+            itemCount += parseInt(rows[0].Count);
+            await changeQuantityItem(characterId, itemName, itemCount);
+        } catch (error) {
+            throw error;
+        }
+
+    }
+    else {
+        const insertQ = `INSERT INTO OwnedItem (CharacterId, Name, Count) VALUES (${characterId}, '${itemName.replace(/'/g, "''")}', ${itemCount});`;
+        try {
+            await connection.execute(insertQ);
+        } catch (error) {
+            throw new errors.DatabaseError('characterModel', 'addItem', `Couldn't insert the item: ${error.message}`);
+        }
+    }
+}
+
+/**
+ * Updates the Owned Item Table with the new values
+ * @param {*} characterId - The Id of the Character who owns the item
+ * @param {*} itemName - The name of the item (lowercased already)
+ * @param {*} itemCount - The new count of the item (calculated inside last function)
+ * @throws {DatabaseError} Thrown when there is a database error and the query wasn't executed properly
+ */
+async function changeQuantityItem(characterId, itemName, itemCount) {
+
+    let query;
+    itemCount = parseInt(itemCount);
+    if (itemCount <= 0) {
+        //delete
+        query = `DELETE FROM OwnedItem WHERE CharacterID = ${characterId} AND Name = '${itemName}';`;
+    }
+    else {
+        //update to new value that is > 0
+        query = `UPDATE OwnedItem SET Count = ${itemCount} WHERE CharacterID = ${characterId} AND Name = '${itemName}';`;
+    }
+
+
+    try {
+        await connection.execute(query);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'changeQuantityItem', `Error while updating or deleting the item to its new Count value: ${error.message}`);
+    }
+
+}
+
+
+/**
+ * Removes a specific amount of an item from the table
+ * @param {Integer} characterId - The character Id 
+ * @param {String} itemName - The name of the 
+ * @param {Integer} itemCount - A negative number to remove from the table
+ * @throws {InvalidInputError} - Thrown when the itemCount is not negative OR
+ * The Character Id is invalid
+ * @throws {DatabaseError} - Thrown if there is an error with the queries to the database
+ */
+async function removeItem(characterId, itemName, itemCount) {
+    if (itemCount >= 0) {
+        throw new errors.InvalidInputError('characterModel', 'removeItem', 'Item count must be negative!');
+    }
+    //check characterId
+    const characterS = `SELECT * FROM ${tableName} WHERE Id = ${characterId};`;
+    let characters, columns;
+    try {
+        [characters, columns] = await connection.query(characterS);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+    if (characters.length === 0) {
+        throw new errors.InvalidInputError('characterModel', 'addItem', `Invalid character Id.`);
+    }
+
+
+    //check to see if there already is this item
+    itemName = itemName.toLowerCase();
+    const selectQ = `SELECT * FROM OwnedItem WHERE CharacterId = ${characterId} AND Name = '${itemName}';`;
+    let rows, cols;
+    try {
+        [rows, cols] = await connection.query(selectQ);
+    } catch (error) {
+        throw new errors.DatabaseError('characterModel', 'addItem', `Error querying the Database: ${error.message}`);
+    }
+
+    if (rows.length != 0) {
+        try {
+            itemCount += parseInt(rows[0].Count);
+            await changeQuantityItem(characterId, itemName, itemCount);
+        } catch (error) {
+            throw error;
+        }
+    }
+    else {
+        throw new errors.InvalidInputError('characterModel', 'removeItem', `Couldn't remove Item because there is no item that exists with that name.`);
+    }
+}
 /**
  * Gets all the Characters corresponding to a given User's Id.
  * @param {Integer} userId - The Id of the user whose characters will be retrieved
@@ -422,12 +591,12 @@ async function getUserCharacters(userId) {
         }
     }
 
-    characters = []
-    for (row of rows){
+    characters = [];
+    for (row of rows) {
         characters.push(await getCharacter(row.Id));
     }
 
-    return characters
+    return characters;
 }
 
 /**
@@ -525,13 +694,11 @@ async function updateExp(characterId, experience) {
         logger.info('Select query executed inside of updateExp function');
         if (rows.length === 0) throw new errors.InvalidInputError();
 
-        let currentExperience = parseInt(rows[0].Experience);
-        currentExperience += experience;
 
-        const updateQuery = `UPDATE ${tableName} SET Experience = ${currentExperience} WHERE Id = ${characterId};`;
+        const updateQuery = `UPDATE ${tableName} SET Experience = ${experience} WHERE Id = ${characterId};`;
 
         await connection.execute(updateQuery);
-        logger.info(`UPDATE query Success, character with id: ${characterId}'s Experience is now ${currentExperience}.`);
+        logger.info(`UPDATE query Success, character with id: ${characterId}'s Experience is now ${experience}.`);
 
     } catch (error) {
         if (error instanceof errors.InvalidInputError) {
@@ -638,6 +805,85 @@ async function updateInitiative(characterId, initiative) {
 }
 
 
+async function createRecentCharactersCookie(characterIdVisited, previousCookie) {
+
+    if (previousCookie) {
+        //take data from old one and see
+        let oldRecents = {};
+        oldRecents.recentCharacters = previousCookie;
+        oldRecents.name = "recentCharacters";
+        oldRecents.expires = new Date(Date.now() + 900000);
+
+        // { id: parseInt(characterIdVisited) }
+        let index = oldRecents.recentCharacters.findIndex(object => {
+            return object.id === parseInt(characterIdVisited);
+        });
+
+        //if already at index 0 then just return, nothing changes
+        if (index === 0) return oldRecents;
+        //if > 0 have to take it from wherever it is and put it at [0]
+        else if (index > 0) {
+            let newArray = [];
+            newArray.push({ id: oldRecents.recentCharacters[index].id, name: oldRecents.recentCharacters[index].name });
+            for (let i = 0; i < oldRecents.recentCharacters.length; i++) {
+                if (i === index) continue;
+
+                if (newArray.length === 3) break;
+
+                newArray.push({ id: oldRecents.recentCharacters[i].id, name: oldRecents.recentCharacters[i].name });
+            }
+            oldRecents.recentCharacters = newArray;
+
+            return oldRecents;
+        }
+        //it's not in the array so just add to [0] and make sure length is 3
+        else {
+            if (oldRecents.recentCharacters.length === 3) {
+                oldRecents.recentCharacters.pop();
+                try {
+                    oldRecents.recentCharacters.splice(0, 0, { id: characterIdVisited, name: await getNameInternal(characterIdVisited) });
+                    return oldRecents;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            try {
+                oldRecents.recentCharacters.splice(0, 0, { id: characterIdVisited, name: await getNameInternal(characterIdVisited) });
+            } catch (error) {
+                throw error;
+            }
+
+            return oldRecents;
+        }
+    }
+    else {
+        let obj = {}
+        try {
+            obj.name = "recentCharacters"; obj.recentCharacters = [{ id: characterIdVisited, name: await getNameInternal(characterIdVisited) }]; obj.expires = new Date(Date.now() + 900000);
+        } catch (error) {
+            throw error;
+        }
+        return obj;
+    }
+}
+
+async function getNameInternal(id) {
+    const q = `SELECT Name from PlayerCharacter WHERE Id = ${id}`;
+    try {
+        let [rows, cols] = await connection.query(q);
+        return rows[0].Name;
+    } catch (error) {
+        if (error instanceof errors.InvalidInputError) {
+            throw new errors.InvalidInputError('characterModel', 'getNameInternal', `Character does not exist`);
+        }
+        else {
+            throw new errors.DatabaseError('characterModel', 'getNameInternal', `Database connection or query error, couldn't get name of the Character`);
+        }
+    }
+}
+
+
 /* #endregion */
 
 /**
@@ -676,7 +922,7 @@ async function createEthicsTable() {
             }
             return;
         }
-        logger.info(`Ethics already there, will not add them.`)
+        logger.info(`Ethics already there, will not add them.`);
     } catch (error) {
         throw new errors.DatabaseError('characterModel', 'createEthicsTable', `Database connection or query error, Couldn't Add or query from the Ethics table: ${error.message}`);
     }
@@ -715,7 +961,7 @@ async function createMoralityTable() {
             }
             return;
         }
-        logger.info(`Moralities already there, will not add them.`)
+        logger.info(`Moralities already there, will not add them.`);
     } catch (error) {
         throw new errors.DatabaseError('characterModel', 'createMoralityTable', `Database connection or query error, Couldn't Add or query from the Morality table: ${error.message}`);
     }
@@ -788,5 +1034,8 @@ module.exports = {
     updateAC,
     updateSpeed,
     updateInitiative,
-    addCharacterObject
+    addCharacterObject,
+    addItem,
+    removeItem,
+    createRecentCharactersCookie
 };

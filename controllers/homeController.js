@@ -37,8 +37,8 @@ async function getHomeLoggedOut(request, response){
     response.status(200).render('home.hbs', currentRenderObj);
 }
 
-router.get('/', (request, response) => {authenticationController.loadDifferentPagePerLoginStatus(request, response, getHomeLoggedIn, getHomeLoggedOut)});
-router.get('/home', (request, response) => {response.redirect('/');});
+router.get('/', (request, response) => { authenticationController.loadDifferentPagePerLoginStatus(request, response, getHomeLoggedIn, getHomeLoggedOut) });
+router.get('/home', (request, response) => { response.redirect('/'); });
 
 module.exports = {
     router,
