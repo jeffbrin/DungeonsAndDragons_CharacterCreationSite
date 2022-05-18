@@ -10,6 +10,7 @@ const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const { getAllSchools } = require('../models/spellModel');
 const url = require('url');
+const characterModel = require('../models/characterModel');
 
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
@@ -295,8 +296,15 @@ async function showFilteredSpells(request, response, username, userId) {
 
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells => { 
-            if (filter.characterId)
-                response.render('addSpellToCharacter.hbs', await getRenderObject({characterId: characterId, spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+            if (filter.characterId){
+                const character = await characterModel.getCharacter(characterId);
+                if(character.UserId == userId)
+                    response.render('addSpellToCharacter.hbs', await getRenderObject({characterId: characterId, character: character, spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId))
+                else{
+                    response.status(400);
+                    response.redirect(getUrlFormat('/home', {error: 'You are not authorized to add spells to that character.', status: 400}));
+                }
+            }
             else
                 response.render('spells.hbs', await getRenderObject({ spells: filteredSpells, filter: filter, Classes: await classModel.getAllClasses(), username: username }, userId)) 
         })
@@ -369,11 +377,39 @@ router.get('/id/:id', (request, response) => authenticator.loadDifferentPagePerL
  * @param {Object} request An http request object.
  * @param {Object} response An http response object.
  */
-async function editSpellWithId(request, response) {
+async function editSpellWithId(request, response, sessionId) {
 
-    // TODO:
-    const id = request.query.spellId;
-    spellModel.updateSpellById()
+    let userId;
+    try{
+        userId = await userModel.getUserIdFromSessionId(sessionId)
+    }
+    catch(error){
+        if (error instanceof InvalidSessionError){
+            logger.error(error);
+            response.status(401)
+            response.redirect(getUrlFormat('/spells', {error: 'You are not authorized to delete a spell. Please log in and try again.', status: 401}));
+        }
+        else if (error instanceof DatabaseError){
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Sorry, there was an issue authorizing your login status. Please wait a moment and try again.', status: 500}));
+        }
+        else{
+            logger.error(error);
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {error: 'Something went wrong.', status: 500}));
+        }
+
+    }
+
+    const query = request.query;
+    const id = query.spellId;
+    const level = query.Level;
+    const name = query.Name;
+    const description = query.Description;
+    const schoolId = query.SchoolId;
+    const castingTime = query.Casting
+    spellModel.updateSpellById(id, UserId, level, schoolId, description, name, )
         .then(async successfulUpdate => { response.render('spells.hbs', await getRenderObject({confirmation: 'Successfully edited spell'})) })
         .catch(async error => {
             if (error instanceof InvalidInputError) {
