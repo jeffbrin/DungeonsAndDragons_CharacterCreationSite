@@ -1,1026 +1,563 @@
 const spellModel = require('../../models/spellModel');
 const userModel = require('../../models/userModel');
 const classModel = require('../../models/classModel');
+const { InvalidInputError, DatabaseError } = require('../../models/errorModel');
+const fs = require('fs/promises')
 const dbName = 'dnd_db_testing'
 
-const randomSpells = [
-    {level: 0, name: 'Acid Splash', schoolId: 1, description: 'Splashes some acid on someone - Ranged spell attack (1d6 acid damage).'},
-    {level: 1, name: 'Absorb Elements', schoolId: 2, description: 'The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.'},
-    {level: 2, name: 'Acid Arrow', schoolId: 1, description: 'A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn.'},
-    {level: 3, name: 'Animate Dead', schoolId: 3, description: 'This spell creates an undead servant. Choose a pile of bones or a corpse of a Medium or Small humanoid within range. Your spell imbues the target with a foul mimicry of life, raising it as an undead creature. '},
-    {level: 4, name: 'Dimension Door', schoolId: 4, description: 'You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as "200 feet straight downward" or "upward to the northwest at a 45- degree angle, 300 feet."'},
-    {level: 5, name: 'Legend Lore', schoolId: 5, description: 'Name or describe a person, place, or object. The spell brings to your mind a brief summary of the significant lore about the thing you named. The lore might consist of current tales, forgotten stories, or even secret lore that has never been widely known.'},
-    {level: 6, name: 'Programmed Illusion', schoolId: 6, description: 'You create an illusion of an object, a creature, or some other visible phenomenon within range that activates when a specific condition occurs. The illusion is imperceptible until then. It must be no larger than a 30-foot cube, and you decide when you cast the spell how the illusion behaves and what sounds it makes. This scripted performance can last up to 5 minutes.'},
-    {level: 7, name: 'Etherealness', schoolId: 7, description: 'You step into the border regions of the Ethereal Plane, in the area where it overlaps with your current plane. You remain in the Border Ethereal for the duration or until you use your action to dismiss the spell. During this time, you can move in any direction. If you move up or down, every foot of movement costs an extra foot.'},
-    {level: 8, name: 'Dominate Monster', schoolId: 8, description: 'You attempt to beguile a creature that you can see within range. It must succeed on a Wisdom saving throw or be charmed by you for the duration. If you or creatures that are friendly to you are fighting it, it has advantage on the saving throw.'},
-    {level: 9, name: 'Power Word Kill', schoolId: 8, description: 'You utter a word of power that can compel one creature you can see within range to die instantly. If the creature you choose has 100 hit points or fewer, it dies. Otherwise, the spell has no effect.'}
+const validSpells = [
+    {Level: 1, SchoolId: 1, UserId: 1, Description: 'description', Name: 'Name One', CastingTime: 'casting time', EffectRange: 'effectRange', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: '1 minute', Damage: '1d6', Concentration: false, Ritual: true, Classes: [1, 2, 3]},
+    {Level: 2, SchoolId: 2, UserId: 1, Description: 'description 2', Name: 'Name two', CastingTime: '1 minute', EffectRange: '20 feet', Verbal: false, Somatic: 
+        false, Material: false, Materials: null, Duration: '1 hour', Damage: '1d10', Concentration: false, Ritual: false, Classes: [5]},
+    {Level: 3, SchoolId: 3, UserId: 1, Description: 'description 3', Name: 'Name three', CastingTime: '4 hours', EffectRange: '1 universe', Verbal: true, Somatic: 
+        false, Material: true, Materials: 'material components', Duration: '1 year', Damage: '1d12', Concentration: true, Ritual: false, Classes: [7, 10]},
+    {Level: 4, SchoolId: 4, UserId: 1, Description: 'description 4', Name: 'Name four', CastingTime: 'forever', EffectRange: '1 planet', Verbal: false, Somatic: 
+        true, Material: false, Materials: null, Duration: '1 minute', Damage: null, Concentration: false, Ritual: false, Classes: [4,3]},
+    {Level: 5, SchoolId: 5, UserId: 1, Description: 'description 5', Name: 'Name five', CastingTime: 'not long', EffectRange: '100 miles', Verbal: true, Somatic: 
+        false, Material: false, Materials: null, Duration: '1 month', Damage: '1d4', Concentration: false, Ritual: true, Classes: [1]},
+    {Level: 6, SchoolId: 6, UserId: 1, Description: 'description 6', Name: 'Name six', CastingTime: '12', EffectRange: 'self', Verbal: false, Somatic: 
+        false, Material: false, Materials: null, Duration: 'a fortnite', Damage: '1d20', Concentration: false, Ritual: false, Classes: [1, 2]},
+    {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]}
 ]
 
-/**
- * Gets a copy of a random spell.
- * @returns A copy of a random spell from an array of premade spells.
- */
-function getRandomSpell (){ 
-    const random = Math.floor(Math.random() * randomSpells.length);
-    return {...randomSpells.slice(random, random+1)[0]}; 
+const invalidSpells = [
+    {Level: -1, SchoolId: 1, UserId: 1, Description: 'description', Name: 'Name One', CastingTime: 'casting time', EffectRange: 'effectRange', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: '1 minute', Damage: '1d6', Concentration: false, Ritual: true, Classes: [1, 2, 3]},
+    {Level: 2, SchoolId: 1000, UserId: 1, Description: 'description 2', Name: 'Name two', CastingTime: '1 minute', EffectRange: '20 feet', Verbal: false, Somatic: 
+        false, Material: false, Materials: null, Duration: '1 hour', Damage: '1d10', Concentration: false, Ritual: false, Classes: [5]},
+    {Level: 3, SchoolId: 3, UserId: 45, Description: 'description 3', Name: 'Name three', CastingTime: '4 hours', EffectRange: '1 universe', Verbal: true, Somatic: 
+        false, Material: true, Materials: 'material components', Duration: '1 year', Damage: '1d12', Concentration: true, Ritual: false, Classes: [7, 10]},
+    {Level: 4, SchoolId: 4, UserId: 1, Description: null, Name: 'Name four', CastingTime: 'forever', EffectRange: '1 planet', Verbal: false, Somatic: 
+        true, Material: false, Materials: null, Duration: '1 minute', Damage: null, Concentration: false, Ritual: false, Classes: [4,3]},
+    {Level: 5, SchoolId: 5, UserId: 1, Description: 'description 5', Name: null, CastingTime: 'not long', EffectRange: '100 miles', Verbal: true, Somatic: 
+        false, Material: false, Materials: null, Duration: '1 month', Damage: '1d4', Concentration: false, Ritual: true, Classes: [1]},
+    {Level: 6, SchoolId: 6, UserId: 1, Description: 'description 6', Name: 'Name six', CastingTime: null, EffectRange: 'self', Verbal: false, Somatic: 
+        false, Material: false, Materials: null, Duration: 'a fortnite', Damage: '1d20', Concentration: false, Ritual: false, Classes: [1, 2]},
+    {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: null, Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: null, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        null, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: false, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: null, Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: null, Damage: null, Concentration: true, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: null, Ritual: false, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: null, Classes: [9]},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: []},
+        {Level: 7, SchoolId: 7, UserId: 1, Description: 'description 7', Name: 'Name seven', CastingTime: '1 hour', EffectRange: '5 feet', Verbal: true, Somatic: 
+        true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [1000]},
+]
+
+async function getSchoolsFromJSON(){
+    return JSON.parse(await fs.readFile('database-content-json/spellSchools.json'));
 }
+
+/**
+ * Gets a copy of a random valid spell.
+ * @returns A copy of a random spell from an array of premade valid spells.
+ */
+function randomValidSpell (){ 
+    const random = Math.floor(Math.random() * validSpells.length);
+    return {...validSpells.slice(random, random+1)[0]}; 
+}
+
+/**
+ * Gets a copy of a random invalid spell.
+ * @returns A copy of a random spell from an array of premade invalid spells.
+ */
+ function randomInvalidSpell (){ 
+    const random = Math.floor(Math.random() * invalidSpells.length);
+    return {...invalidSpells.slice(random, random+1)[0]}; 
+}
+
+/**
+ * Checks whether two spells are the same.
+ * @param {Object} spell1 The first spell to compare.
+ * @param {Object} spell2 The second spell to compare.
+ * @returns True if the spells are equal, false otherwise.
+ */
+function spellsEqual(spell1, spell2){
+    try{
+        for (property in spell1){
+            if (typeof spell1[property] == 'string'){
+                if (spell1[property].toLowerCase() != spell2[property].toLowerCase())
+                    return false;
+            }
+            else if (spell1[property] != spell2[property]){
+                if(Array.isArray(spell1[property]) && spell1[property].length == spell2[property].length)
+                {
+                    for (element of spell1[property]){
+                        if(!spell2[property].includes(element))
+                            return false;
+                    }
+                }
+                else
+                    return false; 
+            }
+        }
+    }
+    catch(error){
+        console.error(error);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Checks whether two arrays contain all the same spells.
+ * @param {Array} array1 The first array to compare.
+ * @param {Array} array2 The second array to compare.
+ * @returns True if the arrays contain the same spells, false otherwise.
+ */
+function arraysEqual(array1, array2){
+    if(array1.length != array2.length) return false;
+    for(let i = 0; i < array1.length; i++){
+        if(!spellsEqual(array1[i], array2[i])) return false;
+    }
+
+    return true;
+}
+
+// Initialize the database before each test.
+beforeAll(async () => {
+    await spellModel.initialize(dbName, true);
+});
 
 // Initialize the database before each test.
 beforeEach(async () => {
     await userModel.initialize(dbName, true);
-    await userModel.addUser('TestUser', 'TestPass1243')
+    await userModel.addUser('TestUser', 'TestPass1243');
+    await userModel.addUser('username2', 'Password2');
     await classModel.initialize(dbName, true);
     await spellModel.initialize(dbName, false);
 });
 
+
 // Close the database connection after each test to prevent open handles error.
 afterEach(async () => {
+
+    // Remove the user's spells after the tests
+    // Try catch in case the db is closed when it gets here
+    try{
+        const userSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+        for (spell of userSpells){
+            await spellModel.removeSpellById(spell.Id, 1);
+        }
+    }catch(error){
+        await spellModel.initialize(dbName, false);
+        const userSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+        for (spell of userSpells){
+            await spellModel.removeSpellById(spell.Id, 1);
+        }
+    }
     await spellModel.closeConnection();
     await classModel.closeConnection();
     await userModel.closeConnection();
+    
 });
 
-test('generic - Success', async () => {
+/**
+ * Gets all the spells that were created by user 1
+ */
+async function getHomebrewSpells(){
+    return await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+}
 
-    await spellModel.addSpellFromValues(1, 1, 1, 'description', 'Fireball', '1 action', true, true, true, 'Bat guano', 'instantaneous', '4d6', '60 feet', false, false, [1, 2, 3]);
-    const allSpells = await spellModel.getAllSpells(1);
-    console.log(allSpells);
+/**
+ * Checks if each spell in an array has the same property value.
+ * @param {Array} array The array of spells to check.
+ * @param {String} property A property to make sure is the same among all the spells
+ * @param {Object} value The value that each spell's property should be.
+ * @returns True if each spell in the array has a property value equal to the value passed, false otherwise.
+ */
+function allSpellsInArrayHavePropertyValue(array, property, value){
+    for (spell of array){
+        if (spell[property] != value)
+            return false;
+    }
+    return true;
+}
+
+// Add spells
+// Add spell from values will not be tested since add spell only calls addSpellFromValues
+// These tests serve as tests for both methods.
+// Tests are duplicated to get more randomness in the spells being added
+test('addSpell - Success - random spell 1', async () => {
+    
+    const addedSpell = await spellModel.addSpell(randomValidSpell());
+    const spellInDb = await spellModel.getSpellById(addedSpell.Id, 1);
+    
+    expect(spellsEqual(addedSpell, spellInDb)).toBe(true);
 })
 
-// // Not many test cases are necessary for addSpell since it is uses addSpellFromValues for most of the logic
-// test('addSpell - Success', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     const spellAddedSuccessfully = await spellModel.addSpell(randomSpell);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // stored spells should be an array
-//     expect(Array.isArray(storedSpells)).toBe(true);
-
-//     // Spell should have been added successfully
-//     expect(spellAddedSuccessfully).toBe(true)
-
-//     // Spell in db should be the same as the original
-//     expect(storedSpells.length).toBe(1);
-//     expect(storedSpells[0].level).toBe(randomSpell.level)
-//     expect(storedSpells[0].name).toBe(randomSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(randomSpell.description)
-
-// })
-
-// test('addSpell - Fail (Invalid level)', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     randomSpell.level = -1;
-//     await expect(spellModel.addSpellFromValues(randomSpell)).rejects.toThrow(spellModel.InvalidInputError)
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No spells should be in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(0);
-
-// })
-
-// test('addSpellFromValues - Success', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     const spellAddedSuccessfully = await spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, randomSpell.schoolId, randomSpell.description);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // stored spells should be an array
-//     expect(Array.isArray(storedSpells)).toBe(true);
-
-//     // Spell should have been added successfully
-//     expect(spellAddedSuccessfully).toBe(true)
-
-//     // Spell in db should be the same as the original
-//     expect(storedSpells.length).toBe(1);
-//     expect(storedSpells[0].level).toBe(randomSpell.level)
-//     expect(storedSpells[0].name).toBe(randomSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(randomSpell.description)
-
-// })
-
-// test('addSpellFromValues - Success spell already exists', async() => {
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     await spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, randomSpell.schoolId, randomSpell.description);
-//     const addedSpellBoolean = await spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, randomSpell.schoolId, randomSpell.description + 'Change description to make sure the original is kept.');
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // stored spells should be an array
-//     expect(Array.isArray(storedSpells)).toBe(true);
-
-//     // Failed to add spell since it already exists
-//     expect(addedSpellBoolean).toBe(false)
-
-//     // Spell in db should be the same as the original
-//     expect(storedSpells.length).toBe(1);
-//     expect(storedSpells[0].level).toBe(randomSpell.level)
-//     expect(storedSpells[0].name).toBe(randomSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(randomSpell.description)
-// })
-
-// test('addSpellFromValues - Fail (Invalid level)', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     await expect(spellModel.addSpellFromValues(-1, randomSpell.name, randomSpell.schoolId, randomSpell.description)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No spells should be in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(0);
-
-// })
-
-// test('addSpellFromValues - Fail (Invalid empty name)', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     await expect(spellModel.addSpellFromValues(randomSpell.level, '', randomSpell.schoolId, randomSpell.description)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No spells should be in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(0);
-
-// })
-
-// test('addSpellFromValues - Fail (Invalid school one of options)', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     await expect(spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, 'Conjurmaten', randomSpell.description)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No spells should be in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(0);
-
-// })
-
-// test('addSpellFromValues - Fail (Invalid description wrong datatype)', async() => {
-
-//     // Add random spell
-//     const randomSpell = getRandomSpell();
-//     await expect(spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, randomSpell.schoolId, 10)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells in the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No spells should be in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(0);
-
-// })
-
-// test('deleteSpellById - Success', async() => {
-//     const randomSpellToDelete = getRandomSpell();
-//     let randomSpellToKeep = getRandomSpell();
-
-//     while (randomSpellToDelete.name == randomSpellToKeep.name){
-//         randomSpellToKeep = getRandomSpell();
-//     }
-
-//     // Add two spells
-//     await spellModel.addSpellFromValues(randomSpellToDelete.level, randomSpellToDelete.name, randomSpellToDelete.schoolId, randomSpellToDelete.description);
-//     await spellModel.addSpellFromValues(randomSpellToKeep.level, randomSpellToKeep.name, randomSpellToKeep.schoolId, randomSpellToKeep.description);
-
-//     // Remove the first spell
-//     const deletedSuccessfuly = await spellModel.removeSpellById(1);
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Database should have one element in the array
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     expect(storedSpells[0].level).toBe(randomSpellToKeep.level)
-//     expect(storedSpells[0].name).toBe(randomSpellToKeep.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(randomSpellToKeep.description)
-
-//     expect(deletedSuccessfuly).toBe(true);
+test('addSpell - Success - random spell 2', async () => {
     
-// })
-
-// test('deleteSpellByName - Success Multiple Rows', async() => {
-//     const randomSpell = getRandomSpell();
-//     let randomSpellToKeep = getRandomSpell();
-
-//     // Keep getting new spells incase the same spell is generated twice
-//     while(randomSpellToKeep.name == randomSpell.name){
-//         randomSpellToKeep = getRandomSpell();
-//     }
-
-//     // Add a spell with the same name multiple times
-//     randomSpell.level = 9;
-//     await spellModel.addSpellFromValues(randomSpell.level, randomSpell.name, randomSpell.schoolId, randomSpell.description);
-//     await spellModel.addSpellFromValues((randomSpell.level + 1) % randomSpells.length, randomSpell.name, randomSpell.schoolId, randomSpell.description);
-//     await spellModel.addSpellFromValues((randomSpell.level + 2) % randomSpells.length, randomSpell.name, randomSpell.schoolId, randomSpell.description);
-//     await spellModel.addSpellFromValues(randomSpellToKeep.level, randomSpellToKeep.name, randomSpellToKeep.schoolId, randomSpellToKeep.description)
-
-//     const deletedRows = await spellModel.removeSpellsWithMatchingName(randomSpell.name);
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Database should have an empty array
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // 3 rows should be deleted
-//     expect(deletedRows).toBe(3);
+    const addedSpell = await spellModel.addSpell(randomValidSpell());
+    const spellInDb = await spellModel.getSpellById(addedSpell.Id, 1);
     
-// })
+    expect(spellsEqual(addedSpell, spellInDb)).toBe(true);
+})
 
-// test('deleteSpellByName - Fail no match', async() => {
-
-//     const spell = getRandomSpell();
-//     await spellModel.addSpellFromValues(spell.level, spell.name, spell.schoolId, spell.description);
-
-//     const deletedRows = await spellModel.removeSpellsWithMatchingName('name');
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Database should have one row
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // no rows should have been deleted
-//     expect(deletedRows).toBe(0);
-
-// });
-
-// test('deleteSpellByName - Fail invalid name', async() => {
-
-//     const spell = getRandomSpell();
-//     await spellModel.addSpellFromValues(spell.level, spell.name, spell.schoolId, spell.description);
-
-//     await expect(spellModel.removeSpellsWithMatchingName('')).rejects.toThrow(spellModel.InvalidInputError);
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Database should have one row
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-
-// });
-
-// test('updateSpellById - Success update all values', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, newSpell.level, newSpell.name, newSpell.schoolId, newSpell.description)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(newSpell.level)
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(newSpell.description)
-
-// })
-
-// test('updateSpellById - Success null level', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, null, newSpell.name, newSpell.schoolId, newSpell.description)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(newSpell.description)
-
-// })
-
-// test('updateSpellById - Success null name', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, newSpell.level, null, newSpell.schoolId, newSpell.description)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(newSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(newSpell.description)
-
-// })
-
-// test('updateSpellById - Success null school', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, newSpell.level, newSpell.name, null, newSpell.description)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(newSpell.level)
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(newSpell.description)
-
-// })
-
-// test('updateSpellById - Success null description', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, newSpell.level, newSpell.name, newSpell.schoolId, null)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(newSpell.level)
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellById - Success multiple nulls', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfullyUpdated = await spellModel.updateSpellById(1, newSpell.level, null, null, null)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function returns true
-//     expect(successfullyUpdated).toBe(true);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(newSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellById - Fail all nulls', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     await expect(spellModel.updateSpellById(1, null, null, null, null)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellById - Fail id not found', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const successfulUpdate = await spellModel.updateSpellById(2, newSpell.level, null, null, null)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Failed to update
-//     expect(successfulUpdate).toBe(false);
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellById - Fail invalid id', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     await expect(spellModel.updateSpellById(-1, newSpell.level, null, null, null)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellsByName - Success One Change', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const rowsChanged = await spellModel.updateSpellNames(originalSpell.name, newSpell.name)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function changes one row
-//     expect(rowsChanged).toBe(1);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellsByName - Success Multiple Changes', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let unchangedSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     while (unchangedSpell.name == originalSpell.name){
-//         unchangedSpell = getRandomSpell();
-//     }
-
-//     // Add spells
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-//     await spellModel.addSpellFromValues((originalSpell.level + 1) % randomSpells.length, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-//     await spellModel.addSpellFromValues((originalSpell.level + 2) % randomSpells.length, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-//     await spellModel.addSpellFromValues(unchangedSpell.level, unchangedSpell.name, unchangedSpell.schoolId, unchangedSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const rowsChanged = await spellModel.updateSpellNames(originalSpell.name, newSpell.name)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(4);
-
-//     // Function changes one row
-//     expect(rowsChanged).toBe(3);
-
-//     // Updated fields
-//     expect(storedSpells[0].level).toBe(originalSpell.level);
-//     expect(storedSpells[0].name).toBe(newSpell.name.toLowerCase());
-//     expect(storedSpells[0].description).toBe(originalSpell.description);
-
-//     expect(storedSpells[1].level).toBe((originalSpell.level + 1) % randomSpells.length);
-//     expect(storedSpells[1].name).toBe(newSpell.name.toLowerCase());
-//     expect(storedSpells[1].description).toBe(originalSpell.description);
-
-//     expect(storedSpells[2].level).toBe((originalSpell.level + 2) % randomSpells.length);
-//     expect(storedSpells[2].name).toBe(newSpell.name.toLowerCase());
-//     expect(storedSpells[2].description).toBe(originalSpell.description);
-
-//     expect(storedSpells[3].level).toBe(unchangedSpell.level);
-//     expect(storedSpells[3].name).toBe(unchangedSpell.name.toLowerCase());
-//     expect(storedSpells[3].description).toBe(unchangedSpell.description);
-
-// })
-
-// test('updateSpellsByName - Name not found', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     const rowsChanged = await spellModel.updateSpellNames(originalSpell.name + 'Not Present', newSpell.name)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Function changes one row
-//     expect(rowsChanged).toBe(0);
-
-//     // Nothing should be updated
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellsByName - Fail invalid search name', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     await expect(spellModel.updateSpellNames('', newSpell.name)).rejects.toThrow(spellModel.InvalidInputError)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Nothing should be updated
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellsByName - Fail invalid replacement name', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     await expect(spellModel.updateSpellNames(originalSpell.name, '')).rejects.toThrow(spellModel.InvalidInputError)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Nothing should be updated
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('updateSpellsByName - Fail number in replacement name', async() => {
-
-//     const originalSpell = getRandomSpell();
-//     let newSpell = getRandomSpell();
-
-//     // Don't let the two spells be the same
-//     while (newSpell.name == originalSpell.name){
-//         newSpell = getRandomSpell();
-//     }
-
-//     await spellModel.addSpellFromValues(originalSpell.level, originalSpell.name, originalSpell.schoolId, originalSpell.description)
-
-//     // Update the spell to be the newSpell
-//     await expect(spellModel.updateSpellNames(originalSpell.name, 'aa3aa')).rejects.toThrow(spellModel.InvalidInputError)
-
-//     // Get the spells from the db
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // There is one spell in the db
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-
-//     // Nothing should be updated
-//     expect(storedSpells[0].level).toBe(originalSpell.level)
-//     expect(storedSpells[0].name).toBe(originalSpell.name.toLowerCase())
-//     expect(storedSpells[0].description).toBe(originalSpell.description)
-
-// })
-
-// test('getSpellById - Success', async () => {
-
-//     const spellInSlot1 = getRandomSpell();
-//     let spellInSlot2 = getRandomSpell();
-
-//     while(spellInSlot2.name == spellInSlot1.name){
-//         spellInSlot2 = getRandomSpell();
-//     }
-
-//     await spellModel.addSpell(spellInSlot1);
-//     await spellModel.addSpell(spellInSlot2);
-
-//     const returnedSpell = await spellModel.getSpellById(2);
-
-//     // Returned spell should be spellInSlot2
-//     expect(returnedSpell.id).toBe(2);
-//     expect(returnedSpell.level).toBe(spellInSlot2.level)
-//     expect(returnedSpell.name).toBe(spellInSlot2.name.toLowerCase())
-//     expect(returnedSpell.description).toBe(spellInSlot2.description)
-
-// })
-
-// test('getSpellById - Fail id not found', async () => {
-//     const spellInSlot1 = getRandomSpell();
-//     let spellInSlot2 = getRandomSpell();
-
-//     while(spellInSlot1.name == spellInSlot2.name){
-//         spellInSlot2 = getRandomSpell();
-//     }
-
-//     await spellModel.addSpell(spellInSlot1);
-//     await spellModel.addSpell(spellInSlot2);
-
-//     const returnedSpell = await spellModel.getSpellById(3);
-
-//     // Returned spell should be spellInSlot2
-//     expect(returnedSpell).toBe(null);
-
-//     // DB should stay the same
-//     const storedSpells = await spellModel.getAllSpells()
-//     expect(storedSpells.length).toBe(2)
-// })
-
-// test('getSpellById - Fail invalid id', async () => {
-//     const spellInSlot1 = getRandomSpell();
-//     let spellInSlot2 = getRandomSpell();
-
-//     while(spellInSlot2.name == spellInSlot1.name){
-//         spellInSlot2 = getRandomSpell();
-//     }
-
-//     await spellModel.addSpell(spellInSlot1);
-//     await spellModel.addSpell(spellInSlot2);
-
-//     // Should throw
-//     await expect(spellModel.getSpellById(-1)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     // DB should stay the same
-//     const storedSpells = await spellModel.getAllSpells()
-//     expect(storedSpells.length).toBe(2)
-
-// })
-
-// test('getSpellsWithSpecifications - Success', async () => {
-//     const randomSpell = getRandomSpell()
-//     let randomSpellToNotGet = getRandomSpell();
-
-//     while(randomSpellToNotGet.schoolId == randomSpell.schoolId){
-//         randomSpellToNotGet = getRandomSpell();
-//     }
-
-//     // Add the same spell 4 times with different levels
-//     await spellModel.addSpell(randomSpell);
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-
-//     // Add one spell to not get
-//     await spellModel.addSpell(randomSpellToNotGet);
-
-//     const queriedSpells = await spellModel.getSpellsWithSpecifications(randomSpell.level, randomSpell.name, randomSpell.schoolId);
-
-//     // Is array with length 1
-//     expect(Array.isArray(queriedSpells)).toBe(true);
-//     expect(queriedSpells.length).toBe(1);
-
-//     // Contains the last version of the spell
-//     expect(queriedSpells[0].id).toBe(4);
-//     expect(queriedSpells[0].level).toBe(randomSpell.level);
-//     expect(queriedSpells[0].name).toBe(randomSpell.name.toLowerCase());
-//     expect(queriedSpells[0].description).toBe(randomSpell.description);
-
-// })
-
-// test('getSpellsWithSpecifications - Success one null', async () => {
-//     const randomSpell = getRandomSpell()
-//     let randomSpellToNotGet = getRandomSpell();
-
-//     while(randomSpellToNotGet.schoolId == randomSpell.schoolId){
-//         randomSpellToNotGet = getRandomSpell();
-//     }
-
-//     // Add the same spell 4 times with different levels
-//     await spellModel.addSpell(randomSpell);
-//     const startingLevel = randomSpell.level;
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-//     randomSpell.level = (randomSpell.level + 1) % randomSpells.length;
-//     await spellModel.addSpell(randomSpell);
-
-//     // Add one spell to not get
-//     await spellModel.addSpell(randomSpellToNotGet);
-
-//     const queriedSpells = await spellModel.getSpellsWithSpecifications(null, randomSpell.name, randomSpell.schoolId);
-
-//     // Is array with length 1
-//     expect(Array.isArray(queriedSpells)).toBe(true);
-//     expect(queriedSpells.length).toBe(4);
-
-//     // Contains every spell generated from randomSpell
-//     for (let i = 0; i < 4; i++){
-//         expect(queriedSpells[i].id).toBe(i+1);
-//         expect(queriedSpells[i].level).toBe((startingLevel + i) % randomSpells.length);
-//         expect(queriedSpells[i].name).toBe(randomSpell.name.toLowerCase());
-//         expect(queriedSpells[i].description).toBe(randomSpell.description);
-//     }
-// })
-
-// test('getSpellsWithSpecifications - Success multiple nulls', async () => {
-//     const evocationSpell1 = {level: 0, name: 'Acid Splash', schoolId: 1, description: 'Splashes some acid on someone - Ranged spell attack (1d6 acid damage).'}
-//     const evocationSpell2 = {level: 2, name: 'Acid Arrow', schoolId: 1, description: 'A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn.'}
-
-//     const abjurationSpell = {level: 1, name: 'Absorb Elements', schoolId: 2, description: 'The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.'}
+test('addSpell - Success - random spell 3', async () => {
     
-//     // Add one spell to not get
-//     await spellModel.addSpell(evocationSpell1);
-//     await spellModel.addSpell(evocationSpell2);
-//     await spellModel.addSpell(abjurationSpell);
-
-//     const queriedSpells = await spellModel.getSpellsWithSpecifications(null, null, 1);
-
-//     // Is array with length 1
-//     expect(Array.isArray(queriedSpells)).toBe(true);
-//     expect(queriedSpells.length).toBe(2);
-
-//     // Contains both evocation spells
-//     expect(queriedSpells[0].id).toBe(1);
-//     expect(queriedSpells[0].level).toBe(evocationSpell1.level);
-//     expect(queriedSpells[0].name).toBe(evocationSpell1.name.toLowerCase());
-//     expect(queriedSpells[0].description).toBe(evocationSpell1.description);
-
-//     expect(queriedSpells[1].id).toBe(2);
-//     expect(queriedSpells[1].level).toBe(evocationSpell2.level);
-//     expect(queriedSpells[1].name).toBe(evocationSpell2.name.toLowerCase());
-//     expect(queriedSpells[1].description).toBe(evocationSpell2.description);
-
-// })
-
-// test('getSpellsWithSpecifications - Success all arguments null', async () => {
+    const addedSpell = await spellModel.addSpell(randomValidSpell());
+    const spellInDb = await spellModel.getSpellById(addedSpell.Id, 1);
     
-//     const randomSpell = getRandomSpell();
-//     await spellModel.addSpell(randomSpell);
+    expect(spellsEqual(addedSpell, spellInDb)).toBe(true);
+})
 
-//     // Throws error
-//     const filteredSpells = await spellModel.getSpellsWithSpecifications(null, null, null);
-
-//     // Database is unchanged
-//     expect(Array.isArray(filteredSpells)).toBe(true);
-//     expect(filteredSpells.length).toBe(1);
-//     expect(filteredSpells[0].level).toBe(randomSpell.level);
-//     expect(filteredSpells[0].name).toBe(randomSpell.name.toLowerCase());
-//     expect(filteredSpells[0].description).toBe(randomSpell.description);
-
-// })
-
-// test('getSpellsWithSpecifications - Fail nothing matches criteria', async () => {
-//     const randomSpell = getRandomSpell();
-//     await spellModel.addSpell(randomSpell);
-
-//     // Throws error
-//     const matches = await spellModel.getSpellsWithSpecifications(null, randomSpell.name + 'Not the same', null);
-
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // No Matches
-//     expect(Array.isArray(matches)).toBe(true);
-//     expect(matches.length).toBe(0);
-
-//     // Database is unchanged
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-//     expect(storedSpells[0].level).toBe(randomSpell.level);
-//     expect(storedSpells[0].name).toBe(randomSpell.name.toLowerCase());
-//     expect(storedSpells[0].description).toBe(randomSpell.description);
-// })
-
-// test('getSpellsWithSpecifications - Fail invalid input', async () => {
-//     const randomSpell = getRandomSpell();
-//     await spellModel.addSpell(randomSpell);
-
-//     // Throws error
-//     await expect(spellModel.getSpellsWithSpecifications(-1, null, null)).rejects.toThrow(spellModel.InvalidInputError);
-
-//     const storedSpells = await spellModel.getAllSpells();
-
-//     // Database is unchanged
-//     expect(Array.isArray(storedSpells)).toBe(true);
-//     expect(storedSpells.length).toBe(1);
-//     expect(storedSpells[0].level).toBe(randomSpell.level);
-//     expect(storedSpells[0].name).toBe(randomSpell.name.toLowerCase());
-//     expect(storedSpells[0].description).toBe(randomSpell.description);
-// })
-
-// test('getAllSpells - Success', async () => {
-
-//     const spell1 = getRandomSpell();
-//     let spell2 = getRandomSpell();
-
-//     while(spell1.name == spell2.name){
-//         spell2 = getRandomSpell();
-//     }
-
-//     await spellModel.addSpell(spell1);
-//     await spellModel.addSpell(spell2);
-
-//     const allSpells = await spellModel.getAllSpells();
-
-//     // allSpells is an array of length 2
-//     expect(Array.isArray(allSpells)).toBe(true);
-//     expect(allSpells.length).toBe(2);
-
-//     // Spells are the same as the ones generated
-//     expect(allSpells[0].id).toBe(1);
-//     expect(allSpells[0].level).toBe(spell1.level);
-//     expect(allSpells[0].name).toBe(spell1.name.toLowerCase());
-//     expect(allSpells[0].description).toBe(spell1.description);
-
-//     expect(allSpells[1].id).toBe(2);
-//     expect(allSpells[1].level).toBe(spell2.level);
-//     expect(allSpells[1].name).toBe(spell2.name.toLowerCase());
-//     expect(allSpells[1].description).toBe(spell2.description);
-
-// })
-
-// test('getAllSpells - Empty database', async () => {
+test('addSpell - Success - Spell already exists', async () => {
     
-//     const allSpells = await spellModel.getAllSpells();
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    const secondAddedSpell = await spellModel.addSpell(randomSpell);
+    const spellInDb = await spellModel.getSpellById(secondAddedSpell.Id, 1);
+    
+    expect(spellsEqual(addedSpell, spellInDb)).toBe(true);
+})
 
-//     // allSpells is an array of length 2
-//     expect(Array.isArray(allSpells)).toBe(true);
-//     expect(allSpells.length).toBe(0);
+test('addSpell - Failure - Invalid input - random spell 1', async () => {
+    
+    await expect(spellModel.addSpell(randomInvalidSpell())).rejects.toThrow(InvalidInputError);
+    const userSpells = await getHomebrewSpells();
 
-// })
+    expect(userSpells.length).toBe(0);
+    
+})
+
+test('addSpell - Failure - Invalid input - random spell 2', async () => {
+    
+    await expect(spellModel.addSpell(randomInvalidSpell())).rejects.toThrow(InvalidInputError);
+    const userSpells = await getHomebrewSpells();
+
+    expect(userSpells.length).toBe(0);
+    
+})
+
+test('addSpell - Failure - Invalid input - random spell 3', async () => {
+    
+    await expect(spellModel.addSpell(randomInvalidSpell())).rejects.toThrow(InvalidInputError);
+    const userSpells = await getHomebrewSpells();
+
+    expect(userSpells.length).toBe(0);
+    
+})
+
+test('addSpell - Failure - Closed database connection', async () => {
+    
+    await spellModel.closeConnection();
+    await expect(spellModel.addSpell(randomValidSpell())).rejects.toThrow(DatabaseError)
+    
+})
+
+// Remove by id
+test('removeSpellById - Success', async () => {
+    
+    const addedSpell = await spellModel.addSpell(randomValidSpell());
+    await spellModel.removeSpellById(addedSpell.Id, 1);
+
+    await expect(spellModel.getSpellById(addedSpell.Id, 1)).rejects.toThrow(InvalidInputError);
+})
+
+test('removeSpellById - Failure - Spell does not exist', async () => {
+    await expect(spellModel.removeSpellById(1000, 1)).rejects.toThrow(InvalidInputError);
+})
+
+test('removeSpellById - Failure - Invalid spell id', async () => {
+    await expect(spellModel.removeSpellById(-1, 1)).rejects.toThrow(InvalidInputError);
+})
+
+test('removeSpellById - Failure - User does not exist', async () => {
+    await expect(spellModel.removeSpellById(5, 5)).rejects.toThrow(InvalidInputError);
+})
+
+test('removeSpellById - Failure - User id is invalid', async () => {
+    await expect(spellModel.removeSpellById(5, -10)).rejects.toThrow(InvalidInputError);
+})
+
+test('removeSpellById - Failure - Closed database connection', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.removeSpellById(1, 1)).rejects.toThrow(DatabaseError);
+})
+
+// Get all spells
+test('getAllSpells - Success - User id 0 returns all non-homebrewed spells', async () => {
+    const startingAllSpells = await spellModel.getAllSpells(0);
+    await spellModel.addSpell(randomValidSpell());
+    const newAllSpells = await spellModel.getAllSpells(1);
+
+    expect(arraysEqual(startingAllSpells, newAllSpells)).toBe(false);
+})
+
+test('getAllSpells - Success - User id 1 returns all spells including homebrew', async () => {
+    const startingAllSpells = await spellModel.getAllSpells(1);
+    await spellModel.addSpell(randomValidSpell());
+    const newAllSpells = await spellModel.getAllSpells(1);
+
+    expect(arraysEqual(startingAllSpells, newAllSpells)).toBe(false);
+    expect(startingAllSpells.length).toBe(newAllSpells.length-1);
+})
+
+test('getAllSpells - Failure - User does not exist', async () => {
+    await expect(spellModel.getAllSpells(10)).rejects.toThrow(InvalidInputError);
+})
+
+test('getAllSpells - Failure - Closed database connection', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.getAllSpells(1)).rejects.toThrow(DatabaseError);
+})
+
+// Get spell by id
+test('getSpellById - Success - user can get homebrew spell', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    const gottenSpell = await spellModel.getSpellById(addedSpell.Id, 1);
+
+    expect(gottenSpell.Name.toLowerCase()).toBe(addedSpell.Name.toLowerCase())
+})
+
+test('getSpellById - Success - user can get players handbook spells', async () => {
+    const randomSpell = randomValidSpell();
+    randomSpell.UserId = 0;
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    const gottenSpell = await spellModel.getSpellById(addedSpell.Id, 1);
+
+    expect(gottenSpell.Name.toLowerCase()).toBe(addedSpell.Name.toLowerCase())
+})
+
+test('getSpellById - Failure - user can not get other user spell', async () => {
+
+    const randomSpell = randomValidSpell();
+    randomSpell.UserId = 2;
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    
+    await expect(spellModel.getSpellById(addedSpell.Id, 1)).rejects.toThrow(InvalidInputError);
+})
+
+test('getSpellById - Failure - logged out user can not get homebrew spells', async () => {
+
+    const randomSpell = randomValidSpell();
+    randomSpell.UserId = 1;
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    
+    await expect(spellModel.getSpellById(addedSpell.Id, 0)).rejects.toThrow(InvalidInputError);
+})
+
+test('getSpellById - Failure - Closed database connection', async () => {
+
+    await spellModel.closeConnection();
+    await expect(spellModel.getSpellById(1, 0)).rejects.toThrow(DatabaseError);
+})
+
+// Get filtered spells
+test('getSpellsWithSpecifications - Success - level 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(3, null, 1, null, null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Level', 3);
+})
+
+test('getSpellsWithSpecifications - Success - school 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, 3, 1, null, null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'School', 3);
+})
+
+test('getSpellsWithSpecifications - Success - name contains "fire"', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+})
+
+test('getSpellsWithSpecifications - Success - homebrew spell included, name contains "fire"', async () => {
+    await spellModel.addSpellFromValues(0, 1, 1, 'dwa', "Jeff's Fireball", 'act', 'eff', true, true, true, 'mats', 'dur', '4d6', true, true, [1, 2, 3])
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+    const spellNames = spells.map(spell => spell.Name.toLowerCase());
+    expect(spellNames).toContain("jeff's fireball");
+})
+
+test('getSpellsWithSpecifications - Success - 1 action casting time', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, '1 action', null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'CastingTime', '1 action');
+})
+
+test('getSpellsWithSpecifications - Success - verbal true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, true, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Verbal', true);
+})
+
+test('getSpellsWithSpecifications - Success - somatic true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, true, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Somatic', true);
+})
+
+test('getSpellsWithSpecifications - Success - material false', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, false, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Material', false);
+})
+
+test('getSpellsWithSpecifications - Success - duration Instantaneous', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, 'Instantaneous', null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Duration', 'Instantaneous');
+})
+
+test('getSpellsWithSpecifications - Success - 60 feet effect range', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, '60 feet', null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'EffectRange', '60 feet');
+})
+
+test('getSpellsWithSpecifications - Success - concentration true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, true, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Concentration', true);
+})
+
+test('getSpellsWithSpecifications - Success - ritual true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, true, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Ritual', true);
+})
+
+test('getSpellsWithSpecifications - Success - class ranger', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, [8], null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(8);
+    }
+})
+
+test('getSpellsWithSpecifications - Success - class warlock and druid', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, [11, 4],  null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(4);
+        expect(classesArray).toContain(11);
+    }
+})
+
+test('getSpellsWithSpecifications - Success - class warlock and druid and concentration true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, true, null, [11, 4], null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(4);
+        expect(classesArray).toContain(11);
+    }
+    allSpellsInArrayHavePropertyValue(spells, 'Concentration', true);
+})
+
+test('getSpellsWithSpecifications - Success - name contains fire and level 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(3, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+
+    allSpellsInArrayHavePropertyValue(spells, 'Level', 3);
+})
+
+test('getSpellsWithSpecifications - Success - homebrew only', async () => {
+    await spellModel.addSpell(randomValidSpell());
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+    expect(spells.length).toBe(1);
+    allSpellsInArrayHavePropertyValue(spells, 'UserId', 1);
+})
+
+test('getSpellsWithSpecifications - Success - all null filter returns all spells for user', async () => {
+    
+    const randomSpell = randomValidSpell();
+    randomSpell.UserId = 2;
+    await spellModel.addSpell(randomSpell);
+    const allSpells = await spellModel.getAllSpells(1);
+    const filteredSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, null)
+
+    expect(arraysEqual(allSpells, filteredSpells)).toBe(true);
+    
+})
+
+test('getSpellsWithSpecifications - Failure - invalid user id', async () => {
+    await expect(spellModel.getSpellsWithSpecifications(null, null, 100, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('getSpellsWithSpecifications - Failure - closed database connection', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(DatabaseError);
+})
+
+// Update spell by id
+test('updateSpellById - Success - Update All', async () => {
+    const randomSpell = randomValidSpell();
+    const newRandomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    const editedSpell = await spellModel.updateSpellById(addedSpell.Id, 1, newRandomSpell.Level, newRandomSpell.SchoolId, newRandomSpell.Description, newRandomSpell.Name,
+                                    newRandomSpell.CastingTime, newRandomSpell.Verbal, newRandomSpell.Somatic, newRandomSpell.Material, newRandomSpell.Materials,
+                                    newRandomSpell.Duration, newRandomSpell.Damage, newRandomSpell.EffectRange, newRandomSpell.Concentration, newRandomSpell.Ritual, newRandomSpell.Classes);
+
+    editedSpell.Classes = editedSpell.Classes.map(Class => Class.Id);
+    expect(spellsEqual(newRandomSpell, editedSpell)).toBe(true);
+})
+
+test('updateSpellById - Failure - Materials not empty with false Material', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, false, 'Materials', null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - null fields', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - Materials empty with true Material', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - Database connection closed', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.updateSpellById(1, 1, 4, null, null, null, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(DatabaseError);
+})
+
+// Get all schools
+test('getAllSchools - Success', async () => {
+    const jsonSchools = await getSchoolsFromJSON();
+    const dbSchools = (await spellModel.getAllSchools()).map(school => school.Name);
+
+    expect(jsonSchools.length).toBe(dbSchools.length);
+
+    for(let i = 0; i < dbSchools.length; i++){
+        expect(jsonSchools[i].toLowerCase()).toBe(dbSchools[i].toLowerCase());
+    }
+})
+
+test('getAllSchools - Failure - Database connection closed', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.getAllSchools()).rejects.toThrow(DatabaseError);
+})

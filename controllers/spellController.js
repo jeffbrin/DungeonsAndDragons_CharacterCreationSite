@@ -15,6 +15,7 @@ const characterModel = require('../models/characterModel');
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
  * @param {Object} additionalFields an object containing additional fields specific to the method calling it.
+ * @throws {DatabaseError} Thrown when an error occurs while reading from the database.
  */
 async function getRenderObject(additionalFields, userId)
 {
