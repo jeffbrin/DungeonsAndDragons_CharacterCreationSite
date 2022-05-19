@@ -60,14 +60,14 @@
     method="GET">
     <input name="characterId" value="{{characterId}}" hidden>
     <h2 style="position: absolute; top: -40px">Filter</h2>
-    <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 2;">
+    <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 1;">
 
         <div id="classesDiv" class="d-flex align-items-center justify-content-center flex-wrap align-items-around pt-3"
             style="flex: 5;">
             {{!-- Classes that can cast this spell --}}
             {{#with filter.Class}}
             <div class="px-4" id="imgDivFilter">
-                <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}" checked>
+                <input hidden id="{{Name}}checkbox" readonly onchange="this.checked = true" type="checkbox" class="classCheckbox" value="{{Id}}" checked>
                 <label for="{{Name}}checkbox"><img class="classImage" id="filterClassImageSolo"
                         src="/images/icons/class/{{Name}}.png" alt="{{Name}}"></label>
                 <p class="text-center mtop-1rem">{{Name}}</p>
@@ -215,156 +215,178 @@
         <div id="booleansDiv" style="flex: 1;" class="d-flex flex-column align-items-between">
 
             {{!-- Components --}}
-            <div id="componentsDiv" class="d-flex align-items-start flex-column" style="flex: 3;">
-                {{!-- Verbal --}}
-                <div class="d-flex justify-content-start w-100" style="flex: 1;">
-                    <div class="px-2">
-                        <label for="includeVerbal">Filter by Verbal?</label>
-                        <input type="checkbox" name="includeVerbal" id="includeVerbal" {{#if
-                            filter.includeVerbal}}checked{{/if}}>
-                    </div>
-                    <div>
-                        <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} id="verbalLabel"
-                            for="verbalButton">Verbal</label>
-                        <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-                            name="Verbal" id="verbalButton" {{#if filter.Verbal}}checked{{/if}}>
-                    </div>
-                </div>
+      <div id="componentsDiv" class="d-flex align-items-start flex-column" style="flex: 3;">
+        {{!-- Verbal --}}
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeVerbal">Filter by Verbal?</label>
+          <input type="checkbox" name="includeVerbal" id="includeVerbal" {{#if filter.includeVerbal}}checked{{/if}}>
+          </div>
+          <div>
+          <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">Only Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}checked{{/if}} checked value="on">
 
-                <div class="d-flex justify-content-start w-100" style="flex: 1;">
-                    <div class="px-2">
-                        <label for="includeSomatic">Filter by Somatic?</label>
-                        <input type="checkbox" name="includeSomatic" id="includeSomatic" {{#if
-                            filter.includeSomatic}}checked{{/if}}>
-                    </div>
-                    <div>
-                        <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} id="somaticLabel"
-                            for="somaticButton">Somatic</label>
-                        <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-                            name="Somatic" id="somaticButton" {{#if filter.Somatic}}checked{{/if}}>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-start w-100" style="flex: 1;">
-                    <div class="px-2">
-                        <label for="includeMaterial">Filter by Material?</label>
-                        <input type="checkbox" name="includeMaterial" id="includeMaterial" {{#if
-                            filter.includeMaterial}}checked{{/if}}>
-                    </div>
-                    <div>
-                        <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}}
-                            id="materialLabel" for="materialButton">Material</label>
-                        <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-                            name="Material" id="materialButton" {{#if filter.Material}}checked{{/if}}>
-                    </div>
-                </div>
+            <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">No Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}{{else}}checked{{/if}} value="off">
             </div>
-
-            {{!-- Concentration --}}
-            <div id="concentrationDiv" class="d-flex justify-content-start w-100 flex-wrap" style="flex: 1;">
-                <div class="px-2">
-                    <label for="includeConcentration">Filter by Concentration?</label>
-                    <input class="roundCheckbox" type="checkbox" id="includeConcentration" name="includeConcentration"
-                        {{#if filter.includeConcentration}}checked{{/if}}>
-                </div>
-                <div>
-                    <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}}
-                        id="concentrationLabel" for="Concentration">Concentration</label>
-                    <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-                        name="Concentration" id="Concentration" {{#if filter.Concentration}}checked{{/if}}>
-                </div>
-            </div>
-
-            {{!-- Ritual --}}
-            <div id="ritualDiv" class="d-flex justify-content-start w-100" style="flex: 1;">
-                <div class="px-2">
-                    <label for="includeRitual">Filter by Ritual?</label>
-                    <input type="checkbox" id="includeRitual" name="includeRitual" {{#if
-                        filter.includeRitual}}checked{{/if}}>
-                </div>
-                <div>
-                    <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} id="ritualLabel"
-                        for="Ritual">Ritual</label>
-                    <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-                        name="Ritual" id="Ritual" {{#if filter.Ritual}}checked{{/if}}>
-                </div>
-            </div>
-
-            {{#if username}}
-            {{!-- Homebrew --}}
-            <div class="d-flex justify-content-start w-100" style="flex: 1;">
-                <div class="px-2">
-                    <label for="includeHomebrew">Filter by Homebrew?</label>
-                    <input type="checkbox" id="includeHomebrew" name="includeHomebrew" {{#if
-                        filter.includeHomebrew}}checked{{/if}}>
-                </div>
-                <div id="homebrewDiv" {{#if filter.includeHomebrew}}{{else}}style="visibility:hidden;" {{/if}}>
-                    <label id="homebrewLabel" for="Homebrew">Homebrew</label>
-                    <input type="checkbox" name="Homebrew" id="Homebrew" {{#if filter.Homebrew}}checked{{/if}}>
-                </div>
-            </div>
-            {{/if}}
-
-            <div class="d-flex justify-content-center" style="flex: 1; margin-bottom: 0.5rem;">
-                <button class="btn btn-primary px-5" style="margin: auto;">Filter</button>
-            </div>
-
         </div>
+
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeSomatic">Filter by Somatic?</label>
+          <input type="checkbox" name="includeSomatic" id="includeSomatic" {{#if filter.includeSomatic}}checked{{/if}}>
+          </div>
+          <div>
+          <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">Only Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">No Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}{{else}}checked{{/if}} value="off">
+            
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeMaterial">Filter by Material?</label>
+          <input type="checkbox" name="includeMaterial" id="includeMaterial"
+            {{#if filter.includeMaterial}}checked{{/if}}>
+            </div>
+            <div>
+          <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">Only Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">No Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}{{else}}checked{{/if}} value="off">
+            </div>
+        </div>
+      </div>
+ 
+      {{!-- Concentration --}}
+      <div id="concentrationDiv" class="d-flex justify-content-start w-100 flex-wrap" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeConcentration">Filter by Concentration?</label>
+        <input class="roundCheckbox" type="checkbox" id="includeConcentration" name="includeConcentration"
+          {{#if filter.includeConcentration}}checked{{/if}}>
+          </div>
+          <div>
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">Only Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">No Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}{{else}}checked{{/if}} value="off">
+          </div>
+      </div>
+
+      {{!-- Ritual --}}
+      <div id="ritualDiv" class="d-flex justify-content-start w-100" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeRitual">Filter by Ritual?</label>
+        <input type="checkbox" id="includeRitual" name="includeRitual" {{#if filter.includeRitual}}checked{{/if}}>
+        </div>
+        <div>
+        <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">Only Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">No Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}{{else}}checked{{/if}} value="off">
+          </div>
+      </div>
+
+      {{#if username}}
+      {{!-- Homebrew --}}
+      <div class="d-flex justify-content-start w-100" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeHomebrew">Filter by Homebrew?</label>
+        <input type="checkbox" id="includeHomebrew" name="includeHomebrew" {{#if filter.includeHomebrew}}checked{{/if}}>
+        </div>
+        <div id="homebrewDiv" {{#if filter.includeHomebrew}}{{else}}style="visibility:hidden;" {{/if}}>
+          <label class="homebrewLabel"
+            for="Homebrew">Only Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}checked{{/if}} checked value="on">
+
+            <label  class="homebrewLabel"
+            for="Homebrew">No Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}{{else}}checked{{/if}} value="off">
+        </div>
+      </div>
+      {{/if}}
+
+      <div class="d-flex justify-content-center" style="flex: 1;">
+      <button class="btn btn-primary px-5 mb-2" style="margin: auto;">Filter</button>
+      </div>
+
     </div>
+  </div>
 
 </form>
 <script src="/scripts/spellsPage.js"></script>
 <script>
-    const somaticIncluded = document.getElementById('includeSomatic');
-    const materialIncluded = document.getElementById('includeMaterial');
-    const verbalIncluded = document.getElementById('includeVerbal');
-    const concentrationIncluded = document.getElementById('includeConcentration');
-    const ritualIncluded = document.getElementById('includeRitual');
-    const homebrewIncluded = document.getElementById('includeHomebrew');
-    const somaticChoice = document.getElementById('somaticButton');
-    const materialChoice = document.getElementById('materialButton');
-    const verbalChoice = document.getElementById('verbalButton');
-    const concentrationChoice = document.getElementById('Concentration');
-    const ritualChoice = document.getElementById('Ritual');
-    const homebrewDiv = document.getElementById('homebrewDiv');
+  const somaticIncluded = document.getElementById('includeSomatic');
+  const materialIncluded = document.getElementById('includeMaterial');
+  const verbalIncluded = document.getElementById('includeVerbal');
+  const concentrationIncluded = document.getElementById('includeConcentration');
+  const ritualIncluded = document.getElementById('includeRitual');
+  const homebrewIncluded = document.getElementById('includeHomebrew');
+  const somaticChoice = document.getElementsByClassName('somaticButton');
+  const materialChoice = document.getElementsByClassName('materialButton');
+  const verbalChoice = document.getElementsByClassName('verbalButton');
+  const concentrationChoice = document.getElementsByClassName('Concentration');
+  const ritualChoice = document.getElementsByClassName('Ritual');
+  const homebrewDiv = document.getElementById('homebrewDiv')
 
-    if (homebrewIncluded)
-    {
-        homebrewIncluded.addEventListener('change', e =>
-        {
-            homebrewDiv.style.visibility = homebrewIncluded.checked ? 'visible' : 'hidden';
-        });
-    }
+  if (homebrewIncluded){
+  homebrewIncluded.addEventListener('change', e => {
+    homebrewDiv.style.visibility = homebrewIncluded.checked ? 'visible' : 'hidden';
+  })
+  }
 
-    ritualIncluded.addEventListener('change', e =>
-    {
-        ritualChoice.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden';
-        document.getElementById('ritualLabel').style.visibility = ritualIncluded.checked ? 'visible' : 'hidden';
-    });
+  ritualIncluded.addEventListener('change', e => {
+    [...ritualChoice].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('ritualLabel')].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
+  })
 
-    concentrationIncluded.addEventListener('change', e =>
-    {
-        concentrationChoice.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden';
-        document.getElementById('concentrationLabel').style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden';
-    });
+  concentrationIncluded.addEventListener('change', e => {
+    [...concentrationChoice].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('concentrationLabel')].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
+  })
 
-    somaticIncluded.addEventListener('change', e =>
-    {
-        somaticChoice.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden';
-        document.getElementById('somaticLabel').style.visibility = somaticIncluded.checked ? 'visible' : 'hidden';
-    });
+  somaticIncluded.addEventListener('change', e => {
+    [...somaticChoice].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('somaticLabel')].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
+  })
 
-    materialIncluded.addEventListener('change', e =>
-    {
-        materialChoice.style.visibility = materialIncluded.checked ? 'visible' : 'hidden';
-        document.getElementById('materialLabel').style.visibility = materialIncluded.checked ? 'visible' : 'hidden';
-    });
+  materialIncluded.addEventListener('change', e => {
+    [...materialChoice].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('materialLabel')].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
+  })
 
-    verbalIncluded.addEventListener('change', e =>
-    {
-        verbalChoice.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden';
-        document.getElementById('verbalLabel').style.visibility = verbalIncluded.checked ? 'visible' : 'hidden';
-    })
+  verbalIncluded.addEventListener('change', e => {
+    [...verbalChoice].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('verbalLabel')].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
+  })
 
 </script>
 <h1 class="text-center mt-0">Spells</h1>

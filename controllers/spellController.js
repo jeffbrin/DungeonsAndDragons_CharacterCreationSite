@@ -328,6 +328,7 @@ async function showFilteredSpells(request, response, username, userId)
     filter.Ritual = filter.includeRitual == 'on' ? filter.Ritual == 'on' : null;
     filter.Classes = filter.ClassIds ? filter.ClassIds.split(',') : null;
     filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
+    filter.Homebrew = filter.HomebrewOnly;
 
     try{
         if(characterId){
