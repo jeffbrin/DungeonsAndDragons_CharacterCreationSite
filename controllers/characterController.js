@@ -638,7 +638,8 @@ async function removeAllExpertiseAndProficiencies(request, response, sessionId)
     try
     {
         await charStatsModel.removeSkillExpertise(json.characterId, json.skillId);
-        logger.info(`Successfully removed skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
+        await charStatsModel.removeSkillProficiency(json.characterId, json.skillId);
+        logger.info(`Successfully removed skill Expertise and / or Proficiency with id: ${ json.skillId } to character: ${ json.characterId }`);
 
         response.status(200).redirect(url.format({
             pathname: `/characters/${ json.characterId }`,
@@ -840,8 +841,8 @@ router.delete('/:id(\\d+)', (request, response) => authenticator.gateAccess(requ
 router.get('/:id(\\d+)', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id(\\d+)/hp', (request, response) => authenticator.gateAccess(request, response, updateHitpoints));
-router.put('/:id/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
-router.put("/:id/items", (request, response) => authenticator.gateAccess(request, response, addItem));
+router.put('/:id(\\d+)/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
+router.put("/:id(\\d+)/items", (request, response) => authenticator.gateAccess(request, response, addItem));
 router.get("/forms/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToUpdateController));
 router.get("/new", (request, response) => authenticator.gateAccess(request, response, sendToCreatePage));
 router.get("/spells/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToAddSpellPage));
