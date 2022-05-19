@@ -169,8 +169,6 @@ async function sendCharacter(request, response, sessionId)
         }
     }
 }
-
-
 /**
  * uses the model to update the hitpoints of a character with a given id
  * @param {HTTPRequest} request the request made by the user
@@ -199,8 +197,8 @@ async function updateHitpoints(request, response, sessionId)
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('characters.hbs', { error: `Input error, Couldn't get Character`, charactersActive: true });
             logger.error('input error - from updateHitpoints in characterController');
+            response.status(400).redirect(getUrlFormatHelper(`/characters/${ request.params.id }`, { error: `Input error, Couldn't get Character` }));
         }
         else
         {
@@ -209,8 +207,6 @@ async function updateHitpoints(request, response, sessionId)
         }
     }
 }
-
-
 /**
  * On a get request, the getCharacter method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
@@ -275,8 +271,6 @@ async function getCharacter(request, response, sessionId)
         }
     }
 }
-
-
 /**
  * on a get request, the getAllCharacters method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
@@ -317,9 +311,6 @@ async function getAllUserCharacters(request, response, sessionId)
         }
     }
 }
-
-
-
 /**
  * on a put request, the update method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
@@ -358,7 +349,7 @@ async function updateCharacter(request, response, sessionId)
         }
         else if (error instanceof errors.InvalidInputError)
         {
-            response.status(400).render('characters.hbs', { error: `Input error, Couldn't update Character.`, charactersActive: true });
+            response.status(400).redirect(getUrlFormatHelper(`/characters/${ request.params.id }`, { error: `Input error, Couldn't update Character.` }));
             logger.error('input error - from updateCharacter in characterController');
         }
         else
@@ -368,9 +359,6 @@ async function updateCharacter(request, response, sessionId)
         }
     }
 }
-
-
-
 /**
  * on a delete request, the delete method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
@@ -406,15 +394,13 @@ async function deleteCharacter(request, response, sessionId)
         }
     }
 }
-
-
 /**
  * calls the level up function in the model
  * Catches all errors and logs them and renders the pages based on the error
  * @param {HTTP} request 
  * @param {HTTP} response 
  */
-async function updateLevel(request, response)
+async function updateLevel(request, response, sessionId)
 {
     try
     {
