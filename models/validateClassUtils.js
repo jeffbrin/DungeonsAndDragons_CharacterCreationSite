@@ -1,4 +1,5 @@
 const {InvalidInputError} = require('./errorModel');
+const validator = require('validator');
 
 /**
  * Validates a class id. An id just means it's a possible id in the database, NOT that it exists.
@@ -9,7 +10,7 @@ const {InvalidInputError} = require('./errorModel');
 function validateClassId(id){
     
     // Make sure the id is a number
-    if (typeof id != 'number')
+    if (!validator.isNumeric(String(id)))
         throw new Error("class id is not a number.");
 
     // Make sure the id is an integer

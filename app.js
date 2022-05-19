@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 
 app.use(express.json())
-const controllers = ['backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
+const controllers = ['classController', 'backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
 
 
 // Tell the app to use handlebars templating engine.  

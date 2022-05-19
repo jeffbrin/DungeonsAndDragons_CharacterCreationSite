@@ -1,0 +1,22 @@
+
+
+<h1 class="text-center">{{Class.Name}}</h1>
+<h3 class="text-center">{{Class.HitDie}}</h3>
+
+{{#each Levels}}
+    {{#if (equals this 0)}}
+        <h2>Upon Character Creation:</h2>
+    {{else}}
+        <h2>Level {{this}}</h2>
+    {{/if}}
+    {{#each ../Class.Features}}
+    {{#if (equals Level ../this)}}
+        <div class="d-flex bg-card m-4" style="border-radius: 20px">
+            <div class="card-body elevated">
+            <h4 class="card-title">{{Name}}</h4>
+            <p class="card-title">{{Description}}</p>
+            </div>
+        </div>
+        {{/if}}
+    {{/each}}
+{{/each}}
