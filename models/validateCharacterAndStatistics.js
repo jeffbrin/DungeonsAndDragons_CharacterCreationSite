@@ -193,12 +193,12 @@ async function checkRace(raceId)
 
     } catch (error)
     {
-        throw new errors.DatabaseError('validateCharacter', 'checkRace', `Couldn\`t execute the races select Query: ${ error.message }`);
+        throw new errors.DatabaseError('validateCharacter', 'checkRace', `Couldn\`t execute the races select Query: ${ error.message }. `);
     }
     if (!races.includes(raceId))
     {
         logger.error(`Race must be one of the Valid Races. ${ raceId } is not a valid Id of a race`);
-        throw new ValidationError(`\nRace, must be one of the valid races`);
+        throw new ValidationError(`\nRace, must be one of the valid races. `);
     }
     logger.info(`Race, ${ raceId }, was validated inside of validateCharacter module in checkRace.`);
 }
@@ -222,12 +222,12 @@ async function checkClass(charClassId)
 
     } catch (error)
     {
-        throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${ error.message }`);
+        throw new errors.DatabaseError('validateCharacter', 'checkClass', `Couldn\`t execute the classes select Query: ${ error.message }.`);
     }
     if (!classes.includes(charClassId))
     {
         logger.error("Class must be one of the Valid Classes. Input: " + charClassId);
-        throw new ValidationError(`\nClass, ${ charClassId }, must be one of the valid classes`);
+        throw new ValidationError(`\nClass, ${ charClassId }, must be one of the valid classes. `);
     }
     logger.info(`Class, ${ charClassId }, was validated inside of validateCharacter module in checkClass.`);
 }
@@ -242,7 +242,7 @@ function checkMaxHitPoints(maxHitpoints)
     if (maxHitpoints < 0)
     {
         logger.error("Hit Points must be greater than 0. Input: " + maxHitpoints);
-        throw new ValidationError(`\nMaximum Hit Points, ${ maxHitpoints }, must be more than 0`);
+        throw new ValidationError(`\nMaximum Hit Points, ${ maxHitpoints }, must be more than 0. `);
     }
     logger.info(`Max HP, ${ maxHitpoints }, was validated inside of validateCharacter module in checkMaxHitPoints.`);
 }
@@ -269,7 +269,7 @@ async function checkBackground(backgroundId)
     if (!backgrounds.includes(backgroundId))
     {
         logger.error(`Background with id ${ backgroundId } was not found inside of validateCharacter module in checkBackground`);
-        throw new ValidationError(`\nBackground  of id ${ backgroundId }must be a valid background. There is no background that matches.`);
+        throw new ValidationError(`\nBackground  of id ${ backgroundId }must be a valid background. There is no background that matches. `);
     }
 
     logger.info(`Background with ID: ${ backgroundId } was validated inside of validateCharacter module in checkBackground`);
@@ -297,7 +297,7 @@ async function checkEthics(ethicsId)
     if (!ethics.includes(ethicsId))
     {
         logger.error(`ethics with id ${ ethicsId } was not found inside of validateCharacter module in checkEthics`);
-        throw new ValidationError(`\nethics  of id ${ ethicsId }must be a valid ethics. There is no ethics that matches.`);
+        throw new ValidationError(`\nethics  of id ${ ethicsId }must be a valid ethics. There is no ethics that matches. `);
     }
     logger.info(`ethics with ID: ${ ethicsId } was validated inside of validateCharacter module in checkEthics`);
 }
@@ -323,7 +323,7 @@ async function checkMorality(moralityId)
     if (!moralities.includes(moralityId))
     {
         logger.error(`Morality with id ${ moralityId } was not found inside of validateCharacter module in checkMorality`);
-        throw new ValidationError(`\nMorality  of id ${ moralityId }must be a valid Morality. There is no morality that matches.`);
+        throw new ValidationError(`\nMorality  of id ${ moralityId }must be a valid Morality. There is no morality that matches. `);
     }
     logger.info(`Morality with ID: ${ moralityId } was validated inside of validateCharacter module in checkMorality`);
 }
@@ -338,7 +338,7 @@ function checkLevel(level)
     if (level < 1)
     {
         logger.error(`Level: ${ level } is not a valid level inside of validateCharacter module in checkLevel`);
-        throw new ValidationError(`\nLevel must be greater than 0.`);
+        throw new ValidationError(`\nLevel must be greater than 0. `);
     }
     logger.info(`Level: ${ level } was validated inside of validateCharacter module in checkLevel`);
 }
@@ -353,7 +353,7 @@ function checkAbilityScores(abilityScoreValues)
     if (abilityScoreValues.length != ABILITY_SCORE_LENGTH)
     {
         logger.error(`AbilityScores must have 6 entries in the array inside of validateCharacter module in checkAbilityScores`);
-        throw new ValidationError(`\nAbility Scores MUST have 6 values.`);
+        throw new ValidationError(`\nAbility Scores MUST have 6 values. `);
     }
     logger.info(`AbilityScores Array was validated inside of validateCharacter module in checkAbilityScores`);
 }
@@ -381,7 +381,7 @@ async function checkSavingThrowProficiencies(savingThrowIds)
         if (!savingThrows.includes(savingThrowIds[i]))
         {
             logger.error(`savingThrows with id ${ savingThrowIds[i] } was not found inside of validateCharacter module in checkSavingThrowProficiencies`);
-            throw new ValidationError(`\savingThrows  of id ${ savingThrowIds[i] }must be a valid background. There is no background that matches.`);
+            throw new ValidationError(`\savingThrows  of id ${ savingThrowIds[i] }must be a valid background. There is no background that matches. `);
         }
     }
     logger.info(`savingThrows with ID: ${ savingThrowIds } was validated inside of validateCharacter module in checkSavingThrowProficiencies`);
@@ -409,7 +409,7 @@ async function checkUserID(userId)
     if (!users.includes(userId))
     {
         logger.error(`User with id ${ userId } was not found inside of validateCharacter module in checkUserID`);
-        throw new ValidationError(`\nUser  of id ${ userId }must be a valid User. There is no User that matches.`);
+        throw new ValidationError(`\nUser  of id ${ userId }must be a valid User. There is no User that matches. `);
     }
     logger.info(`User with ID: ${ userId } was validated inside of validateCharacter module in checkUserID`);
 }
@@ -424,7 +424,7 @@ async function checkCharacterId(characterId)
 {
     characterId = parseInt(characterId);
     if (characterId < 1)
-        throw new errors.InvalidInputError('Character id must be greater than 0.');
+        throw new errors.InvalidInputError('Character id must be greater than 0. ');
 
     let rows, columns;
     try
@@ -436,7 +436,7 @@ async function checkCharacterId(characterId)
     }
 
     if (rows.length == 0)
-        throw new errors.InvalidInputError('Character id does not exist.');
+        throw new errors.InvalidInputError('Character id does not exist. ');
 
 }
 

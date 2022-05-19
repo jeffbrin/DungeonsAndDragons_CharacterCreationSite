@@ -27,6 +27,8 @@ async function getHomeLoggedIn(request, response, username){
         currentRenderObj.confirmation = query.confirmation;
     if(query.status)
         currentRenderObj.status = query.status;
+    if(query.loginError)
+        currentRenderObj.loginError = query.loginError;
 
     response.status(200).render('home.hbs', currentRenderObj);
 }
@@ -46,6 +48,8 @@ async function getHomeLoggedOut(request, response){
         currentRenderObj.status = query.status;
     if(query.lightTheme)
         currentRenderObj.lightTheme = JSON.parse(query.lightTheme);
+    if(query.loginError)
+        currentRenderObj.loginError = query.loginError;
 
     response.status(200).render('home.hbs', currentRenderObj);
 }

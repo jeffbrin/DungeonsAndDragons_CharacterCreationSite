@@ -1,5 +1,5 @@
 const validator = require('validator')
-const {DatabaseError} = require('./errorModel')
+const {DatabaseError, InvalidInputError} = require('./errorModel')
 
 /**
  * Validates a spell's level.
@@ -68,7 +68,8 @@ async function validateSpellLevel(level){
  * A user id is valid if it exists in the user table.
  * @param {Number} userId The id of the user to validate.
  * @param {Object} conneciton A connection to the database.
- * @throws {InvalidInputError} If an invalid user id was passed or if the database connection was invalid.
+ * @throws {Error} Thrown when an invalid user id was passed or if the database connection was invalid.
+ * @throws {DatabaseError} Thrown when there is an issue with the database connection.
  */
 async function validateUser(userId, connection){
 
@@ -121,20 +122,21 @@ async function validateSpellComponentBool(boolVal){
  * Validates the material boolean and material string combination.
  * @param {Boolean} material Indicates whether the spell requires material components.
  * @param {String} materials The material components of the spell
+ * @throws {InvalidInputError} Thrown when the material / materials combo is invalid.
  */
 async function validateMaterials(material, materials){
     if(typeof material != 'boolean')
-        throw new Error('The material component value was not a valid type.');
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'The material component value was not a valid type.');
 
     if(material && materials == null)
-        throw new Error('The material components must be indicated for a spell which requires them.');
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'The material components must be indicated for a spell which requires them.');
         
     if(!material && materials != null)
-        throw new Error('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
     if(material && typeof !materials == 'string')
-        throw new Error("Materials were not sent in a valid type");
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', "Materials were not sent in a valid type");
     if(material && !materials)
-        throw new Error("Materials can not be empty");
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', "Materials can not be empty");
 }
 
 /**
@@ -235,7 +237,7 @@ async function validateSpell(level, schoolId, userId, description, name, casting
         .then(() => validateMaterials(material, materials))
         .then(() => validateSpellGenericString(duration, 'duration'))
         .then(() => validateSpellDamage(damage, 'damage'))
-        .then(() => validateSpellDamage(range, 'range'))
+        .then(() => validateSpellGenericString(range, 'range'))
         .then(() => validateSpellComponentBool(concentration))
         .then(() => validateSpellComponentBool(ritual))
         .then(() => validateClassIds(classIds, connection));

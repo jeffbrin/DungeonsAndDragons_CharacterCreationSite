@@ -1,3 +1,39 @@
+{{#if error}}
+<div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+  <h4>{{status}} Error</h4>
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+    <use xlink:href="#exclamation-triangle-fill" />
+  </svg>{{error}}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
+{{#if warning}}
+<div class="d-flex justify-content-center mt-4">
+  <div id="alert" class="alert alert-warning w-50 " role="alert">
+    <div class="d-flex">
+      <h4 class="alert-heading">Warning</h4>
+      <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+      <use xlink:href="#info-fill" />
+      <button style="margin-left: auto" type="button" class="btn-close" data-bs-dismiss="alert"
+        aria-label="Close"></button>
+    </div>
+    <p>{{warning}}</p>
+  </div>
+</div>
+{{/if}}
+{{#if confirmation}}
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+    <use xlink:href="#check-circle-fill" />
+  </svg>
+  <div class="text-center container">
+    <em class="bolded">{{confirmation}}</em>
+  </div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
 {{#with spell}}
 <div class="bg-dark my-5 container d-flex flex-column" style="border-radius: 30px;">
     <div id="top" class="d-flex justify-content-center center-text" style="flex: 1;">
@@ -43,6 +79,23 @@
         <p>{{Description}}</p>
     </div>
 
+</div>
+<div class="d-flex justify-content-center mb-3">
+<form action="/spells" class="btn btn-primary container d-flex align-items-center" style="width: 200px; margin: 10px;">
+        <h3>All spells</h3>
+        <button type="submit" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/back.png" width="50px" alt="all spells"></button>
+      </form>
+{{#if (equals UserId 0)}}{{else}}
+      <form action="/spells/id/{{Id}}" class="btn btn-primary container d-flex align-items-center" style="width: 200px;  margin: 10px;">
+      <input type="text" hidden value='{"method": "delete"}' name="choice">
+        <h3>Delete</h3>
+        <button type="submit" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
+      </form>
+      <form action="/spells/editform/{{Id}}" class="btn btn-primary container d-flex align-items-center" style="width: 200px;  margin: 10px;">
+        <h3>Edit</h3>
+        <button type="submit" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/edit.png" width="50px" alt="delete"></button>
+      </form>
+{{/if}}
 </div>
 {{/with}}
 <link rel="stylesheet" href="/css/spells.css">

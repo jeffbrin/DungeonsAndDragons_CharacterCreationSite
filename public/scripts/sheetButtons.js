@@ -39,6 +39,30 @@ deleteSpellBtn.addEventListener('click', e =>
     });
 });
 
+let deleteItemBtn = document.getElementById('deleteItemBtn');
+deleteItemBtn.addEventListener('click', e =>
+{
+    let tdChangeColspan = [...document.getElementsByClassName('colspanChange')];
+    tdChangeColspan.forEach(td =>
+    {
+        td.setAttribute('colspan', '1');
+    });
+    let tds = [...document.getElementsByClassName('hiddenDeleteItem')];
+    tds.forEach(td =>
+    {
+        td.hidden = false;
+        td.childNodes.forEach(child =>
+        {
+            child.hidden = false;
+            child.childNodes.forEach(child2 =>
+            {
+                child2.hidden = false;
+            });
+        });
+
+    });
+});
+
 let abilityScores = document.getElementsByClassName('abilityScore');
 let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
 let savingThrowModifiers = document.getElementsByClassName('abilityScoreModifierTd');
