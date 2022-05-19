@@ -68,7 +68,8 @@ async function validateSpellLevel(level){
  * A user id is valid if it exists in the user table.
  * @param {Number} userId The id of the user to validate.
  * @param {Object} conneciton A connection to the database.
- * @throws {InvalidInputError} If an invalid user id was passed or if the database connection was invalid.
+ * @throws {Error} Thrown when an invalid user id was passed or if the database connection was invalid.
+ * @throws {DatabaseError} Thrown when there is an issue with the database connection.
  */
 async function validateUser(userId, connection){
 
@@ -235,7 +236,7 @@ async function validateSpell(level, schoolId, userId, description, name, casting
         .then(() => validateMaterials(material, materials))
         .then(() => validateSpellGenericString(duration, 'duration'))
         .then(() => validateSpellDamage(damage, 'damage'))
-        .then(() => validateSpellDamage(range, 'range'))
+        .then(() => validateSpellGenericString(range, 'range'))
         .then(() => validateSpellComponentBool(concentration))
         .then(() => validateSpellComponentBool(ritual))
         .then(() => validateClassIds(classIds, connection));

@@ -223,10 +223,13 @@ async function closeConnection() {
 
 /**
  * Validates a spell and adds it to the database.
- * If another spell with the same level, name and schoolId is already present, the table will remain unchanged
+ * If the exact same spell already exists, the spell is not added but no error is thrown.
  * @param {Object} spell The spell to add to the database.
  * @returns The spell added to the database. If a similar spell is in the db already, that one is returned.
+ * @throws {InvalidInputError} Thrown when the input is invalid.
+ * @throws {DatabaseError} Thrown when the spell could not be added to the database.
  */
+
 async function addSpell(spell) {
     return addSpellFromValues(spell.Level, spell.SchoolId, spell.UserId, spell.Description, spell.Name, spell.CastingTime,
                               spell.EffectRange, spell.Verbal, spell.Somatic, spell.Material, spell.Materials, spell.Duration, 
@@ -236,7 +239,7 @@ async function addSpell(spell) {
 /**
  * Validates the spell's information and adds it to the database table.
  * No value can be empty besides materials and damage.
- * If a spell with the same level, name and schoolId is already present in the table, the table will remain unchanged.
+ * If the exact same spell already exists, the spell is not added but no error is thrown.
   * @param {Integer} level The level of the spell, must be an integer from 0 - 9
   * @param {Integer} schoolId The Id of the school the spell belongs to, must not contain any numbers.
   * @param {Integer} userId The id of the user who created this spell, 0 by default.
@@ -375,16 +378,19 @@ async function removeSpellById(Id, userId) {
         await validationModel.validateUser(userId, connection);
     }
     catch (error) {
-        throw new InvalidInputError(`Failed to remove spell with Id (${Id}): ${error.message}`)
+        if(error instanceof DatabaseError)
+            throw error;
+        throw new InvalidInputError('spellModel', 'removeSpellById', `Failed to remove spell with Id (${Id}): ${error.message}`)
+        
     }
 
     const deleteQuery = `DELETE FROM Spell WHERE Id = ${Id} AND UserId = ${userId}`;
     let executionRowsData;
     try {
-        await connection.execute(`DELETE FROM ClassPermittedSpell WHERE SpellId = ${id}`);
+        await connection.execute(`DELETE FROM ClassPermittedSpell WHERE SpellId = ${Id}`);
         [executionRowsData] = await connection.execute(deleteQuery);
     } catch (err) {
-        throw new DatabaseError(`Failed to delete from table Spell: ${err.message}`)
+        throw new DatabaseError('spellModel', 'removeSpellById', `Failed to delete from table Spell: ${err.message}`)
     }
 
     if(executionRowsData.affectedRows == 0)
@@ -397,11 +403,22 @@ async function removeSpellById(Id, userId) {
  * Will return all the spells created by the user and the default user.
  * @param {Integer} userId The id of a user, default to 0.
  * @returns An array containing the rows of a table in the database.
+ * @throws {InvalidInputError} Thrown when the user id is invalid.
+ * @throws {DatabaseError} Thrown when there is an issue with the database connection.
  */
 async function getAllSpells(userId = 0) {
 
     let rows;
     let columnDefinitions;
+
+    try{
+    await validationModel.validateUser(userId, connection);
+    }
+    catch(error){
+        if(error instanceof DatabaseError)
+            throw error;
+        throw new InvalidInputError('spellModel', 'getAllSpells', error.message);
+    }
 
     try {
         [rows, columnDefinitions] = await connection.query(`select S.*, SS.name as "school" from Spell S, SpellSchool SS WHERE S.schoolId = SS.Id AND (S.UserId = ${userId} OR S.UserId = 0) ORDER BY Level ASC;`)
@@ -548,6 +565,8 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
  * @param {Integer} Id The Id of the spell to get.
  * @param {Integer} userId The id of the user requesting the spell.
  * @returns A spell that matches the Id, null if no spell contains the Id.
+ * @throws {InvalidInputError} Thrown when no spell with the provided id exists or the user can not access it.
+ * @throws {DatabaseError} Thrown when there is an issue with the database connection.
  */
 async function getSpellById(Id, userId) {
 
@@ -834,5 +853,6 @@ module.exports = {
     getSpellById,
     getSpellsWithSpecifications,
     updateSpellById,
-    getAllSchools
+    getAllSchools,
+    dropReliantTables
 }
