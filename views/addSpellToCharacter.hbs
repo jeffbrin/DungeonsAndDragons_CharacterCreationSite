@@ -66,11 +66,11 @@
             style="flex: 5;">
             {{!-- Classes that can cast this spell --}}
             {{#with filter.Class}}
-            <div class="px-4">
+            <div class="px-4" id="imgDivFilter">
                 <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}" checked>
-                <label for="{{Name}}checkbox"><img class="classImage" src="/images/icons/class/{{Name}}.png"
-                        alt="{{Name}}"></label>
-                <p class="text-center">{{Name}}</p>
+                <label for="{{Name}}checkbox"><img class="classImage" id="filterClassImageSolo"
+                        src="/images/icons/class/{{Name}}.png" alt="{{Name}}"></label>
+                <p class="text-center mtop-1rem">{{Name}}</p>
             </div>
             {{/with}}
             <input type="text" hidden id="castableClasses" name="ClassIds">
@@ -117,10 +117,10 @@
     </div>
     <div id="right" style="flex: 1;" class="d-flex flex-column">
         <div id="castingDetailsDiv" style="border-bottom: 2px solid black; flex:1;"
-            class="p-2 d-flex flex-column justify-content-evenly align-items-center">
+            class="p-2 d-flex flex-column justify-content-evenly">
 
             {{!-- Casting Time --}}
-            <div id="castingTimeDiv" class="d-flex m-2 align-items-end flex-wrap">
+            <div id="castingTimeDiv" class="d-flex m-2 align-items-start flex-wrap">
                 <div class="d-flex flex-column">
                     <label for="castingTime">Casting Time</label>
                     <select name="CastingTime" id="castingTime">
@@ -152,7 +152,7 @@
             </div>
 
             {{!-- Duration --}}
-            <div id="durationDiv" class="d-flex m-2 align-items-end flex-wrap">
+            <div id="durationDiv" class="d-flex m-2 align-items-start flex-wrap">
                 <div class="d-flex flex-column">
                     <label for="durationSelect">Duration</label>
                     <select name="Duration" id="durationSelect">
@@ -185,7 +185,7 @@
             </div>
 
             {{!-- Range --}}
-            <div id="rangeDiv" class="d-flex m-2 align-items-end flex-wrap">
+            <div id="rangeDiv" class="d-flex m-2 align-items-start flex-wrap">
                 <div class="d-flex flex-column">
                     <label for="rangeInput">Range</label>
                     <select name="EffectRange" id="rangeInput">
@@ -305,7 +305,7 @@
             </div>
             {{/if}}
 
-            <div class="d-flex justify-content-center" style="flex: 1;">
+            <div class="d-flex justify-content-center" style="flex: 1; margin-bottom: 0.5rem;">
                 <button class="btn btn-primary px-5" style="margin: auto;">Filter</button>
             </div>
 
@@ -398,4 +398,5 @@
 </div>
 
 <link rel="stylesheet" href="/css/spells.css">
+<link rel="stylesheet" href="/css/addSpellToCharacter.css">
 <script src="/scripts/addSpellToCharacterScript.js"></script>
