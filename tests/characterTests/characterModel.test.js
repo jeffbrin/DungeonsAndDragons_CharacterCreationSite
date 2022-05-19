@@ -994,3 +994,165 @@ test('addKnownSpell - Fail on UserId', async () =>
     expect(db2.length).toBe(1);
     expect(db2[0].Spells.length).toBe(0);
 });
+test('removeKnownSpell - Success', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacter();
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db[0].Spells.length).toBe(0);
+
+    let spell = getRandomThing(randomSpells);
+    //Add it to character
+    await characterModel.addKnownSpell(id, spell.id, randomCharacter.UserId);
+
+    let db2 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db2)).toBe(true);
+    expect(db2.length).toBe(1);
+    expect(db2[0].Spells.length).toBe(1);
+
+
+    await characterModel.removeKnownSpell(id, spell.id, randomCharacter.UserId);
+
+    let db3 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db3)).toBe(true);
+    expect(db3.length).toBe(1);
+    expect(db3[0].Spells.length).toBe(0);
+
+});
+test('removeKnownSpell - Fail Wrong Spell', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacter();
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db[0].Spells.length).toBe(0);
+
+    let spell = getRandomThingSplice(randomSpells);
+    //Add it to character
+    await characterModel.addKnownSpell(id, spell.id, randomCharacter.UserId);
+
+    let db2 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db2)).toBe(true);
+    expect(db2.length).toBe(1);
+    expect(db2[0].Spells.length).toBe(1);
+
+
+
+    await expect(characterModel.removeKnownSpell(id, 10000, randomCharacter.UserId)).rejects.toThrow(InvalidInputError);
+    await expect(characterModel.removeKnownSpell(id, 10000, randomCharacter.UserId)).rejects.toThrow(`Spell You're trying to remove doesn't exists`);
+
+    let db3 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db3)).toBe(true);
+    expect(db3.length).toBe(1);
+    expect(db3[0].Spells.length).toBe(1);
+
+});
+test('getUserCharacters - Fail', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacter();
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db.length).toBe(1);
+
+
+    await expect(characterModel.getUserCharacters(randomCharacter.UserId + 1)).rejects.toThrow(InvalidInputError);
+
+    await expect(characterModel.getUserCharacters(randomCharacter.UserId + 1)).rejects.toThrow(`User does not exists or has no characters`);
+});
+test('removeCharacter - Success', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacterSplice();
+    let randomCharacter2 = getRandomCharacterSplice();
+
+    // change the UserId so its the same
+    randomCharacter2.UserId = randomCharacter.UserId;
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let id2 = await characterModel.addCharacterObject(randomCharacter2);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db.length).toBe(2);
+
+
+    await characterModel.removeCharacter(id);
+
+    let db2 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db2)).toBe(true);
+    expect(db2.length).toBe(1);
+    expect(db2[0].Id).toBe(id2);
+
+});
+test('removeCharacter - Fail', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacterSplice();
+    let randomCharacter2 = getRandomCharacterSplice();
+
+    // change the UserId so its the same
+    randomCharacter2.UserId = randomCharacter.UserId;
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let id2 = await characterModel.addCharacterObject(randomCharacter2);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db.length).toBe(2);
+
+
+    await characterModel.removeCharacter(id);
+
+    await expect(characterModel.removeCharacter(id)).rejects.toThrow(InvalidInputError);
+    await expect(characterModel.removeCharacter(id)).rejects.toThrow(`does not exist in the Database`);
+});
+test.only('levelUp - Success', async () =>
+{
+    // Add 3 users since the highest user id in a random character is 3
+    await userModel.addUser('user1', 'Password1');
+    await userModel.addUser('user2', 'Password2');
+    await userModel.addUser('user3', 'Password3');
+
+    // Add random character
+    const randomCharacter = getRandomCharacter();
+
+    let id = await characterModel.addCharacterObject(randomCharacter);
+    let db = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db)).toBe(true);
+    expect(db.length).toBe(1);
+    expect(db[0].Level).toBe(randomCharacter.Level);
+
+    await characterModel.levelUp(id);
+
+    let db2 = await characterModel.getUserCharacters(randomCharacter.UserId);
+    expect(Array.isArray(db2)).toBe(true);
+    expect(db2.length).toBe(1);
+    expect(db2[0].Level).toBe(randomCharacter.Level);
+
+});

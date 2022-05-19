@@ -794,7 +794,7 @@ async function removeKnownSpell(characterId, spellId, userId)
  */
 async function getUserCharacters(userId)
 {
-    const query = `SELECT c.Id from ${ tableName } c, User u WHERE c.UserId = u.Id;`;
+    const query = `SELECT Id from ${ tableName } WHERE UserId = ${ userId };`;
 
     try
     {
@@ -873,6 +873,11 @@ async function removeCharacter(id)
     }
     catch (error)
     {
+        if (error instanceof errors.InvalidInputError)
+        {
+            throw error;
+        }
+
         throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${ id }. ${ error.message }`);
     }
 }
