@@ -316,6 +316,8 @@ async function addRemoveHp(id, hpValueChange)
     let selectQ = `Select CurrentHp from ${ tableName } WHERE Id = ${ id };`;
     let rows, column_definitions;
     hpValueChange = parseInt(hpValueChange);
+    if (isNaN(hpValueChange))
+        throw new errors.InvalidInputError('characterModel', 'addRemoveHp', 'Hp value change is not a number');
     try
     {
         [rows, column_definitions] = await connection.query(selectQ);
@@ -930,6 +932,8 @@ async function updateExp(characterId, experience)
 {
     const query = `SELECT Experience FROM ${ tableName } WHERE Id = ${ characterId };`;
 
+    if (isNaN(parseInt(experience)))
+        throw new errors.InvalidInputError('characterModel', 'updateExp', `Experience Points must be a number`);
     try
     {
         var [rows, colum_definitions] = await connection.query(query);
