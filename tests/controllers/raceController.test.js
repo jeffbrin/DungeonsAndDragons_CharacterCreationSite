@@ -31,7 +31,7 @@ test('GET /races - Failure - Closed database connection', async () => {
     await raceModel.closeConnection();
     const testResponse = await testRequest.get('/races').send();
 
-    expect(testResponse.status).toBe(500);
+    expect(testResponse.status).toBe(302);
     
 })
 
@@ -47,7 +47,7 @@ test('GET /races/:id - Failure - Non-Numeric id', async () => {
 
     const testResponse = await testRequest.get('/races/hello').send();
 
-    expect(testResponse.status).toBe(400);
+    expect(testResponse.status).toBe(302);
     
 })
 
@@ -55,7 +55,7 @@ test('GET /races/:id - Failure - Non-Existant id', async () => {
 
     const testResponse = await testRequest.get('/races/100').send();
 
-    expect(testResponse.status).toBe(400);
+    expect(testResponse.status).toBe(302);
     
 })
 
@@ -63,7 +63,7 @@ test('GET /races/:id - Failure - Closed database connection', async () => {
     await raceModel.closeConnection();
     const testResponse = await testRequest.get('/races').send();
 
-    expect(testResponse.status).toBe(500);
+    expect(testResponse.status).toBe(302);
     
 })
 

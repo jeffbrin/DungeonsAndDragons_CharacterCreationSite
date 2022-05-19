@@ -38,10 +38,7 @@ afterEach(async () => {
 // Logging in
 test("POST /sessions success", async () => {
     const testResponse = await testRequest.post('/sessions').send(validUser);
-    expect(testResponse.status).toBe(201);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response contains a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -50,10 +47,7 @@ test("POST /sessions success", async () => {
 
 test("POST /sessions failure - Invalid username", async () => {
     const testResponse = await testRequest.post('/sessions').send({username: '', password: validUser.password});
-    expect(testResponse.status).toBe(400);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -62,10 +56,7 @@ test("POST /sessions failure - Invalid username", async () => {
 
 test("POST /sessions failure - Invalid password", async () => {
     const testResponse = await testRequest.post('/sessions').send({username: validUser.username, password: ''});
-    expect(testResponse.status).toBe(400);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -74,10 +65,7 @@ test("POST /sessions failure - Invalid password", async () => {
 
 test("POST /sessions failure - Username doesn't exist", async () => {
     const testResponse = await testRequest.post('/sessions').send({username: 'user', password: validUser.password});
-    expect(testResponse.status).toBe(400);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -86,10 +74,7 @@ test("POST /sessions failure - Username doesn't exist", async () => {
 
 test("POST /sessions failure - Empty body", async () => {
     const testResponse = await testRequest.post('/sessions').send();
-    expect(testResponse.status).toBe(400);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -99,10 +84,7 @@ test("POST /sessions failure - Empty body", async () => {
 test("POST /sessions failure - Closed database connection", async () => {
     userModel.closeConnection();
     const testResponse = await testRequest.post('/sessions').send(validUser);
-    expect(testResponse.status).toBe(500);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let sessionId = getResponseSessionId(testResponse);
@@ -117,10 +99,7 @@ test("DELETE /sessions Success", async () => {
     // Log out
     testResponse = await testRequest.delete('/sessions').set('Cookie', [`sessionId=${sessionId}`]).send();
     
-    expect(testResponse.status).toBe(200);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let newSessionId = getResponseSessionId(testResponse);
@@ -135,10 +114,7 @@ test("DELETE /sessions Success - Session id does not exist", async () => {
     // Log out
     testResponse = await testRequest.delete('/sessions').set('Cookie', [`sessionId=10`]).send();
     
-    expect(testResponse.status).toBe(200);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let newSessionId = getResponseSessionId(testResponse);
@@ -154,10 +130,7 @@ test("DELETE /sessions failure - Closed database connection", async () => {
     await userModel.closeConnection();
     testResponse = await testRequest.delete('/sessions').set('Cookie', [`sessionId=${sessionId}`]).send();
     
-    expect(testResponse.status).toBe(500);
-
-    let ct = testResponse.get('content-type');
-    expect(ct.startsWith('text/html')).toBe(true);
+    expect(testResponse.status).toBe(302);
 
     // Response doesn't contain a sessionId
     let newSessionId = getResponseSessionId(testResponse);
