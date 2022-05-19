@@ -22,7 +22,6 @@ const url = require('url')
  * @param {Object} response An http response object.
  */
 async function lightSwitch(request, response){
-    console.log("inside lightswitch")
     //validate
     try{
         let lightBool = JSON.parse(request.body.lightMode);
