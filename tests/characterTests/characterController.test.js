@@ -109,29 +109,6 @@ afterEach(async () =>
 //#endregion
 
 //#region Helpers
-//helper
-function getEthicsStringFromId(ethicsId)
-{
-    switch (ethicsId)
-    {
-        case 1: return 'lawful';
-        case 2: return 'chaotic';
-        case 3: return 'neutral';
-        default: return undefined;
-    }
-}
-
-//helper
-function getMoralityStringFromId(moralityId)
-{
-    switch (moralityId)
-    {
-        case 1: return 'good';
-        case 2: return 'evil';
-        case 3: return 'neutral';
-        default: return undefined;
-    }
-}
 const randomItem = [
     { Name: "Boots", Quantity: 3 },
     { Name: "Magical Orb", Quantity: 1 },
@@ -203,7 +180,9 @@ test('GET - characterListPage - Success', async () =>
 test('GET - characterListPage - Fail', async () =>
 {
     const testResponse = await testRequest.get('/characters');
-    expect(testResponse.status).toBe(400);
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
 });
 test('GET - characterSoloPage - Success', async () =>
 {
@@ -442,7 +421,9 @@ test('DELETE deleteCharacter - FAIL', async () =>
     //no session so should fail input
     const testResponse = await testRequest.delete(`/characters/${ id }`);
 
-    expect(testResponse.status).toBe(400);
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
 
     let db2 = await characterModel.getUserCharacters(1);
     expect(db2.length).toBe(2);
@@ -465,7 +446,6 @@ test('PUT updateLevel - Success', async () =>
     expect(db.length).toBe(2);
     expect(db[0].Level).toBe(char1.Level);
 
-    //no session so should fail input
     const testResponse = await testRequest.put(`/characters/${ id }/levels`);
 
     expect(testResponse.status).toBe(302);
@@ -475,7 +455,7 @@ test('PUT updateLevel - Success', async () =>
     let db2 = await characterModel.getUserCharacters(1);
     expect(db2[0].Level).toBe(char1.Level + 1);
 });
-test.only('PUT updateLevel - FAIL', async () =>
+test('PUT updateLevel - FAIL', async () =>
 {
     await userModel.addUser('user1', 'Password1');
     await userModel.addUser('user2', 'Password2');
@@ -499,5 +479,423 @@ test.only('PUT updateLevel - FAIL', async () =>
     let db2 = await characterModel.getUserCharacters(1);
     expect(db2.length).toBe(2);
     expect(db2[0].Level).toBe(char1.Level);
+});
+test('PUT addItem - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
 
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let db = await characterModel.getUserCharacters(1);
+    expect(db.length).toBe(2);
+    expect(db[0].OwnedItems.length).toBe(0);
+
+    let item = getRandomThingSplice(randomItem);
+    let item2 = getRandomThingSplice(randomItem);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/items`).send({ itemName: item.Name, itemQuantity: item.Quantity });
+
+    expect(testResponse.status).toBe(302);
+
+    let db2 = await characterModel.getUserCharacters(1);
+    expect(db2.length).toBe(2);
+    expect(db2[0].OwnedItems.length).toBe(1);
+
+    const testResponse2 = await testRequest.put(`/characters/${ id }/items`).send({ itemName: item2.Name, itemQuantity: item2.Quantity });
+
+    expect(testResponse2.status).toBe(302);
+
+    let db3 = await characterModel.getUserCharacters(1);
+    expect(db3.length).toBe(2);
+    expect(db3[0].OwnedItems.length).toBe(2);
+});
+test('PUT addItem - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let db = await characterModel.getUserCharacters(1);
+    expect(db.length).toBe(2);
+    expect(db[0].OwnedItems.length).toBe(0);
+
+    let item = getRandomThingSplice(randomItem);
+    let item2 = getRandomThingSplice(randomItem);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/items`).send({ itemName: item.Name, itemQuantity: item.Quantity });
+
+    expect(testResponse.status).toBe(302);
+
+    let db2 = await characterModel.getUserCharacters(1);
+    expect(db2.length).toBe(2);
+    expect(db2[0].OwnedItems.length).toBe(0);
+
+    const testResponse2 = await testRequest.put(`/characters/${ id }/items`).send({ itemName: item2.Name, itemQuantity: item2.Quantity });
+
+    expect(testResponse2.status).toBe(302);
+
+    let db3 = await characterModel.getUserCharacters(1);
+    expect(db3.length).toBe(2);
+    expect(db3[0].OwnedItems.length).toBe(0);
+});
+test('GET sendToUpdateController - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+
+    const testResponse = await testRequest.get(`/characters/forms/${ id }`);
+
+    expect(testResponse.status).toBe(200);
+});
+test('GET sendToUpdateController - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+
+    const testResponse = await testRequest.get(`/characters/forms/${ id }`);
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+});
+test('GET sendToCreatePage - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+
+    const testResponse = await testRequest.get(`/characters/new`);
+
+    expect(testResponse.status).toBe(200);
+});
+test('GET sendToCreatePage - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+
+    const testResponse = await testRequest.get(`/characters/new/`);
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+});
+test('Put addProficiencyController - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let proficiencies = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/proficiencies`).send({ skillId: 1, characterId: id });
+
+    let proficiencies2 = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies2.length).toBe(1);
+    expect(proficiencies2[0]).toBe(1);
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/characters\/1/);
+    expect(testResponse.headers.location).toMatch(/Added/);
+});
+test('Put addProficiencyController - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let proficiencies = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/proficiencies`).send({ skillId: 1, characterId: id });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+    let proficiencies2 = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies2.length).toBe(0);
+    expect(proficiencies2[0]).toBe(undefined);
+});
+test('Put addExpertiseController - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let proficiencies = await characterStatsModel.getSkillExpertise(id);
+    expect(proficiencies.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/expertise`).send({ skillId: 1, characterId: id });
+
+    let proficiencies2 = await characterStatsModel.getSkillExpertise(id);
+    expect(proficiencies2.length).toBe(1);
+    expect(proficiencies2[0]).toBe(1);
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/characters\/1/);
+    expect(testResponse.headers.location).toMatch(/Added/);
+});
+test('Put addExpertiseController - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let proficiencies = await characterStatsModel.getSkillExpertise(id);
+    expect(proficiencies.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/${ id }/expertise`).send({ skillId: 1, characterId: id });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+    let proficiencies2 = await characterStatsModel.getSkillExpertise(id);
+    expect(proficiencies2.length).toBe(0);
+    expect(proficiencies2[0]).toBe(undefined);
+});
+test('Delete removeAllExpertiseAndProficiencies - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    await characterStatsModel.addSkillProficiency(id, 1);
+
+    let proficiencies2 = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies2.length).toBe(1);
+    expect(proficiencies2[0]).toBe(1);
+
+    const testResponse = await testRequest.delete(`/characters/${ id }/proficiencies`).send({ skillId: 1, characterId: id });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/characters\/1/);
+    expect(testResponse.headers.location).toMatch(/Removed/);
+
+    let proficiencies = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies.length).toBe(0);
+});
+test('Delete removeAllExpertiseAndProficiencies - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    await characterStatsModel.addSkillProficiency(id, 1);
+
+    let proficienciess = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficienciess.length).toBe(1);
+    expect(proficienciess[0]).toBe(1);
+
+
+    const testResponse = await testRequest.delete(`/characters/${ id }/proficiencies`).send({ skillId: 1, characterId: id });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+    let proficiencies2 = await characterStatsModel.getSkillProficiencies(id);
+    expect(proficiencies2.length).toBe(1);
+    expect(proficiencies2[0]).toBe(1);
+});
+test('GET sendToAddSpellPage - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+
+    const testResponse = await testRequest.get(`/characters/spells/${ id }`);
+
+    expect(testResponse.status).toBe(200);
+});
+test('GET sendToAddSpellPage - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    const testResponse = await testRequest.get(`/characters/spells/${ id }`);
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+});
+test('Put addSpellToCharacter - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let db = await characterModel.getUserCharacters(char1.UserId);
+    expect(db[0].Spells.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/spells/${ id }`).send({ spellId: 1 });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/characters\/1/);
+    expect(testResponse.headers.location).toMatch(/Added%20Spell/);
+
+    let db2 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db2[0].Spells.length).toBe(1);
+});
+test('Put addSpellToCharacter - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let db = await characterModel.getUserCharacters(char1.UserId);
+    expect(db[0].Spells.length).toBe(0);
+
+    const testResponse = await testRequest.put(`/characters/spells/${ id }`).send({ spellId: 1 });
+
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+    let db2 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db2[0].Spells.length).toBe(0);
+});
+test('Put deleteSpellFromCharacter - Success', async () =>
+{
+    const registerResponse = await testRequest.post('/users').send(user);
+    expect(registerResponse.status).toBe(201);
+    const loginResponse = await testRequest.post('/sessions').send(user);
+    expect(loginResponse.get('Set-Cookie')).toBeDefined();
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+
+    let db = await characterModel.getUserCharacters(char1.UserId);
+    expect(db[0].Spells.length).toBe(0);
+
+    await characterModel.addKnownSpell(id, 1, char1.UserId);
+
+    let db2 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db2[0].Spells.length).toBe(1);
+
+    const testResponse = await testRequest.delete(`/characters/spells/${ id }`).send({ spellId: 1 });
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/characters\/1/);
+    expect(testResponse.headers.location).toMatch(/Removed%20Spell/);
+
+    let db3 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db3[0].Spells.length).toBe(0);
+});
+test('Put deleteSpellFromCharacter - Fail', async () =>
+{
+    await userModel.addUser('user1', 'Password1');
+
+    let char1 = getRandomCharacterSplice();
+    let char2 = getRandomCharacterSplice();
+    char2.UserId = char1.UserId = 1;
+    let id = await characterModel.addCharacterObject(char1);
+    let id2 = await characterModel.addCharacterObject(char2);
+
+    let db = await characterModel.getUserCharacters(char1.UserId);
+    expect(db[0].Spells.length).toBe(0);
+
+    await characterModel.addKnownSpell(id, 1, char1.UserId);
+
+    let db2 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db2[0].Spells.length).toBe(1);
+
+    const testResponse = await testRequest.delete(`/characters/spells/${ id }`).send({ spellId: 1 });
+
+
+    expect(testResponse.status).toBe(302);
+    expect(testResponse.headers.location).toMatch(/\/home/);
+    expect(testResponse.headers.location).toMatch(/access/);
+
+
+    let db3 = await characterModel.getUserCharacters(char1.UserId);
+    expect(db3[0].Spells.length).toBe(1);
 });

@@ -15,8 +15,6 @@ const spellModel = require('../models/spellModel');
 const errors = require('../models/errorModel');
 const { getBackground, getAllBackgrounds } = require('../models/backgroundModel');
 const { redirect } = require('express/lib/response');
-const { unregisterCustomQueryHandler } = require('puppeteer');
-
 
 
 hbs.handlebars.registerHelper('equals', (arg1, arg2) =>
@@ -63,6 +61,13 @@ hbs.handlebars.registerHelper('ifIn', function (elem, list, options)
     return options.inverse(this);
 });
 
+/**
+ * Helper method that builds al the necessary things for the CharacterSheet.hbs
+ * @param {*} id - Character Id
+ * @param {*} recentCharacters - Array of recentCharacters from the cookie
+ * @param {*} userId Id of User who owns the character
+ * @returns {Object} containing all the necessary things for the sheet
+ */
 async function buildSheet(id, recentCharacters, userId)
 {
     let bigObject = {};
@@ -87,8 +92,8 @@ async function buildSheet(id, recentCharacters, userId)
 /**
  * Converts the cookie into a JS Object and validates that the correct user owns all of the characters
  * @param {HTTPRequest} request 
- * @param {Integer} userId 
- * @returns 
+ * @param {Integer} userId The userId who requested the cookie
+ * @returns {Object} Containing the cookie for the recentCharacters cookie
  */
 async function getCookieObjectFromRequestAndUserId(request, userId)
 {
@@ -116,8 +121,10 @@ async function getCookieObjectFromRequestAndUserId(request, userId)
 
 /**
  * Sends a character to the model by taking in the request's JSON and using it
+ * Catches all errors and redirects to proper page as well as logs the error
  * @param {HTTPRequest} request The http Request object
  * @param {HTTPResponse} response The http Response object
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function sendCharacter(request, response, sessionId)
 {
@@ -171,8 +178,10 @@ async function sendCharacter(request, response, sessionId)
 }
 /**
  * uses the model to update the hitpoints of a character with a given id
+ * Catches all errors and redirects to proper page as well as logs the error
  * @param {HTTPRequest} request the request made by the user
  * @param {HTTPResponse} response the response that will be sent back in this function depending on what happened
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function updateHitpoints(request, response, sessionId)
 {
@@ -210,8 +219,10 @@ async function updateHitpoints(request, response, sessionId)
 /**
  * On a get request, the getCharacter method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
- * @param {HTTPRequest} request 
- * @param {HTTPResponse} response
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function getCharacter(request, response, sessionId)
 {
@@ -274,8 +285,10 @@ async function getCharacter(request, response, sessionId)
 /**
  * on a get request, the getAllCharacters method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
- * @param {HTTPRequest} request 
- * @param {HTTPResponse} response
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function getAllUserCharacters(request, response, sessionId)
 {
@@ -314,8 +327,9 @@ async function getAllUserCharacters(request, response, sessionId)
 /**
  * on a put request, the update method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
- * @param {HTTPRequest} request 
- * @param {HTTPResponse} response
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function updateCharacter(request, response, sessionId)
 {
@@ -362,8 +376,9 @@ async function updateCharacter(request, response, sessionId)
 /**
  * on a delete request, the delete method from the model is called
  * responds with correct error codes depending on type of error thrown in the model method
- * @param {HTTPRequest} request 
- * @param {HTTPResponse} response 
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function deleteCharacter(request, response, sessionId)
 {
@@ -397,8 +412,9 @@ async function deleteCharacter(request, response, sessionId)
 /**
  * calls the level up function in the model
  * Catches all errors and logs them and renders the pages based on the error
- * @param {HTTP} request 
- * @param {HTTP} response 
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function updateLevel(request, response, sessionId)
 {
@@ -437,6 +453,14 @@ async function updateLevel(request, response, sessionId)
     }
 }
 
+/**
+ * Sends the Item information gathered from the View to the model
+ * Catches errors and logs them
+ * Redirects the view to the proper page
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function addItem(request, response, sessionId)
 {
     requestJson = request.body;
@@ -454,7 +478,7 @@ async function addItem(request, response, sessionId)
     {
         if (error instanceof errors.DatabaseError)
         {
-            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't level up Character." }));
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't Add Item to Character." }));
             logger.error("Database Error - From addItem in characterController");
         }
         else if (error instanceof errors.InvalidInputError)
@@ -476,11 +500,51 @@ async function addItem(request, response, sessionId)
     }
 }
 
+async function removeItem(request, response, sessionId)
+{
+    requestJson = request.body;
+    try
+    {
+        await model.removeItem(parseInt(request.params.id), requestJson.itemName, requestJson.itemQuantity);
+        response.redirect(url.format({
+            pathname: `/characters/${ request.params.id }`,
+            query: {
+                "success": "Item Removed!"
+            }
+        }));
+    }
+    catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error, Couldn't Remove Item from Character." }));
+            logger.error("Database Error - From removeItem in characterController");
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400);
+            response.redirect(url.format({
+                pathname: `/characters/${ request.params.id }`,
+                query: {
+                    "error": "Input error, Couldn't Remove Item!"
+                }
+            }));
+            logger.error('input error - from removeItem in characterController');
+        }
+        else
+        {
+            logger.error(error.message);
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
+        }
+    }
+}
+
 /**
  * Sends the user to the update page with all required Data
  * Catches all errors and logs them and writes error messages on banners on the page
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function sendToUpdateController(request, response, sessionId)
 {
@@ -523,6 +587,7 @@ async function sendToUpdateController(request, response, sessionId)
  * Catches all errors and logs them and writes error messages on banners on the page
  * @param {HTTP} request - Request to this page
  * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
  */
 async function sendToCreatePage(request, response, sessionId)
 {
@@ -555,7 +620,13 @@ async function sendToCreatePage(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Sends the selected skill proficiency to the model to add.
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function addProficiencyController(request, response, sessionId)
 {
     const json = request.body;
@@ -590,7 +661,13 @@ async function addProficiencyController(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Sends the selected skill Id to the model to add skill expertise
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function addExpertiseController(request, response, sessionId)
 {
     const json = request.body;
@@ -631,14 +708,21 @@ async function addExpertiseController(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Sends the selected skill ID to the model so that the expertise or proficiency gets removed
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function removeAllExpertiseAndProficiencies(request, response, sessionId)
 {
     const json = request.body;
     try
     {
         await charStatsModel.removeSkillExpertise(json.characterId, json.skillId);
-        logger.info(`Successfully removed skill Expertise with id: ${ json.skillId } to character: ${ json.characterId }`);
+        await charStatsModel.removeSkillProficiency(json.characterId, json.skillId);
+        logger.info(`Successfully removed skill Expertise and / or Proficiency with id: ${ json.skillId } to character: ${ json.characterId }`);
 
         response.status(200).redirect(url.format({
             pathname: `/characters/${ json.characterId }`,
@@ -665,7 +749,13 @@ async function removeAllExpertiseAndProficiencies(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Redirects the inputed experience points to the model and redirects the response to the correct spot
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function addExperiencePoints(request, response, sessionId)
 {
     let json = request.body;
@@ -704,7 +794,13 @@ async function addExperiencePoints(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Renders the add spell page once the user is authenticated
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function sendToAddSpellPage(request, response, sessionId)
 {
     let characterId = request.params.id;
@@ -736,7 +832,14 @@ async function sendToAddSpellPage(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Redirects the inputed spell information to the model so it gets added
+ * Then redirects to the proper page
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function addSpellToCharacter(request, response, sessionId)
 {
     let theJson = request.body;
@@ -778,7 +881,14 @@ async function addSpellToCharacter(request, response, sessionId)
         }
     }
 }
-
+/**
+ * Redirects the inputed spell information to the delete method of the model
+ * Redirects to the proper page
+ * Catches all errors and redirects to proper page as well as logs the error
+ * @param {HTTP} request - Request to this page
+ * @param {HTTP} response - Response that wil be sent back
+ * @param {Cookie} sessionId - Cookie containing the refreshed sessionId
+ */
 async function deleteSpellFromCharacter(request, response, sessionId)
 {
     let theJson = request.body;
@@ -822,7 +932,12 @@ async function deleteSpellFromCharacter(request, response, sessionId)
 
 
 }
-
+/**
+ * Helper method that returns a built url formatted object in order to redirect
+ * @param {String} path - The string representation of the path that needs building
+ * @param {Object} queryParams the Query params that will be sent with the redirect
+ * @returns {URL} The built Url for redirection
+ */
 function getUrlFormatHelper(path, queryParams)
 {
     return url.format({
@@ -840,8 +955,9 @@ router.delete('/:id(\\d+)', (request, response) => authenticator.gateAccess(requ
 router.get('/:id(\\d+)', (request, response) => authenticator.gateAccess(request, response, getCharacter));
 router.get('/', (request, response) => authenticator.gateAccess(request, response, getAllUserCharacters));
 router.put('/:id(\\d+)/hp', (request, response) => authenticator.gateAccess(request, response, updateHitpoints));
-router.put('/:id/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
-router.put("/:id/items", (request, response) => authenticator.gateAccess(request, response, addItem));
+router.put('/:id(\\d+)/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
+router.put("/:id(\\d+)/items", (request, response) => authenticator.gateAccess(request, response, addItem));
+router.delete("/:id(\\d+)/items", (request, response) => authenticator.gateAccess(request, response, removeItem));
 router.get("/forms/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToUpdateController));
 router.get("/new", (request, response) => authenticator.gateAccess(request, response, sendToCreatePage));
 router.get("/spells/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToAddSpellPage));

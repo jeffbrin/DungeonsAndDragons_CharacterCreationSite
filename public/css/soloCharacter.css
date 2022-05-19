@@ -438,7 +438,7 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-#hoverPlayImg {
+.hoverPlayImg {
     max-height: 25px;
     width: auto;
 }
@@ -744,6 +744,7 @@ html {
 .pos-relative {
     position: relative !important;
     vertical-align: middle;
+    padding-bottom: 1rem;
 }
 
 @media only screen and (max-width: 1300px) {
