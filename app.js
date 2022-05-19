@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 
 app.use(express.json())
-const controllers = ['classController', 'backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
+const controllers = ['themeController', 'classController', 'backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
 
 
 // Tell the app to use handlebars templating engine.  
@@ -44,13 +44,27 @@ app.use((request, response, next) => {addRecentCharactersCookie(request, respons
 
 async function addRecentCharactersCookie(request, response, next) {
     try{
-        response.locals.recentCharacters = await characterController.getCookieObjectFromRequestAndUserId(request, await userModel.getUserIdFromSessionId(request.cookies.sessionId));
+        response.locals.recentCharacters = await characterController.getCookieObjectFromRequestAndUserId(request, 
+            await userModel.getUserIdFromSessionId(request.cookies.sessionId));
     }
     catch(error){
         logger.info(`Unable to get recent characters for a user: ${error}`)
     }
     next();
 }
+
+app.use((request, response, next) => {lightTheme(request, response, next);} );
+
+async function lightTheme(request, response, next) {
+    try{
+        response.locals.lightTheme = JSON.parse(request.cookies.lightTheme);
+    }
+    catch(error){
+        logger.info(`Unable to get Theme: ${error}`)
+    }
+    next();
+}
+
 
 /**
  * Changes the method of an http request if the body contains a property called choice
