@@ -133,7 +133,7 @@ async function sendCharacter(request, response, sessionId)
         abilityScores.push(requestJson.characterWisdom);
         abilityScores.push(requestJson.characterCharisma);
 
-        let userId = await userModel.getUserIdFromSessionId(request.cookies.sessionId);
+        let userId = await userModel.getUserIdFromSessionId(sessionId);
         charAddedId = await model.addCharacter(requestJson.characterClass, requestJson.characterRace, requestJson.characterName, requestJson.characterMaxHp,
             requestJson.characterBackground, requestJson.characterEthics, requestJson.characterMorality, requestJson.characterLevel, abilityScores, [],
             requestJson.characterProficiencyBonus, userId, requestJson.characterArmorClass);
