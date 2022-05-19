@@ -416,7 +416,10 @@ async function showSpellWithId(request, response, username, userId)
             if(spell.Damage == 'null')
                 spell.Damage = null
             response.status(200);
-            response.render('focusSpell.hbs', {username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
+            
+            // For redirects
+            const query = request.query;
+            response.render('focusSpell.hbs', {error: query.error, warning: query.warning, confirmation: query.confirmation, username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
         })
         .catch(async error =>
         {

@@ -330,8 +330,17 @@
   })
 
 </script>
+{{#if (isEmpty spells)}}{{else}}
+  <div class=" mb-3 d-flex flex-column align-items-center">
+        <h2>Add a Spell!</h2>
+        <a href="/spells/spelladdition" id="spellsFeaturesLink" class="btn btn-primary">
+          Add Spell
+        </a>
+      </div>
+  {{/if}}
 <h1 class="text-center mt-0">Spells</h1>
 <div class="d-flex flex-wrap  justify-content-center">
+  
   {{#each spells}}
   <form action="/spells/id/{{Id}}" class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
   <div class="card-header d-flex justify-content-between">

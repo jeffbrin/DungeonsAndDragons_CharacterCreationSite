@@ -269,7 +269,7 @@ async function addSpellFromValues(level, schoolId, userId, description, name, ca
         if(error instanceof DatabaseError)
             throw error
         
-        throw new InvalidInputError('spellModel', 'addSpellFromValues', error);
+        throw new InvalidInputError('spellModel', 'addSpellFromValues', error.message);
     }
 
     // change names to lowercase
