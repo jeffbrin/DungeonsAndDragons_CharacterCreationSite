@@ -54,7 +54,7 @@
 {{!-- Filtering section --}}
 <form id="additionForm" class="bg-dark my-5 d-flex container" style="border:2px solid black; flex: 2;  border-radius: 30px; position: relative;" action="/spells/filter" method="GET">
   <h2 style="position: absolute; top: -40px">Filter</h2>
-  <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 2;">
+  <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 3;">
 
     <div id="classesDiv" class="d-flex align-items-center justify-content-center flex-wrap align-items-around pt-3" style="flex: 5;">
       {{!-- Classes that can cast this spell --}}
@@ -108,7 +108,7 @@
 
     </div>
   </div>
-  <div id="right" style="flex: 1;" class="d-flex flex-column">
+  <div id="right" style="flex: 3;" class="d-flex flex-column">
     <div id="castingDetailsDiv" style="border-bottom: 2px solid black; flex:1;" class="p-2 d-flex flex-column justify-content-evenly align-items-center">
       
       {{!-- Casting Time --}}
@@ -197,10 +197,15 @@
           <input type="checkbox" name="includeVerbal" id="includeVerbal" {{#if filter.includeVerbal}}checked{{/if}}>
           </div>
           <div>
-          <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} id="verbalLabel"
-            for="verbalButton">Verbal</label>
-          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox" name="Verbal"
-            id="verbalButton" {{#if filter.Verbal}}checked{{/if}}>
+          <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">Only Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">No Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}{{else}}checked{{/if}} value="off">
             </div>
         </div>
 
@@ -210,10 +215,16 @@
           <input type="checkbox" name="includeSomatic" id="includeSomatic" {{#if filter.includeSomatic}}checked{{/if}}>
           </div>
           <div>
-          <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} id="somaticLabel"
-            for="somaticButton">Somatic</label>
-          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox" name="Somatic"
-            id="somaticButton" {{#if filter.Somatic}}checked{{/if}}>
+          <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">Only Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">No Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}{{else}}checked{{/if}} value="off">
+            
             </div>
         </div>
 
@@ -224,10 +235,15 @@
             {{#if filter.includeMaterial}}checked{{/if}}>
             </div>
             <div>
-          <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} id="materialLabel"
-            for="materialButton">Material</label>
-          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-            name="Material" id="materialButton" {{#if filter.Material}}checked{{/if}}>
+          <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">Only Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">No Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}{{else}}checked{{/if}} value="off">
             </div>
         </div>
       </div>
@@ -240,10 +256,15 @@
           {{#if filter.includeConcentration}}checked{{/if}}>
           </div>
           <div>
-        <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} id="concentrationLabel"
-          for="Concentration">Concentration</label>
-        <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox"
-          name="Concentration" id="Concentration" {{#if filter.Concentration}}checked{{/if}}>
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">Only Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">No Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}{{else}}checked{{/if}} value="off">
           </div>
       </div>
 
@@ -254,10 +275,15 @@
         <input type="checkbox" id="includeRitual" name="includeRitual" {{#if filter.includeRitual}}checked{{/if}}>
         </div>
         <div>
-        <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} id="ritualLabel"
-          for="Ritual">Ritual</label>
-        <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="checkbox" name="Ritual"
-          id="Ritual" {{#if filter.Ritual}}checked{{/if}}>
+        <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">Only Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">No Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}{{else}}checked{{/if}} value="off">
           </div>
       </div>
 
@@ -269,8 +295,15 @@
         <input type="checkbox" id="includeHomebrew" name="includeHomebrew" {{#if filter.includeHomebrew}}checked{{/if}}>
         </div>
         <div id="homebrewDiv" {{#if filter.includeHomebrew}}{{else}}style="visibility:hidden;" {{/if}}>
-          <label id="homebrewLabel" for="Homebrew">Homebrew</label>
-          <input type="checkbox" name="Homebrew" id="Homebrew" {{#if filter.Homebrew}}checked{{/if}}>
+          <label class="homebrewLabel"
+            for="Homebrew">Only Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}checked{{/if}} checked value="on">
+
+            <label  class="homebrewLabel"
+            for="Homebrew">No Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}{{else}}checked{{/if}} value="off">
         </div>
       </div>
       {{/if}}
@@ -291,11 +324,11 @@
   const concentrationIncluded = document.getElementById('includeConcentration');
   const ritualIncluded = document.getElementById('includeRitual');
   const homebrewIncluded = document.getElementById('includeHomebrew');
-  const somaticChoice = document.getElementById('somaticButton');
-  const materialChoice = document.getElementById('materialButton');
-  const verbalChoice = document.getElementById('verbalButton');
-  const concentrationChoice = document.getElementById('Concentration');
-  const ritualChoice = document.getElementById('Ritual');
+  const somaticChoice = document.getElementsByClassName('somaticButton');
+  const materialChoice = document.getElementsByClassName('materialButton');
+  const verbalChoice = document.getElementsByClassName('verbalButton');
+  const concentrationChoice = document.getElementsByClassName('Concentration');
+  const ritualChoice = document.getElementsByClassName('Ritual');
   const homebrewDiv = document.getElementById('homebrewDiv')
 
   if (homebrewIncluded){
@@ -305,38 +338,39 @@
   }
 
   ritualIncluded.addEventListener('change', e => {
-    ritualChoice.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden';
-    document.getElementById('ritualLabel').style.visibility = ritualIncluded.checked ? 'visible' : 'hidden';
+    [...ritualChoice].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('ritualLabel')].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
   })
 
   concentrationIncluded.addEventListener('change', e => {
-    concentrationChoice.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden';
-    document.getElementById('concentrationLabel').style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden';
+    [...concentrationChoice].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('concentrationLabel')].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
   })
 
   somaticIncluded.addEventListener('change', e => {
-    somaticChoice.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden';
-    document.getElementById('somaticLabel').style.visibility = somaticIncluded.checked ? 'visible' : 'hidden';
+    [...somaticChoice].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('somaticLabel')].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
   })
 
   materialIncluded.addEventListener('change', e => {
-    materialChoice.style.visibility = materialIncluded.checked ? 'visible' : 'hidden';
-    document.getElementById('materialLabel').style.visibility = materialIncluded.checked ? 'visible' : 'hidden';
+    [...materialChoice].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('materialLabel')].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
   })
 
   verbalIncluded.addEventListener('change', e => {
-    verbalChoice.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden';
-    document.getElementById('verbalLabel').style.visibility = verbalIncluded.checked ? 'visible' : 'hidden';
+    [...verbalChoice].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('verbalLabel')].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
   })
 
 </script>
-{{#if (isEmpty spells)}}{{else}}
+{{#if (isEmpty spells)}}{{else}}{{#if username}}
   <div class=" mb-3 d-flex flex-column align-items-center">
         <h2>Add a Spell!</h2>
         <a href="/spells/spelladdition" id="spellsFeaturesLink" class="btn btn-primary">
           Add Spell
         </a>
       </div>
+      {{/if}}
   {{/if}}
 <h1 class="text-center mt-0">Spells</h1>
 <div class="d-flex flex-wrap  justify-content-center">
@@ -346,8 +380,8 @@
   <div class="card-header d-flex justify-content-between">
     <h5 style="flex: 1;">{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
     {{#if (equals UserId 0)}}{{else}}
-      <div class="d-flex justify-content-between" style="flex: 1;">
-      <button type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn mr-5 btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
+      <div class="d-flex justify-content-between">
+      <button type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
       <button data-src="{{Id}}" type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="editBtn ml-5 btn btn-primary"><img src="/images/icons/edit.png" width="50px" alt="edit"></button>
       </div>
     {{/if}}

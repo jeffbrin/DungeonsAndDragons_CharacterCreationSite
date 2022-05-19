@@ -10,12 +10,17 @@ const damageSelect = document.getElementById('damageDice');
 const damageDiceQuantityInput = document.getElementById('damageDiceQuantity');
 const hiddenFinalDamageInput = document.getElementById('damage');
 
+try{
 materialButton.addEventListener('change', e => {
     if (materialButton.checked)
         materialsDiv.style.visibility = 'visible';
     else
         materialsDiv.style.visibility = 'hidden';
 })
+}
+catch(error){
+    
+}
 
 // Try catch since not all pages have this element
 try {
