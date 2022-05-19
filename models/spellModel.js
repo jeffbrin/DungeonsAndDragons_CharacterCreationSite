@@ -297,7 +297,7 @@ async function addSpellFromValues(level, schoolId, userId, description, name, ca
     try {
         [matchedSpellRows, columnDefinitions] = await connection.query(findDuplicateQuery)
     } catch (err) {
-        throw new DatabaseError(`Failed to select from table (Spell): ${err.message}`);
+        throw new DatabaseError('spellModel', 'addSpellFromValues', `Failed to select from table (Spell): ${err.message}`);
     }
 
     // If this spell isn't already present in the table, add it
@@ -386,7 +386,7 @@ async function removeSpellById(Id, userId) {
     const deleteQuery = `DELETE FROM Spell WHERE Id = ${Id} AND UserId = ${userId}`;
     let executionRowsData;
     try {
-        await connection.execute(`DELETE FROM ClassPermittedSpell WHERE SpellId = ${Id}`);
+        await connection.execute(`DELETE FROM ClassPermittedSpell WHERE SpellId = ${Id} AND Exists (select 1 from Spell S WHERE S.Id = ${Id} AND S.UserId = ${userId})`);
         [executionRowsData] = await connection.execute(deleteQuery);
     } catch (err) {
         throw new DatabaseError('spellModel', 'removeSpellById', `Failed to delete from table Spell: ${err.message}`)

@@ -104,15 +104,7 @@ async function addSpell(request, response, sessionId)
             response.status(201);
             // Add a warning if the spell wasn't added properly
             let urlFormat;
-            if (!spellAddedSuccessfully)
-            {
-                urlFormat = getUrlFormat('/spells', { status: 201, warning: "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead." });
-                logger.warn(`The spell (${ spellToAdd.name }) was not added successfully, since it already exists.`);
-            }
-            else
-            {
-                urlFormat = getUrlFormat('/spells', { status: 201, confirmation: 'Successfully added spell!' });
-            }
+                urlFormat = getUrlFormat(`/spells/id/${spellAddedSuccessfully.Id}`, { status: 201, confirmation: 'Successfully added spell!' });
             // Redirect to avoid refresh re-adding
             response.redirect(urlFormat);
         })
@@ -369,6 +361,7 @@ async function showFilteredSpells(request, response, username, userId)
                 const character = await characterModel.getCharacter(characterId, userId);
                 if ((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id))){
                     filter.Class = await classModel.getClass(filter.Classes[0]);
+                    response.status(200);
                     response.render('addSpellToCharacter.hbs', await getRenderObject({ characterId: characterId, character: character, spells: filteredSpells, filter: filter, username: username }, userId));
                 }
                 else
@@ -421,6 +414,7 @@ async function showSpellWithId(request, response, username, userId)
         .then(async spell => { 
             if(spell.Damage == 'null')
                 spell.Damage = null
+            response.status(200);
             response.render('focusSpell.hbs', {username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
         })
         .catch(async error =>
@@ -435,7 +429,7 @@ async function showSpellWithId(request, response, username, userId)
             {
                 logger.error(`Failed to get spell: ${ error.message }`);
                 response.status(400);
-                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on. Please try again in a moment.`, status: 400 }));
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on. You either do not have access to it or it doesn't exist.`, status: 400 }));
             }
             else
             {
@@ -523,7 +517,7 @@ async function editSpellWithId(request, response, sessionId)
     try{
         username = await userModel.getUsernameFromSessionId(sessionId);
         await spellModel.updateSpellById(id, userId, level, schoolId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, query.Classes)
-        response.redirect(getUrlFormat('/spells', {username: username, confirmation: 'Successfully edited spell'}));
+        response.redirect(getUrlFormat(`/spells/id/${id}`, {username: username, confirmation: 'Successfully edited spell'}));
         
     }catch( error) {
             if (error instanceof InvalidInputError) {
