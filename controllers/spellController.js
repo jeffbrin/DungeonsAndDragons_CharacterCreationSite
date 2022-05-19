@@ -94,6 +94,7 @@ async function addSpell(request, response, sessionId)
         username = await userModel.getUsernameFromSessionId(sessionId);
     } catch (error)
     {
+        logger.error(error);
         response.status(500);
         response.redirect(getUrlFormat('/home', { error: 'Sorry, something went wrong while validating your login status.', status: 500 }));
     }

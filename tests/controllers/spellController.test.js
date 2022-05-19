@@ -541,7 +541,7 @@ test("get spells/editform/:id - Failure - Not signed in", async () => {
     
 })
 
-test.only("get spells/editform/:id - Failure - Spell doesn't exist", async () => {
+test("get spells/editform/:id - Failure - Spell doesn't exist", async () => {
     const registerResponse = await testRequest.post('/users').send(user);
     expect (registerResponse.status).toBe(201);
     const loginResponse = await testRequest.post('/sessions').send(user)
