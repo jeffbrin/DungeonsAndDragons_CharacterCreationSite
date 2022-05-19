@@ -344,11 +344,11 @@
   {{#each spells}}
   <form action="/spells/id/{{Id}}" class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
   <div class="card-header d-flex justify-content-between">
-    <h5>{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
+    <h5 style="flex: 1;">{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
     {{#if (equals UserId 0)}}{{else}}
-      <div>
-      <button type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
-      <button data-src="{{Id}}" type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="editBtn btn btn-primary"><img src="/images/icons/edit.png" width="50px" alt="edit"></button>
+      <div class="d-flex justify-content-between" style="flex: 1;">
+      <button type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn mr-5 btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
+      <button data-src="{{Id}}" type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="editBtn ml-5 btn btn-primary"><img src="/images/icons/edit.png" width="50px" alt="edit"></button>
       </div>
     {{/if}}
   </div>
