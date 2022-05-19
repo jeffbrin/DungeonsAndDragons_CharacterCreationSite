@@ -4,7 +4,6 @@ const dbName = "dnd_db_testing";
 const spellModel = require('../../models/spellModel');
 const userModel = require('../../models/userModel');
 const classModel = require('../../models/classModel');
-const { query } = require("express");
 
 const validModelSpell = 
     {Level: 1, SchoolId: 1, UserId: 1, Description: 'description', Name: 'Name One', CastingTime: 'casting time', EffectRange: 'effectRange', Verbal: true, Somatic: 
@@ -82,12 +81,15 @@ function randomValidSpell (){
 
 // Initialize the database before each test.
 beforeAll(async () => {
+    await userModel.initialize(dbName, true);
+    await classModel.initialize(dbName, true);
     await spellModel.initialize(dbName, true);
 });
 
 let testRequest;
 // Initialize the database before each test.
 beforeEach(async () => {
+    jest.setTimeout(60000);
     testRequest = supertest.agent(app)
     await userModel.initialize(dbName, true);
     await classModel.initialize(dbName, true);
@@ -337,6 +339,7 @@ test("GET /spells/id/:id - Success - Logged out", async () => {
 
 test("GET /spells/id/:id - Success - Logged out can't get homebrew spell", async () => {
 
+    await userModel.addUser(user.username, user.password);
     const addedSpell = await spellModel.addSpell(validModelSpell);
     const testResponse = await testRequest.get(`/spells/id/${addedSpell.Id}`);
     
@@ -391,6 +394,7 @@ function filterToString(filter){
 }
 
 const nullFilter = {}
+const fullFilter = {Level: 1, Name: 'Fire'}
 
 // Filtered spells
 test("GET /spells/filter - Success - Logged in null filter", async () => {
@@ -464,7 +468,7 @@ test("put /spells/id/:id - Success", async () => {
     spellToEditTo.spellId = newSpell.Id;
     const testResponse = await testRequest.put(`/spells/${filterToString(spellToEditTo)}`);
     
-     expect(testResponse.status).toBe(200);
+     expect(testResponse.status).toBe(302);
     
 })
 test("put /spells/id/:id - Failure - can not update other user's spell", async () => {
@@ -511,7 +515,7 @@ test("get spells/editform/:id - Success", async () => {
     expect (loginResponse.get('Set-Cookie')).toBeDefined();
 
     const addedSpell = await spellModel.addSpell(validModelSpell);
-    const testResponse = await testRequest.get(`spells/editform/${addedSpell.Id}`);
+    const testResponse = await testRequest.get(`/spells/editform/${addedSpell.Id}`);
     
      expect(testResponse.status).toBe(200);
     
@@ -523,7 +527,7 @@ test("get spells/editform/:id - Failure - Don't own spell", async () => {
     const loginResponse = await testRequest.post('/sessions').send(user)
     expect (loginResponse.get('Set-Cookie')).toBeDefined();
 
-    const testResponse = await testRequest.get(`spells/editform/1`);
+    const testResponse = await testRequest.get(`/spells/editform/1`);
     
      expect(testResponse.status).toBe(302);
     
@@ -531,19 +535,19 @@ test("get spells/editform/:id - Failure - Don't own spell", async () => {
 
 test("get spells/editform/:id - Failure - Not signed in", async () => {
 
-    const testResponse = await testRequest.get(`spells/editform/1`);
+    const testResponse = await testRequest.get(`/spells/editform/1`);
     
      expect(testResponse.status).toBe(302);
     
 })
 
-test("get spells/editform/:id - Failure - Spell doesn't exist", async () => {
+test.only("get spells/editform/:id - Failure - Spell doesn't exist", async () => {
     const registerResponse = await testRequest.post('/users').send(user);
     expect (registerResponse.status).toBe(201);
     const loginResponse = await testRequest.post('/sessions').send(user)
     expect (loginResponse.get('Set-Cookie')).toBeDefined();
 
-    const testResponse = await testRequest.get(`spells/editform/1`);
+    const testResponse = await testRequest.get(`/spells/editform/1`);
     
      expect(testResponse.status).toBe(302);
     
@@ -551,7 +555,7 @@ test("get spells/editform/:id - Failure - Spell doesn't exist", async () => {
 
 test("get spells/editform/:id - Failure - Database connection closed", async () => {
     await spellModel.closeConnection();
-    const testResponse = await testRequest.get(`spells/editform/1`);
+    const testResponse = await testRequest.get(`/spells/editform/1`);
     
      expect(testResponse.status).toBe(302);
     

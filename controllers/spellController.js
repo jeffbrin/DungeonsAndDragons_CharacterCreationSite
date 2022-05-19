@@ -559,7 +559,12 @@ async function showEditSpellPage(request, response, sessionId)
 
     try
     {
-        const spellToEdit = await spellModel.getSpellById(spellChoiceId, await userModel.getUserIdFromSessionId(sessionId));
+        const userId = await userModel.getUserIdFromSessionId(sessionId);
+        const spellToEdit = await spellModel.getSpellById(spellChoiceId, userId);
+        // Can not edit a spell from the phb
+        if (spellToEdit.UserId != userId)
+            throw new InvalidInputError('spellController', 'showEditSpellPage', 'You can not edit a spell that you did not create.');
+
         if (spellToEdit.Damage)
         {
             const damageStuff = spellToEdit.Damage.split('d');
