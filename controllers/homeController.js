@@ -36,7 +36,7 @@ async function getHomeLoggedIn(request, response, username){
 async function getHomeLoggedOut(request, response){
     const currentRenderObj = {homeActive: true};
 
-    // Add redirect query norifications
+    // Add redirect query notifications
     const query = request.query;
     if (query.error)
         currentRenderObj.error = query.error;
@@ -46,6 +46,8 @@ async function getHomeLoggedOut(request, response){
         currentRenderObj.confirmation = query.confirmation;
     if(query.status)
         currentRenderObj.status = query.status;
+    if(query.lightTheme)
+        currentRenderObj.lightTheme = JSON.parse(query.lightTheme);
     if(query.loginError)
         currentRenderObj.loginError = query.loginError;
 

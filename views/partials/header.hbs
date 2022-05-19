@@ -26,7 +26,7 @@
 
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
             <li><a class="dropdown-item" href="/races">Races</a></li>
-            <li><a class="dropdown-item" href="#">Classes</a></li>
+            <li><a class="dropdown-item" href="/classes">Classes</a></li>
             <li><a class="dropdown-item" href="/backgrounds">Backgrounds</a></li>
           </ul>
         </li>
@@ -59,6 +59,21 @@
           id="loginButton">Login</button>
         <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal" data-bs-target="#modalSignup"
           id="signupButton">Sign-up</button>
+        {{/if}}
+        {{#if lightTheme}}
+        <form style="border: transparent" class="bg-dark" action="/themes" method="post">
+          <button style="border: transparent" class="btn bg-dark" href="/themes">
+            <image heigth="30px" width="30px" src="/images/icons/Themes/moon.png" alt="desc">
+          </button>
+          <input hidden type="text" name="lightMode" value="false">
+        </form>
+        {{else}}
+        <form style="border: transparent" class="bg-dark" action="/themes" method="post">
+          <button style="border: transparent" class="btn bg-dark" href="/themes">
+          <image heigth="30px" width="30px" src="/images/icons/Themes/sunSmall.png" alt="desc">
+          </button>
+          <input hidden type="text" name="lightMode" value="true">
+          </form>
         {{/if}}
       </div>
     </div>

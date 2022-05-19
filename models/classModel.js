@@ -310,7 +310,7 @@ async function populateClassAndClassFeatureTables() {
             // console.log(cFeatureLevel);
             
             if(cFeatureLevel.length == 0){
-                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures.replace(/'/g, "''")}', '${cFeatureDesc.replace(/'/g, "''")}', 1);`;
+                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures.replace(/'/g, "''")}', '${cFeatureDesc.replace(/'/g, "''")}', 0);`;
                 await connection.execute(addFeatureCommand);
             }else{
                 
