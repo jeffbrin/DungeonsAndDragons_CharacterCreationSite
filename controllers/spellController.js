@@ -94,6 +94,7 @@ async function addSpell(request, response, sessionId)
         username = await userModel.getUsernameFromSessionId(sessionId);
     } catch (error)
     {
+        logger.error(error);
         response.status(500);
         response.redirect(getUrlFormat('/home', { error: 'Sorry, something went wrong while validating your login status.', status: 500 }));
     }
@@ -415,7 +416,10 @@ async function showSpellWithId(request, response, username, userId)
             if(spell.Damage == 'null')
                 spell.Damage = null
             response.status(200);
-            response.render('focusSpell.hbs', {username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
+            
+            // For redirects
+            const query = request.query;
+            response.render('focusSpell.hbs', {error: query.error, warning: query.warning, confirmation: query.confirmation, username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
         })
         .catch(async error =>
         {
@@ -559,7 +563,12 @@ async function showEditSpellPage(request, response, sessionId)
 
     try
     {
-        const spellToEdit = await spellModel.getSpellById(spellChoiceId, await userModel.getUserIdFromSessionId(sessionId));
+        const userId = await userModel.getUserIdFromSessionId(sessionId);
+        const spellToEdit = await spellModel.getSpellById(spellChoiceId, userId);
+        // Can not edit a spell from the phb
+        if (spellToEdit.UserId != userId)
+            throw new InvalidInputError('spellController', 'showEditSpellPage', 'You can not edit a spell that you did not create.');
+
         if (spellToEdit.Damage)
         {
             const damageStuff = spellToEdit.Damage.split('d');

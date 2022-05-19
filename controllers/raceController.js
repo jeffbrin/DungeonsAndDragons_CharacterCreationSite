@@ -8,6 +8,7 @@ const {DatabaseError, InvalidInputError} = require('../models/errorModel')
 const userModel = require('../models/userModel');
 const classModel = require('../models/classModel');
 const url = require('url');
+const logger = require('../logger')
 
 let allClasses;
 
@@ -55,10 +56,12 @@ async function showAllRaces(request, response){
         if (error instanceof DatabaseError){
             response.status(500);
             response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
+            logger.error(error);
         }
         else{
             response.status(500);
             response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
+            logger.error(error);
         }
     }
 }
@@ -88,14 +91,17 @@ async function showSpecificRace(request, response){
         if (error instanceof DatabaseError){
             response.status(500);
             response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
+            logger.error(error);
         }
         else if (error instanceof InvalidInputError){
             response.status(400);
             response.redirect(getUrlFormat('/home', {homeActive: true, error: 'You tried to access an invalid race.', status: 400}));
+            logger.error(error);
         }
         else{
             response.status(500);
             response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
+            logger.error(error);
         }
     }
 }

@@ -126,17 +126,17 @@ async function validateSpellComponentBool(boolVal){
  */
 async function validateMaterials(material, materials){
     if(typeof material != 'boolean')
-        throw new InvalidInputError('The material component value was not a valid type.');
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'The material component value was not a valid type.');
 
     if(material && materials == null)
-        throw new InvalidInputError('The material components must be indicated for a spell which requires them.');
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'The material components must be indicated for a spell which requires them.');
         
     if(!material && materials != null)
-        throw new InvalidInputError('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', 'Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
     if(material && typeof !materials == 'string')
-        throw new InvalidInputError("Materials were not sent in a valid type");
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', "Materials were not sent in a valid type");
     if(material && !materials)
-        throw new InvalidInputError("Materials can not be empty");
+        throw new InvalidInputError('validateSpellUtils', 'validateMaterials', "Materials can not be empty");
 }
 
 /**
