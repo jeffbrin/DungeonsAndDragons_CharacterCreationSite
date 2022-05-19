@@ -1071,17 +1071,19 @@ async function updateInitiative(characterId, initiative)
  * If not new then moves it to the top (max 3 Objects)
  * If there is no previous cookie then create a new object with the visited character
  * @param {Integer} characterIdVisited - Current Character being visited (Id)
- * @param {Array} previousCookie - Previous array of integers of characterIds
- * @returns {Array} - Array of objects containing name of cookie, recentCharacters Array of integers, expires with new date
+ * @param {Array} previousRecents - Previous array of integers of characterIds
+ * @returns {Object} An Object containing { name: "String", recentCharacters: [5,2,3], expires: Date }
  */
-async function createRecentCharactersCookie(characterIdVisited, previousCookie)
+async function createRecentCharactersCookie(characterIdVisited, previousRecents)
 {
     const MAX_LENGTH = 3;
-    if (previousCookie)
+    if (previousRecents)
     {
+        if (!Array.isArray(previousRecents))
+            throw new errors.InvalidInputError('characterModel', 'createRecentCharactersCookie', 'previousRecents must be an array of integers');
         //take data from old one and see
         let oldRecents = {};
-        oldRecents.recentCharacters = previousCookie;
+        oldRecents.recentCharacters = previousRecents;
         oldRecents.name = "recentCharacters";
         oldRecents.expires = new Date(Date.now() + 900000);
 
