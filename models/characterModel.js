@@ -1215,7 +1215,7 @@ async function createEthicsTable()
     }
 
     const checkIfEthics = `SELECT Id from Ethics;`;
-    const ethics = ['lawful', 'chaotic', 'neutral'];
+    const ethics = ['neutral', 'chaotic', 'lawful'];
     try
     {
         let [rows, columns] = await connection.query(checkIfEthics);
@@ -1261,7 +1261,7 @@ async function createMoralityTable()
 
     }
     const checkIfMoralities = `SELECT Id from Morality;`;
-    const moralities = ['good', 'evil', 'neutral'];
+    const moralities = ['neutral', 'evil', 'good'];
     try
     {
         let [rows, columns] = await connection.query(checkIfMoralities);

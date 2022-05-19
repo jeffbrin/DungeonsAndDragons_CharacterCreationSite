@@ -109,29 +109,6 @@ afterEach(async () =>
 //#endregion
 
 //#region Helpers
-//helper
-function getEthicsStringFromId(ethicsId)
-{
-    switch (ethicsId)
-    {
-        case 1: return 'lawful';
-        case 2: return 'chaotic';
-        case 3: return 'neutral';
-        default: return undefined;
-    }
-}
-
-//helper
-function getMoralityStringFromId(moralityId)
-{
-    switch (moralityId)
-    {
-        case 1: return 'good';
-        case 2: return 'evil';
-        case 3: return 'neutral';
-        default: return undefined;
-    }
-}
 const randomItem = [
     { Name: "Boots", Quantity: 3 },
     { Name: "Magical Orb", Quantity: 1 },
@@ -780,7 +757,6 @@ test('Delete removeAllExpertiseAndProficiencies - Fail', async () =>
     expect(proficiencies2.length).toBe(1);
     expect(proficiencies2[0]).toBe(1);
 });
-
 test('GET sendToAddSpellPage - Success', async () =>
 {
     const registerResponse = await testRequest.post('/users').send(user);
