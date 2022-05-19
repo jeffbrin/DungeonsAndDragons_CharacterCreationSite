@@ -2,6 +2,7 @@ const spellModel = require('../../models/spellModel');
 const userModel = require('../../models/userModel');
 const classModel = require('../../models/classModel');
 const { InvalidInputError, DatabaseError } = require('../../models/errorModel');
+const fs = require('fs/promises')
 const dbName = 'dnd_db_testing'
 
 const validSpells = [
@@ -56,6 +57,10 @@ const invalidSpells = [
         true, Material: true, Materials: 'material components', Duration: 'long', Damage: null, Concentration: true, Ritual: false, Classes: [1000]},
 ]
 
+async function getSchoolsFromJSON(){
+    return JSON.parse(await fs.readFile('database-content-json/spellSchools.json'));
+}
+
 /**
  * Gets a copy of a random valid spell.
  * @returns A copy of a random spell from an array of premade valid spells.
@@ -87,8 +92,17 @@ function spellsEqual(spell1, spell2){
                 if (spell1[property].toLowerCase() != spell2[property].toLowerCase())
                     return false;
             }
-            else if (spell1[property] != spell2[property])
-                return false; 
+            else if (spell1[property] != spell2[property]){
+                if(Array.isArray(spell1[property]) && spell1[property].length == spell2[property].length)
+                {
+                    for (element of spell1[property]){
+                        if(!spell2[property].includes(element))
+                            return false;
+                    }
+                }
+                else
+                    return false; 
+            }
         }
     }
     catch(error){
@@ -121,7 +135,8 @@ beforeAll(async () => {
 // Initialize the database before each test.
 beforeEach(async () => {
     await userModel.initialize(dbName, true);
-    await userModel.addUser('TestUser', 'TestPass1243')
+    await userModel.addUser('TestUser', 'TestPass1243');
+    await userModel.addUser('username2', 'Password2');
     await classModel.initialize(dbName, true);
     await spellModel.initialize(dbName, false);
 });
@@ -155,6 +170,21 @@ afterEach(async () => {
  */
 async function getHomebrewSpells(){
     return await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+}
+
+/**
+ * Checks if each spell in an array has the same property value.
+ * @param {Array} array The array of spells to check.
+ * @param {String} property A property to make sure is the same among all the spells
+ * @param {Object} value The value that each spell's property should be.
+ * @returns True if each spell in the array has a property value equal to the value passed, false otherwise.
+ */
+function allSpellsInArrayHavePropertyValue(array, property, value){
+    for (spell of array){
+        if (spell[property] != value)
+            return false;
+    }
+    return true;
 }
 
 // Add spells
@@ -277,7 +307,7 @@ test('getAllSpells - Success - User id 1 returns all spells including homebrew',
     expect(startingAllSpells.length).toBe(newAllSpells.length-1);
 })
 
-test.only('getAllSpells - Failure - User does not exist', async () => {
+test('getAllSpells - Failure - User does not exist', async () => {
     await expect(spellModel.getAllSpells(10)).rejects.toThrow(InvalidInputError);
 })
 
@@ -305,7 +335,6 @@ test('getSpellById - Success - user can get players handbook spells', async () =
 })
 
 test('getSpellById - Failure - user can not get other user spell', async () => {
-    await userModel.addUser('username2', 'Password2');
 
     const randomSpell = randomValidSpell();
     randomSpell.UserId = 2;
@@ -327,4 +356,208 @@ test('getSpellById - Failure - Closed database connection', async () => {
 
     await spellModel.closeConnection();
     await expect(spellModel.getSpellById(1, 0)).rejects.toThrow(DatabaseError);
+})
+
+// Get filtered spells
+test('getSpellsWithSpecifications - Success - level 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(3, null, 1, null, null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Level', 3);
+})
+
+test('getSpellsWithSpecifications - Success - school 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, 3, 1, null, null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'School', 3);
+})
+
+test('getSpellsWithSpecifications - Success - name contains "fire"', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+})
+
+test('getSpellsWithSpecifications - Success - homebrew spell included, name contains "fire"', async () => {
+    await spellModel.addSpellFromValues(0, 1, 1, 'dwa', "Jeff's Fireball", 'act', 'eff', true, true, true, 'mats', 'dur', '4d6', true, true, [1, 2, 3])
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+    const spellNames = spells.map(spell => spell.Name.toLowerCase());
+    expect(spellNames).toContain("jeff's fireball");
+})
+
+test('getSpellsWithSpecifications - Success - 1 action casting time', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, '1 action', null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'CastingTime', '1 action');
+})
+
+test('getSpellsWithSpecifications - Success - verbal true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, true, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Verbal', true);
+})
+
+test('getSpellsWithSpecifications - Success - somatic true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, true, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Somatic', true);
+})
+
+test('getSpellsWithSpecifications - Success - material false', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, false, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Material', false);
+})
+
+test('getSpellsWithSpecifications - Success - duration Instantaneous', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, 'Instantaneous', null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Duration', 'Instantaneous');
+})
+
+test('getSpellsWithSpecifications - Success - 60 feet effect range', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, '60 feet', null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'EffectRange', '60 feet');
+})
+
+test('getSpellsWithSpecifications - Success - concentration true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, true, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Concentration', true);
+})
+
+test('getSpellsWithSpecifications - Success - ritual true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, true, null, null);
+    expect(spells.length > 0).toBe(true);
+    allSpellsInArrayHavePropertyValue(spells, 'Ritual', true);
+})
+
+test('getSpellsWithSpecifications - Success - class ranger', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, [8], null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(8);
+    }
+})
+
+test('getSpellsWithSpecifications - Success - class warlock and druid', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, [11, 4],  null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(4);
+        expect(classesArray).toContain(11);
+    }
+})
+
+test('getSpellsWithSpecifications - Success - class warlock and druid and concentration true', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, true, null, [11, 4], null);
+    expect(spells.length > 0).toBe(true);
+    for (spell of spells){
+        const classesArray = (await spellModel.getSpellById(spell.Id, 1)).Classes.map(Class => Class.Id);
+        expect(classesArray).toContain(4);
+        expect(classesArray).toContain(11);
+    }
+    allSpellsInArrayHavePropertyValue(spells, 'Concentration', true);
+})
+
+test('getSpellsWithSpecifications - Success - name contains fire and level 3', async () => {
+    const spells = await spellModel.getSpellsWithSpecifications(3, null, 1, 'fire', null, null, null, null, null, null, null, null, null, null);
+    expect(spells.length > 0).toBe(true);
+    
+    for (spell of spells){
+        expect(spell.Name.toLowerCase()).toContain('fire');
+    }
+
+    allSpellsInArrayHavePropertyValue(spells, 'Level', 3);
+})
+
+test('getSpellsWithSpecifications - Success - homebrew only', async () => {
+    await spellModel.addSpell(randomValidSpell());
+    const spells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
+    expect(spells.length).toBe(1);
+    allSpellsInArrayHavePropertyValue(spells, 'UserId', 1);
+})
+
+test('getSpellsWithSpecifications - Success - all null filter returns all spells for user', async () => {
+    
+    const randomSpell = randomValidSpell();
+    randomSpell.UserId = 2;
+    await spellModel.addSpell(randomSpell);
+    const allSpells = await spellModel.getAllSpells(1);
+    const filteredSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, null)
+
+    expect(arraysEqual(allSpells, filteredSpells)).toBe(true);
+    
+})
+
+test('getSpellsWithSpecifications - Failure - invalid user id', async () => {
+    await expect(spellModel.getSpellsWithSpecifications(null, null, 100, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('getSpellsWithSpecifications - Failure - closed database connection', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(DatabaseError);
+})
+
+// Update spell by id
+test('updateSpellById - Success - Update All', async () => {
+    const randomSpell = randomValidSpell();
+    const newRandomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    const editedSpell = await spellModel.updateSpellById(addedSpell.Id, 1, newRandomSpell.Level, newRandomSpell.SchoolId, newRandomSpell.Description, newRandomSpell.Name,
+                                    newRandomSpell.CastingTime, newRandomSpell.Verbal, newRandomSpell.Somatic, newRandomSpell.Material, newRandomSpell.Materials,
+                                    newRandomSpell.Duration, newRandomSpell.Damage, newRandomSpell.EffectRange, newRandomSpell.Concentration, newRandomSpell.Ritual, newRandomSpell.Classes);
+
+    editedSpell.Classes = editedSpell.Classes.map(Class => Class.Id);
+    expect(spellsEqual(newRandomSpell, editedSpell)).toBe(true);
+})
+
+test('updateSpellById - Failure - Materials not empty with false Material', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, false, 'Materials', null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - null fields', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - Materials empty with true Material', async () => {
+    const randomSpell = randomValidSpell();
+    const addedSpell = await spellModel.addSpell(randomSpell);
+    await expect(spellModel.updateSpellById(addedSpell.Id, 1, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null)).rejects.toThrow(InvalidInputError);
+})
+
+test('updateSpellById - Failure - Database connection closed', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.updateSpellById(1, 1, 4, null, null, null, null, null, null, null, null, null, null, null, null, null, null)).rejects.toThrow(DatabaseError);
+})
+
+// Get all schools
+test('getAllSchools - Success', async () => {
+    const jsonSchools = await getSchoolsFromJSON();
+    const dbSchools = (await spellModel.getAllSchools()).map(school => school.Name);
+
+    expect(jsonSchools.length).toBe(dbSchools.length);
+
+    for(let i = 0; i < dbSchools.length; i++){
+        expect(jsonSchools[i].toLowerCase()).toBe(dbSchools[i].toLowerCase());
+    }
+})
+
+test('getAllSchools - Failure - Database connection closed', async () => {
+    await spellModel.closeConnection();
+    await expect(spellModel.getAllSchools()).rejects.toThrow(DatabaseError);
 })

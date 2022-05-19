@@ -1,7 +1,6 @@
 const app = require("../../app"); 
 const supertest = require("supertest");
 const testRequest = supertest(app);
-
 const dbName = "dnd_db_testing"; 
 const userModel = require('../../models/userModel');
 const { InvalidSessionError } = require("../../models/errorModel");

@@ -1,5 +1,5 @@
 const validator = require('validator')
-const {DatabaseError} = require('./errorModel')
+const {DatabaseError, InvalidInputError} = require('./errorModel')
 
 /**
  * Validates a spell's level.
@@ -122,20 +122,21 @@ async function validateSpellComponentBool(boolVal){
  * Validates the material boolean and material string combination.
  * @param {Boolean} material Indicates whether the spell requires material components.
  * @param {String} materials The material components of the spell
+ * @throws {InvalidInputError} Thrown when the material / materials combo is invalid.
  */
 async function validateMaterials(material, materials){
     if(typeof material != 'boolean')
-        throw new Error('The material component value was not a valid type.');
+        throw new InvalidInputError('The material component value was not a valid type.');
 
     if(material && materials == null)
-        throw new Error('The material components must be indicated for a spell which requires them.');
+        throw new InvalidInputError('The material components must be indicated for a spell which requires them.');
         
     if(!material && materials != null)
-        throw new Error('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
+        throw new InvalidInputError('Material components should be empty for a spell not requiring them, did you mean to require material components for this spell?')
     if(material && typeof !materials == 'string')
-        throw new Error("Materials were not sent in a valid type");
+        throw new InvalidInputError("Materials were not sent in a valid type");
     if(material && !materials)
-        throw new Error("Materials can not be empty");
+        throw new InvalidInputError("Materials can not be empty");
 }
 
 /**

@@ -7,16 +7,14 @@ const {DatabaseError, InvalidInputError} = require('./errorModel');
 const COLS_TO_SELECT = 'S.*, SS.Name as school, SS.Id as schoolId';
 
 let connection;
-const validSchools = [
-    'Conjuration',
-    'Necromancy',
-    'Evocation',
-    'Abjuration',
-    'Transmutation',
-    'Divination',
-    'Enchantment',
-    'Illusion'
-]
+
+/**
+ * Gets an array of spell school names from the json file.
+ * @returns An array of all the spell school names.
+ */
+async function getSchoolsFromJSON(){
+    return JSON.parse(await fs.readFile('database-content-json/spellSchools.json'));
+}
 
 /**
  * Initializes the passed database with the Spell and SpellSchool tables.
@@ -65,6 +63,7 @@ async function initialize(databaseName, reset) {
     }
 
     if(!spellSchoolTableHasData){
+        const validSchools = await getSchoolsFromJSON();
         for (let i = 0; i < validSchools.length; i++) {
             try {
                 await connection.execute(`INSERT INTO SpellSchool values (${i + 1}, '${validSchools[i].toLowerCase()}');`);
@@ -269,7 +268,7 @@ async function addSpellFromValues(level, schoolId, userId, description, name, ca
     }catch(error){
         if(error instanceof DatabaseError)
             throw error
-
+        
         throw new InvalidInputError('spellModel', 'addSpellFromValues', error);
     }
 
@@ -471,8 +470,7 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
             await validationModel.validateSpellName(name)
         if (schoolId != null)
             await validationModel.validateSpellSchool(schoolId, connection)
-        if (userId != null)
-            await validationModel.validateUser(userId, connection)
+        await validationModel.validateUser(userId, connection)
         if(castingTime != null)
             await validationModel.validateSpellGenericString(castingTime, 'casting time');
         if(verbal != null)
@@ -495,9 +493,10 @@ async function getSpellsWithSpecifications(level, schoolId, userId, name, castin
             await validationModel.validateSpellComponentBool(homebrewOnlyOrNone);
 
     } catch (error) {
-        if (error instanceof Error)
-            throw new InvalidInputError('spellModel', 'getSpellsWithSpecifications', error.message)
-        throw error
+        if (error instanceof DatabaseError)
+            throw error;    
+        throw new InvalidInputError('spellModel', 'getSpellsWithSpecifications', error.message)
+        
     }
 
     // Update
@@ -575,6 +574,8 @@ async function getSpellById(Id, userId) {
         await validationModel.validateSpellId(Id, userId, connection);
         await validationModel.validateUser(userId, connection);
     } catch (error) {
+        if(error instanceof DatabaseError)
+            throw error;
         throw new InvalidInputError('spellModel', 'getSpellById', error);
     };
 
@@ -699,9 +700,10 @@ async function updateSpellById(Id, userId, newLevel, newSchoolId, newDescription
             await validationModel.validateSpellGenericString(newDamage, 'damage');
 
     } catch (error) {
-        if (error instanceof Error)
-            throw new InvalidInputError('spellModel', 'updateSpellById', error.message)
-        throw error
+        if (error instanceof InvalidInputError || error instanceof DatabaseError)
+            throw error
+        throw new InvalidInputError('spellModel', 'updateSpellById', error.message)
+        
     }
 
     // Check if the spell would become a duplicate if it is changed and delete it
