@@ -1,6 +1,6 @@
-const app = require("../../app"); 
+const app = require("../../app");
 const supertest = require("supertest");
-const dbName = "dnd_db_testing"; 
+const dbName = "dnd_db_testing";
 const spellModel = require('../../models/spellModel');
 const userModel = require('../../models/userModel');
 const classModel = require('../../models/classModel');
@@ -66,45 +66,53 @@ const invalidSpells = [
  * Gets a copy of a random valid spell.
  * @returns A copy of a random spell from an array of premade valid spells.
  */
-function randomValidSpell (){ 
+function randomValidSpell()
+{
     const random = Math.floor(Math.random() * validSpells.length);
-    return {...validSpells.slice(random, random+1)[0]}; 
+    return { ...validSpells.slice(random, random + 1)[0] };
 }
 
 /**
  * Gets a copy of a random invalid spell.
  * @returns A copy of a random spell from an array of premade invalid spells.
  */
- function randomInvalidSpell (){ 
+function randomInvalidSpell()
+{
     const random = Math.floor(Math.random() * invalidSpells.length);
-    return {...invalidSpells.slice(random, random+1)[0]}; 
+    return { ...invalidSpells.slice(random, random + 1)[0] };
 }
 
 // Initialize the database before each test.
-beforeAll(async () => {
+beforeAll(async () =>
+{
     await spellModel.initialize(dbName, true);
 });
 
 let testRequest;
 // Initialize the database before each test.
-beforeEach(async () => {
-    testRequest = supertest.agent(app)
+beforeEach(async () =>
+{
+    testRequest = supertest.agent(app);
     await userModel.initialize(dbName, true);
     await classModel.initialize(dbName, true);
     await spellModel.initialize(dbName, false);
 });
 
 // Close the database connection after each test to prevent open handles error.
-afterEach(async () => {
+afterEach(async () =>
+{
 
     // Remove the user's spells after the tests
     // Try catch in case the db is closed when it gets here
-    try{
+    try
+    {
         const userSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
-        for (spell of userSpells){
+        for (spell of userSpells)
+        {
             await spellModel.removeSpellById(spell.Id, 1);
         }
-    }catch(error){
+    } catch (error)
+    {
         await spellModel.initialize(dbName, false);
             try{
                 const userSpells = await spellModel.getSpellsWithSpecifications(null, null, 1, null, null, null, null, null, null, null, null, null, null, true);
@@ -114,15 +122,16 @@ afterEach(async () => {
             }catch (error){
         
             }
+
     }
     
     await spellModel.closeConnection();
     await classModel.closeConnection();
     await userModel.closeConnection();
-    
+
 });
 
-const user = {username: 'Jeffrey', password: 'Password1'};
+const user = { username: 'Jeffrey', password: 'Password1' };
 
 // Adding a spell
 test("POST /spells - Success", async () => {
@@ -587,3 +596,4 @@ test("get /spells/spelladdition/ - Failure - Database connection closed", async 
      expect(testResponse.status).toBe(302);
     
 })
+
