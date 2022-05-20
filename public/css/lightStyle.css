@@ -439,6 +439,12 @@ input[type="search"]::-webkit-search-cancel-button {
     }
   }
   
+  .ptext {
+    padding: 1rem;
+    background-color: var(--popColor) !important;
+    border-radius: 1rem;
+}
+
   .content {
     margin: auto auto;
     position: relative;
