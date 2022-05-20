@@ -4,3 +4,4 @@ mysql -u root -p
 pass
 create database dnd_db_testing; 
 set global max_prepared_stmt_count = 30000;
+set global max_connections = 30000;
