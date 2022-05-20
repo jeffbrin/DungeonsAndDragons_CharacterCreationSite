@@ -14,6 +14,19 @@
     --popColorHover: #3E505B;
 }
 
+#focusSpellBg{
+  background-color: transparent !important;
+  border: #000 solid 2px;
+}
+
+.classImage{
+  background-color: white !important;
+}
+
+form.bg-dark{
+  background-color: transparent !important;
+}
+
 body {
 
     background-color: var(--backgroundColor);

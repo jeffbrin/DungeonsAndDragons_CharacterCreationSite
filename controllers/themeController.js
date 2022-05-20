@@ -31,7 +31,8 @@ async function lightSwitch(request, response){
         const body = request.body;
         response.cookie("lightTheme", lightBool);
         
-        response.redirect(getUrlFormat('/home', {lightTheme:lightBool}));
+        // Recent characters added by jeffrey since it wasn't loading the recent characters after a colour preference change
+        response.redirect(getUrlFormat('/home', {lightTheme:lightBool, recentCharacters: request.query.recentCharacters}));
     }
     catch(error){
         logger.error(error);
