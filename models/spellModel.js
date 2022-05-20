@@ -174,7 +174,7 @@ async function populateSpellTable(){
         }
 
         // Get the damage from the description
-        let damage = description.match(/[0-9]+d[0-9]/);
+        let damage = description.match(/[0-9]+d[0-9]+/);
         if (damage != null)
             damage = damage[0];
 
