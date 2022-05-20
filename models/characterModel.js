@@ -92,9 +92,16 @@ async function closeConnection()
  */
 async function addCharacterObject(character)
 {
-    return await addCharacter(character.ClassId, character.RaceId, character.Name, character.MaxHP,
-        character.BackgroundId, character.EthicsId, character.MoralityId, character.Level, character.AbilityScoreValues,
-        character.SavingThrowProficienciesIds, character.ProficiencyBonus, character.UserId, character.ArmorClass);
+    try
+    {
+        return await addCharacter(character.ClassId, character.RaceId, character.Name, character.MaxHP,
+            character.BackgroundId, character.EthicsId, character.MoralityId, character.Level, character.AbilityScoreValues,
+            character.SavingThrowProficienciesIds, character.ProficiencyBonus, character.UserId, character.ArmorClass);
+    } catch (error)
+    {
+        throw error;
+    }
+
 }
 
 /**
@@ -179,6 +186,23 @@ async function addCharacter(classId, raceId, name, maxHP, background, ethicsId, 
     }
     return characterId;
 }
+
+
+async function updateCharacterObject(character)
+{
+    try
+    {
+        return await updateCharacter(character.Id, character.ClassId, character.RaceId, character.EthicsId, character.MoralityId, character.BackgroundId,
+            character.Name, character.MaxHP,
+            character.Level, character.AbilityScoreValues,
+            character.SavingThrowProficienciesIds, character.ProficiencyBonus, character.UserId, character.ArmorClass);
+    } catch (error)
+    {
+        throw error;
+    }
+
+}
+
 
 /**
  * 
@@ -292,6 +316,8 @@ async function addRemoveHp(id, hpValueChange)
     let selectQ = `Select CurrentHp from ${ tableName } WHERE Id = ${ id };`;
     let rows, column_definitions;
     hpValueChange = parseInt(hpValueChange);
+    if (isNaN(hpValueChange))
+        throw new errors.InvalidInputError('characterModel', 'addRemoveHp', 'Hp value change is not a number');
     try
     {
         [rows, column_definitions] = await connection.query(selectQ);
@@ -320,15 +346,13 @@ async function addRemoveHp(id, hpValueChange)
     }
 }
 
-
-//Id INT, UserId INT, ClassId INT, RaceId INT, EthicsId INT, 
-//MoralityId INT, BackgroundId INT, Name TEXT, ProficiencyBonus INT, MaxHp INT, CurrentHp INT, Level INT, ArmorClass INT, Speed INT, Initiative INT, 
-//Experience INT
 /**
  * Gets a specific character based off of the passed in ID
  * @param {Integer} id - the Id of the character that needs to be retrieved from the database
- * @returns An Object Containing the Character { Id: {Int}, Name: {String}, Class: {String}, Race: {String}, Ethics: {String}, Morality: {String}, Background:{String}, ProficiencyBonus: {Int}, 
- * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int}, OwnedItem: {Name, Count},  }
+ * @param {Integer} userId - The numeric id of the use who owns the character
+ * @returns An Object Containing the Character { Id: {Int}, Name: {String}, Class: {Object}, Race: {Object}, Ethics: {Object}, Morality: {Object}, Background:{Object}, ProficiencyBonus: {Int}, 
+ * MaxHp: {Int}, CurrentHp: {Int}, Level: {Int}, ArmorClass: {Int}, Speed: {Int}, Initiative: {Int}, Experience: {Int}, OwnedItem: {Name, Count}, SavingThrowProficiencies: {Int Array},
+ * KnownSpells: {Object}  }
  * @throws {InvalidInputError} If the character is not found 
  */
 async function getCharacter(id, userId)
@@ -357,19 +381,14 @@ async function getCharacter(id, userId)
 
     try
     {
-
         [rows, column_definitions] = await connection.query(query);
         logger.info("select Query of PlayerCharacter, Ethics, Morality, Race, Class, and Background tables..");
-
-
     } catch (error)
     {
         throw new errors.DatabaseError('characterModel', 'getCharacter', `Database connection failed, couldn't get Character. ${ error.message }`);
     }
     if (rows.length === 0)
-    {
         throw new errors.InvalidInputError('characterModel', 'getCharacter', `Character not found with id: ${ id }`);
-    }
 
     character = rows[0];
     //Character now has the fields queried
@@ -458,8 +477,8 @@ async function getCharacter(id, userId)
             {
                 spells.push(await spellModel.getSpellById(spellIds[i].SpellId, userId));
             }
-            character.Spells = spells;
         }
+        character.Spells = spells;
 
     } catch (error)
     {
@@ -520,21 +539,21 @@ async function getAllEthics()
  * @param {String} itemName - The name of the Item
  * @param {Integer} itemCount - The amount of this item
  * @throws {DatabaseError} - Thrown when there is a database error and one of the queries wasn't completed
- * @throws {InvalidInputError} - Thrown if there was an error with the User ID not being in the Database
+ * @throws {InvalidInputError} - Thrown if there was an error with the User ID not being in the Database or 
+ * If itemCount parses to NaN
  */
 async function addItem(characterId, itemName, itemCount)
 {
     itemCount = parseInt(itemCount);
-    if (itemCount === NaN)
+    if (isNaN(itemCount))
     {
-        throw errors.InvalidInputError('characterModel', 'addItem', `Item Count  Must be a number`);
+        throw new errors.InvalidInputError('characterModel', 'addItem', `Item Count Must be a number`);
     }
     //check characterId
     const characterS = `SELECT * FROM ${ tableName } WHERE Id = ${ characterId };`;
     let characters, columns;
     try
     {
-
         [characters, columns] = await connection.query(characterS);
     } catch (error)
     {
@@ -585,6 +604,7 @@ async function addItem(characterId, itemName, itemCount)
 
 /**
  * Updates the Owned Item Table with the new values
+ * Helper Method
  * @param {*} characterId - The Id of the Character who owns the item
  * @param {*} itemName - The name of the item (lowercased already)
  * @param {*} itemCount - The new count of the item (calculated inside last function)
@@ -776,7 +796,7 @@ async function removeKnownSpell(characterId, spellId, userId)
  */
 async function getUserCharacters(userId)
 {
-    const query = `SELECT c.Id from ${ tableName } c, User u WHERE c.UserId = u.Id;`;
+    const query = `SELECT Id from ${ tableName } WHERE UserId = ${ userId };`;
 
     try
     {
@@ -855,6 +875,11 @@ async function removeCharacter(id)
     }
     catch (error)
     {
+        if (error instanceof errors.InvalidInputError)
+        {
+            throw error;
+        }
+
         throw new errors.DatabaseError('characterModel', 'removeCharacter', `Database connection failed, couldn't delete Character with id ${ id }. ${ error.message }`);
     }
 }
@@ -907,6 +932,8 @@ async function updateExp(characterId, experience)
 {
     const query = `SELECT Experience FROM ${ tableName } WHERE Id = ${ characterId };`;
 
+    if (isNaN(parseInt(experience)))
+        throw new errors.InvalidInputError('characterModel', 'updateExp', `Experience Points must be a number`);
     try
     {
         var [rows, colum_definitions] = await connection.query(query);
@@ -1048,17 +1075,19 @@ async function updateInitiative(characterId, initiative)
  * If not new then moves it to the top (max 3 Objects)
  * If there is no previous cookie then create a new object with the visited character
  * @param {Integer} characterIdVisited - Current Character being visited (Id)
- * @param {Array} previousCookie - Previous array of integers of characterIds
- * @returns {Array} - Array of objects containing name of cookie, recentCharacters Array of integers, expires with new date
+ * @param {Array} previousRecents - Previous array of integers of characterIds
+ * @returns {Object} An Object containing { name: "String", recentCharacters: [5,2,3], expires: Date }
  */
-async function createRecentCharactersCookie(characterIdVisited, previousCookie)
+async function createRecentCharactersCookie(characterIdVisited, previousRecents)
 {
     const MAX_LENGTH = 3;
-    if (previousCookie)
+    if (previousRecents)
     {
+        if (!Array.isArray(previousRecents))
+            throw new errors.InvalidInputError('characterModel', 'createRecentCharactersCookie', 'previousRecents must be an array of integers');
         //take data from old one and see
         let oldRecents = {};
-        oldRecents.recentCharacters = previousCookie;
+        oldRecents.recentCharacters = previousRecents;
         oldRecents.name = "recentCharacters";
         oldRecents.expires = new Date(Date.now() + 900000);
 
@@ -1186,7 +1215,7 @@ async function createEthicsTable()
     }
 
     const checkIfEthics = `SELECT Id from Ethics;`;
-    const ethics = ['lawful', 'chaotic', 'neutral'];
+    const ethics = ['neutral', 'chaotic', 'lawful'];
     try
     {
         let [rows, columns] = await connection.query(checkIfEthics);
@@ -1232,7 +1261,7 @@ async function createMoralityTable()
 
     }
     const checkIfMoralities = `SELECT Id from Morality;`;
-    const moralities = ['good', 'evil', 'neutral'];
+    const moralities = ['neutral', 'evil', 'good'];
     try
     {
         let [rows, columns] = await connection.query(checkIfMoralities);
@@ -1335,5 +1364,6 @@ module.exports = {
     removeItem,
     createRecentCharactersCookie,
     addKnownSpell,
-    removeKnownSpell
+    removeKnownSpell,
+    updateCharacterObject
 };

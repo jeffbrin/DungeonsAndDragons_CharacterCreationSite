@@ -4,7 +4,7 @@
   "description": "Final project for John Abbott College Web Programming 2. A dungeons and dragons online character sheet website.",
   "main": "server.js",
   "scripts": {
-    "test": "jest --verbose --runInBand --forceExit ./tests/chase"
+    "test": "jest --verbose --runInBand --forceExit ./tests"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,6 @@
     "validator": "^13.7.0"
   },
   "jest": {
-    "testTimeout": 15000,
-    "preset": "jest-puppeteer"
+    "testTimeout": 150000
   }
 }

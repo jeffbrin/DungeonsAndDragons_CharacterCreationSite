@@ -15,6 +15,7 @@ const characterModel = require('../models/characterModel');
 /**
  * Gets a render object containing default values for the spell page and any fields passed in the additionalFields object
  * @param {Object} additionalFields an object containing additional fields specific to the method calling it.
+ * @throws {DatabaseError} Thrown when an error occurs while reading from the database.
  */
 async function getRenderObject(additionalFields, userId)
 {
@@ -93,6 +94,7 @@ async function addSpell(request, response, sessionId)
         username = await userModel.getUsernameFromSessionId(sessionId);
     } catch (error)
     {
+        logger.error(error);
         response.status(500);
         response.redirect(getUrlFormat('/home', { error: 'Sorry, something went wrong while validating your login status.', status: 500 }));
     }
@@ -103,15 +105,7 @@ async function addSpell(request, response, sessionId)
             response.status(201);
             // Add a warning if the spell wasn't added properly
             let urlFormat;
-            if (!spellAddedSuccessfully)
-            {
-                urlFormat = getUrlFormat('/spells', { status: 201, warning: "The spell was not added since a spell with the same details already exists. If you would like to edit the spell's description, find it in the table to edit instead." });
-                logger.warn(`The spell (${ spellToAdd.name }) was not added successfully, since it already exists.`);
-            }
-            else
-            {
-                urlFormat = getUrlFormat('/spells', { status: 201, confirmation: 'Successfully added spell!' });
-            }
+                urlFormat = getUrlFormat(`/spells/id/${spellAddedSuccessfully.Id}`, { status: 201, confirmation: 'Successfully added spell!' });
             // Redirect to avoid refresh re-adding
             response.redirect(urlFormat);
         })
@@ -334,6 +328,32 @@ async function showFilteredSpells(request, response, username, userId)
     filter.Ritual = filter.includeRitual == 'on' ? filter.Ritual == 'on' : null;
     filter.Classes = filter.ClassIds ? filter.ClassIds.split(',') : null;
     filter.HomebrewOnly = filter.includeHomebrew ? filter.Homebrew == 'on' : null;
+    filter.Homebrew = filter.HomebrewOnly;
+
+    try{
+        if(characterId){
+            filter.Classes = [(await characterModel.getCharacter(characterId, userId)).Class.Id];
+        }
+    }
+    catch(error){
+        if (error instanceof InvalidInputError) {
+            logger.error(`Failed to get filtered list of spells: ${error.message}`);
+            response.status(400)
+            response.redirect(getUrlFormat('/home', {error: `Failed to get the filtered list of spells since the provided filter contained invalid data: ${error.message}`, status: 400, username: username }));
+        }
+        else if (error instanceof DatabaseError)
+        {
+            response.status(500);
+            response.redirect(getUrlFormat('/home', { error: `Sorry, a database error was encountered while trying to get the filtered list of spells. Please wait a moment and try again.`, status: 500, username: username }));
+            logger.error(error);
+        }
+        else
+        {
+            response.status(500);
+            response.redirect(getUrlFormat('/home', { error: `Sorry, something went wrong.`, status: 500, username: username }));
+            logger.error(error);
+        }
+    }
 
     spellModel.getSpellsWithSpecifications(filter.Level, filter.SchoolId, userId, filter.Name, filter.CastingTime, filter.Verbal, filter.Somatic, filter.Material, filter.Duration, filter.EffectRange, filter.Concentration, filter.Ritual, filter.Classes, filter.HomebrewOnly)
         .then(async filteredSpells =>
@@ -341,8 +361,11 @@ async function showFilteredSpells(request, response, username, userId)
             if (filter.characterId)
             {
                 const character = await characterModel.getCharacter(characterId, userId);
-                if ((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id)))
+                if ((await characterModel.getUserCharacters(userId)).map(character => character.Id).includes(Number(character.Id))){
+                    filter.Class = await classModel.getClass(filter.Classes[0]);
+                    response.status(200);
                     response.render('addSpellToCharacter.hbs', await getRenderObject({ characterId: characterId, character: character, spells: filteredSpells, filter: filter, username: username }, userId));
+                }
                 else
                 {
                     response.status(400);
@@ -393,7 +416,11 @@ async function showSpellWithId(request, response, username, userId)
         .then(async spell => { 
             if(spell.Damage == 'null')
                 spell.Damage = null
-            response.render('focusSpell.hbs', {username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
+            response.status(200);
+            
+            // For redirects
+            const query = request.query;
+            response.render('focusSpell.hbs', {error: query.error, warning: query.warning, confirmation: query.confirmation, username: username, spell: capitalizeSpells([spell])[0], spellsActive: true }) 
         })
         .catch(async error =>
         {
@@ -407,7 +434,7 @@ async function showSpellWithId(request, response, username, userId)
             {
                 logger.error(`Failed to get spell: ${ error.message }`);
                 response.status(400);
-                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on. Please try again in a moment.`, status: 400 }));
+                response.redirect(getUrlFormat('/home', { error: `Sorry, we couldn't get the spell you wanted to focus on. You either do not have access to it or it doesn't exist.`, status: 400 }));
             }
             else
             {
@@ -495,7 +522,7 @@ async function editSpellWithId(request, response, sessionId)
     try{
         username = await userModel.getUsernameFromSessionId(sessionId);
         await spellModel.updateSpellById(id, userId, level, schoolId, description, name, castingTime, verbal, somatic, material, materials, duration, damage, range, concentration, ritual, query.Classes)
-        response.redirect(getUrlFormat('/spells', {username: username, confirmation: 'Successfully edited spell'}));
+        response.redirect(getUrlFormat(`/spells/id/${id}`, {username: username, confirmation: 'Successfully edited spell'}));
         
     }catch( error) {
             if (error instanceof InvalidInputError) {
@@ -537,7 +564,12 @@ async function showEditSpellPage(request, response, sessionId)
 
     try
     {
-        const spellToEdit = await spellModel.getSpellById(spellChoiceId, await userModel.getUserIdFromSessionId(sessionId));
+        const userId = await userModel.getUserIdFromSessionId(sessionId);
+        const spellToEdit = await spellModel.getSpellById(spellChoiceId, userId);
+        // Can not edit a spell from the phb
+        if (spellToEdit.UserId != userId)
+            throw new InvalidInputError('spellController', 'showEditSpellPage', 'You can not edit a spell that you did not create.');
+
         if (spellToEdit.Damage)
         {
             const damageStuff = spellToEdit.Damage.split('d');

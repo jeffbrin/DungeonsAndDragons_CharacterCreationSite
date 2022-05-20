@@ -30,6 +30,7 @@
             <li><a class="dropdown-item" href="/backgrounds">Backgrounds</a></li>
           </ul>
         </li>
+        {{#if username}}
         {{#if recentCharacters}}
         <li class="dropdown">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="recentCharactersDropdown"
@@ -42,6 +43,7 @@
             {{/each}}
           </ul>
         </li>
+        {{/if}}
         {{/if}}
       </ul>
 

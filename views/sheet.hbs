@@ -177,12 +177,17 @@
     <input id="hiddenItemName" hidden name="itemName">
   </form>
   <div class="items">
+    <div class="text-center pos-relative" style="margin-top: .5rem;">
+      <h5 style="display:inline-block;" class="text-center">Items</h5><button id="deleteItemBtn"
+        style="position:absolute;right:-1rem;top:-.25rem;" class="no-border btn-elevated2 roll20 cellClass"><img
+          class="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
+    </div>
     <table class="table" id="itemTable">
       <thead class="">
         <tr class="">
-          <th scope="col">Name</th>
-          <th scope="col">Quantity</th>
-          <th scope="col">
+          <th class="w-40" scope="col">Name</th>
+          <th class="w-40" scope="col">Quantity</th>
+          <th class="w-20" scope="col">
             <form method="post" action="/characters/items" id="itemForm">
               <input name="choice" hidden value='{"method":"PUT"}'>
               <input name="characterId" hidden value="{{character.Id}}">
@@ -195,18 +200,28 @@
         </tr>
       </thead>
 
+      {{#with character}}
       <tbody id="itemTBody" class="">
-        {{#each character.OwnedItems}}
+        {{#each OwnedItems}}
+        <form id="deleteForm_Item_{{Name}}_{{Count}}" action="/characters/{{../Id}}/items" method="post" hidden>
+          <input hidden name="choice" value='{"method":"Delete"}'><input hidden name="itemName" value="{{Name}}">
+          <input hidden name="itemQuantity" value="-{{Count}}">
+        </form>
         <tr class="">
-          <td class="capitalize cellClass">{{Name}}</td>
-          <td class="cellClass" colspan="2">{{Count}}</td>
+          <td class="capitalize cellClass w-40">{{Name}}</td>
+          <td class="cellClass colspanChange w-40" colspan="2">{{Count}}</td>
+          <td class="capitalize cellClass hiddenDeleteItem w-20">
+            <button class="no-border btn-elevated2 roll20 cellClass" type="submit"
+              form="deleteForm_Item_{{Name}}_{{Count}}" hidden>
+              <img class="d20Skill" src="/images/icons/trash.png" hidden>
+            </button>
         </tr>
         {{/each}}
       </tbody>
     </table>
   </div>
 
-  {{#with character}}
+
   <div class="savingthrows">
     <h5 class="text-center">Saving Throws</h5>
     <table class="table" id="savingThrowTable">
@@ -232,18 +247,15 @@
   {{/with}}
   {{#with character}}
 
-
   <div class="img">
     <img class="characterImg" src="/images/icons/characters/{{Race.Name}}_{{Class.Name}}.png">
   </div>
-
-
 
   <div class="spells">
     <div class="text-center pos-relative" style="margin-top: .5rem;">
       <h5 style="display:inline-block;" class="text-center">Spells</h5><button id="deleteSpellBtn"
         style="position:absolute;right:-1rem;top:-.25rem;" class="no-border btn-elevated2 roll20 cellClass"><img
-          id="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
+          class="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
     </div>
 
 
@@ -267,7 +279,7 @@
       <tbody>
 
         {{#each Spells}}
-        <form id="deleteForm_{{Id}}" action="/characters/spells/{{../Id}}" method="post" hidden><input hidden
+        <form id="deleteForm_Spell_{{Id}}" action="/characters/spells/{{../Id}}" method="post" hidden><input hidden
             name="choice" value='{"method":"Delete"}'><input hidden name="spellId" value="{{Id}}"></form>
         <tr class="mh-35px spellRow">
           <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
@@ -275,14 +287,14 @@
           <td class="capitalize cellClass">{{Name}}</td>
           <td class="checkCantrip cellClass">{{Level}}</td>
           <td class="capitalize cellClass hiddenDeleteSpell">
-            <button class="no-border btn-elevated2 roll20 cellClass" type="submit" form="deleteForm_{{Id}}" hidden>
+            <button class="no-border btn-elevated2 roll20 cellClass" type="submit" form="deleteForm_Spell_{{Id}}"
+              hidden>
               <img class="d20Skill" src="/images/icons/trash.png" hidden>
             </button>
         </tr>
         {{/each}}
       </tbody>
     </table>
-
   </div>
 
 
@@ -379,7 +391,7 @@
 <script>
   $(function ()
   {
-    $("#hoverPlayImg").hover(
+    $(".hoverPlayImg").hover(
       function ()
       {
         $(this).attr("src", "/images/icons/trash.gif");
