@@ -1,0 +1,22 @@
+{{#with background}}
+
+<div class="m-2rem">
+  <h1 class="text-center mtop-0">{{Name}}</h1>
+  <div class="text-center ptext">
+    <p class="pDesc">{{Description}}</p>
+  </div>
+
+</div>
+
+
+{{#each Features}}
+<div class="d-flex bg-card m-4" style="border-radius: 20px">
+  <div class="card-body elevated">
+    <h4 class="card-title">{{Name}}</h4>
+    <p class="card-title">{{Description}}</p>
+  </div>
+</div>
+{{/each}}
+
+{{/with}}
+<link rel="stylesheet" href="/css/nonClickableLists.css">

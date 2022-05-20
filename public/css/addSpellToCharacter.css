@@ -1,0 +1,15 @@
+
+#filterClassImageSolo {
+    border-radius: 1rem;
+    height: 200px;
+    width: auto;
+}
+
+.mtop-1rem {
+    margin-top: 1rem;
+}
+
+input[type="checkbox"] {
+    background-color: var(--elevation2Color) !important;
+    color: var(--textColor);
+}

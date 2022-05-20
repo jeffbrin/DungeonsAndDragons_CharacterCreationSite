@@ -1,0 +1,56 @@
+:root {
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #3D414B;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+    --brightGreen: #80EAAF;
+    --midGreen: #4BC087;
+    --midRed: #E96049;
+}
+
+.card-body:hover {
+    background-color: var(--elevationColor) !important;
+}
+
+.m-2rem {
+    margin: 2rem;
+    margin-top: 0;
+}
+
+.mtop-0 {
+    margin-top: 0 !important;
+}
+
+.ptext {
+    padding: 1rem;
+    background-color: var(--darkGreen);
+    border-radius: 1rem;
+}
+
+.pDesc::first-letter {
+    font-size: 5rem;
+    float: left;
+    text-transform: capitalize;
+}
+
+.mtop-2rem {
+    margin-top: 2rem;
+}
+
+#imgHitDie {
+    height: 100px;
+    width: auto;
+}
+
+.mleft-1rem {
+    margin-left: 1rem;
+}
+
+.mlr-4rem {
+    margin-left: 4rem;
+    margin-right: 4rem;
+    height: 2px;
+}

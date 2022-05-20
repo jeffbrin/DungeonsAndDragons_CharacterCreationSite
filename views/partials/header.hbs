@@ -12,35 +12,68 @@
             class="nav-link px-2 {{#if homeActive}}text-secondary{{else}}text-white{{/if}}">Home</a></li>
         <li><a id="spellsHeaderLink" href="/spells"
             class="nav-link px-2 {{#if spellsActive}}text-secondary{{else}}text-white{{/if}}">Spells</a></li>
-            {{#if username}}
+        {{#if username}}
         <li><a href="/characters"
             class="nav-link px-2 {{#if charactersActive}}text-secondary{{else}}text-white{{/if}}">Characters</a></li>
-            {{/if}}
+        {{/if}}
 
         <li class="dropdown">
-          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if backgroundsActive}}Backgrounds{{else}}More{{/if}}
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            {{#if racesActive}}Races{{else if classesActive}}Classes{{else if
+            backgroundsActive}}Backgrounds{{else}}More{{/if}}
           </a>
 
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
             <li><a class="dropdown-item" href="/races">Races</a></li>
-            <li><a class="dropdown-item" href="#">Classes</a></li>
+            <li><a class="dropdown-item" href="/classes">Classes</a></li>
             <li><a class="dropdown-item" href="/backgrounds">Backgrounds</a></li>
           </ul>
-      </li>
+        </li>
+        {{#if username}}
+        {{#if recentCharacters}}
+        <li class="dropdown">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="recentCharactersDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            Recent Characters
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="recentCharactersDropdown">
+            {{#each recentCharacters}}
+            <li><a class="dropdown-item" href="/characters/{{id}}">{{name}}</a></li>
+            {{/each}}
+          </ul>
+        </li>
+        {{/if}}
+        {{/if}}
       </ul>
 
       <div class="text-end d-flex" style="gap: 8px;">
         {{#if username}}
-          <h2 id="usernameDisplay">{{username}}</h2>
-          <form action="/sessions" method="delete">
-            <button id="logoutButton" class="btn btn-primary" name="choice" type="submit" value='{"method": "delete"}'>Logout</button>
-          </form>
+        <h2 id="usernameDisplay">{{username}}</h2>
+        <form action="/sessions" method="delete">
+          <button id="logoutButton" class="btn btn-primary" name="choice" type="submit"
+            value='{"method": "delete"}'>Logout</button>
+        </form>
         {{else}}
-          <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
-            data-bs-target="#modalLogin" id="loginButton">Login</button>
-          <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
-            data-bs-target="#modalSignup" id="signupButton">Sign-up</button>
+        <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalLogin"
+          id="loginButton">Login</button>
+        <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal" data-bs-target="#modalSignup"
+          id="signupButton">Sign-up</button>
+        {{/if}}
+        {{#if lightTheme}}
+        <form style="border: transparent; background: transparent;  !important" action="/themes" method="post">
+          <button style="border: transparent" class="btn bg-dark" href="/themes">
+            <image heigth="30px" width="30px" src="/images/icons/Themes/moon.png" alt="desc">
+          </button>
+          <input hidden type="text" name="lightMode" value="false">
+        </form>
+        {{else}}
+        <form style="border: transparent;  background: transparent !important;" action="/themes" method="post">
+          <button style="border: transparent" class="btn bg-dark" href="/themes">
+          <image heigth="30px" width="30px" src="/images/icons/Themes/sunSmall.png" alt="desc">
+          </button>
+          <input hidden type="text" name="lightMode" value="true">
+          </form>
         {{/if}}
       </div>
     </div>
@@ -57,15 +90,19 @@
         <div class="modal-body p-5 pt-0" id="modalBody">
           <form class="" id="signUpForm" action="/users" method="post">
             <div class="form-floating mb-3">
-              <input type="text" class="form-control rounded-4" name="username" id="usernameSignup" placeholder="username">
+              <input type="text" class="form-control rounded-4" name="username" id="usernameSignup"
+                placeholder="username">
               <label for="usernameSignup">Username</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-4" name="password" id="passwordSignup" placeholder="Password">
+              <input type="password" class="form-control rounded-4" name="password" id="passwordSignup"
+                placeholder="Password">
               <label for="floatingPassword">Password</label>
             </div>
-            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit" id="signupSubmitButton">Sign up</button>
-            <small class="text-muted">By clicking Sign up, you agree to allow the mindflayer to feast on your brain.</small>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit" id="signupSubmitButton">Sign
+              up</button>
+            <small class="text-muted">By clicking Sign up, you agree to allow the mindflayer to feast on your
+              brain.</small>
             <hr class="my-4">
             {{#if signupError}}
             <p id="signupErrorText" style="color: red;">{{signupError}}</p>
@@ -88,14 +125,17 @@
         <div class="modal-body p-5 pt-0 d-flex" id="modalBody">
           <form class="" id="loginForm" action="/sessions" method="post">
             <div class="form-floating mb-3">
-              <input type="text" class="form-control rounded-4" name="username" id="usernameLogin" placeholder="username">
+              <input type="text" class="form-control rounded-4" name="username" id="usernameLogin"
+                placeholder="username">
               <label for="usernameLogin">Username</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-4" name="password" id="passwordLogin" placeholder="Password">
+              <input type="password" class="form-control rounded-4" name="password" id="passwordLogin"
+                placeholder="Password">
               <label for="passwordLogin">Password</label>
             </div>
-            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit" id="loginSubmitButton">Login</button>
+            <button class="w-100 mb-2 btn btn-lg rounded-4 btn-primary" type="submit"
+              id="loginSubmitButton">Login</button>
             <small class="text-muted">By logging in you agree to surrender your conscience to the mindflayer.</small>
             <hr class="my-4">
             {{#if loginError}}
@@ -106,53 +146,97 @@
       </div>
     </div>
   </div>
+
+
+  {{!-- Roll Modal --}}
+  <div class="modal fade" tabindex="-1" id="modalRoll">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header">
+          <h5 class="modal-title">Click on the die to roll!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="rollBody">
+          {{!-- Copyright (c) 2022 by Vicente Mundim (https://codepen.io/vicentemundim/pen/nXNvBw) --}}
+          <div class="content">
+            <div class="die">
+              <figure class="face face-1"></figure>
+              <figure class="face face-2"></figure>
+              <figure class="face face-3"></figure>
+              <figure class="face face-4"></figure>
+              <figure class="face face-5"></figure>
+              <figure class="face face-6"></figure>
+              <figure class="face face-7"></figure>
+              <figure class="face face-8"></figure>
+              <figure class="face face-9"></figure>
+              <figure class="face face-10"></figure>
+              <figure class="face face-11"></figure>
+              <figure class="face face-12"></figure>
+              <figure class="face face-13"></figure>
+              <figure class="face face-14"></figure>
+              <figure class="face face-15"></figure>
+              <figure class="face face-16"></figure>
+              <figure class="face face-17"></figure>
+              <figure class="face face-18"></figure>
+              <figure class="face face-19"></figure>
+              <figure class="face face-20"></figure>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </header>
 {{!-- Load the login modal if there was an error logging in --}}
 {{#if loginError}}
-  <script defer>
+<script defer>
 
-    var myModal;
-    var timesModalWasShown = 0;
-    document.addEventListener('DOMContentLoaded', ()=>{
-      myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {})
-      myModal.toggle()
+  var myModal;
+  var timesModalWasShown = 0;
+  document.addEventListener('DOMContentLoaded', () => {
+    myModal = new bootstrap.Modal(document.getElementById('modalLogin'), {});
+    myModal.toggle();
 
-      // Add an event to the modal to remove the test next time it's loaded
-      document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e) {
-        
-          console.log(timesModalWasShown)
-          if(document.getElementById('loginErrorText') != null)
-            document.getElementById('loginErrorText').remove();
-        
+    // Add an event to the modal to remove the test next time it's loaded
+    document.getElementById('modalLogin').addEventListener('hidden.bs.modal', function (e) {
 
-          timesModalWasShown++;
-        })
-        
+      console.log(timesModalWasShown);
+      if (document.getElementById('loginErrorText') != null)
+        document.getElementById('loginErrorText').remove();
+
+
+      timesModalWasShown++;
     });
 
-  </script>
+  });
+
+</script>
 {{/if}}
 {{!-- Load the signup modal if there was an error signup up --}}
 {{#if signupError}}
-  <script defer>
+<script defer>
 
-    var myModal;
-    var timesModalWasShown = 0;
-    document.addEventListener('DOMContentLoaded', ()=>{
-      myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {})
-      myModal.toggle()
+  var myModal;
+  var timesModalWasShown = 0;
+  document.addEventListener('DOMContentLoaded', () => {
+    myModal = new bootstrap.Modal(document.getElementById('modalSignup'), {});
+    myModal.toggle();
 
-      // Add an event to the modal to remove the test next time it's loaded
-      document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e) {
-        
-          console.log(timesModalWasShown)
-          if(document.getElementById('signupErrorText') != null)
-            document.getElementById('signupErrorText').remove();
-        
-          timesModalWasShown++;
-        })
-        
+    // Add an event to the modal to remove the test next time it's loaded
+    document.getElementById('modalSignup').addEventListener('hidden.bs.modal', function (e) {
+
+      console.log(timesModalWasShown);
+      if (document.getElementById('signupErrorText') != null)
+        document.getElementById('signupErrorText').remove();
+
+      timesModalWasShown++;
     });
 
-  </script>
+  });
+
+</script>
 {{/if}}

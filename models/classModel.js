@@ -10,6 +10,7 @@ let connection;
  * Initializes the passed database with the Spell and SpellSchool tables.
  * @param {String} databaseName the name of the database to write to.
  * @param {Boolean} reset indicates whether the new table should be reset.
+ * @throws {DatabaseError} Thrown is there is an issue initializing.
  */
 async function initialize(databaseName, reset) {
 
@@ -27,7 +28,7 @@ async function initialize(databaseName, reset) {
     }
 
     // Create the tables and populate them
-    await createClassTable(connection, reset);
+    await createClassTable(reset);
     await createClassFeatureTable();
     await populateClassAndClassFeatureTables();
 
@@ -107,6 +108,16 @@ async function dropTables(){
         throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
     }
 
+    // Drop the Spell table since it won't have any classes that can cast them now
+    dropCommand = `DROP TABLE IF EXISTS Spell;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`Spell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('classModel', 'createClassTable', `Failed to drop the Spell table in the database... check your connection to the database: ${error.message}`)
+    }
+
     // Drop the AbilityScore table first
     dropCommand = `DROP TABLE IF EXISTS AbilityScore;`;
     try {
@@ -165,6 +176,16 @@ async function dropTables(){
     }
     catch (error) {
         throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the ClassPermittedSpell table
+    dropCommand = 'DROP TABLE IF EXISTS ClassPermittedSpell;'
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`ClassPermittedSpell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('ClassModel', 'createClassTable', `Failed to drop the ClassPermittedSpell table in the database... check your connection to the database: ${error.message}`)
     }
 
     // Drop the Class table
@@ -290,7 +311,7 @@ async function populateClassAndClassFeatureTables() {
             // console.log(cFeatureLevel);
             
             if(cFeatureLevel.length == 0){
-                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures.replace(/'/g, "''")}', '${cFeatureDesc.replace(/'/g, "''")}', 1);`;
+                addFeatureCommand = `INSERT INTO ClassFeature (ClassId, Name, Description, Level) values(${classId}, '${cFeatures.replace(/'/g, "''")}', '${cFeatureDesc.replace(/'/g, "''")}', 0);`;
                 await connection.execute(addFeatureCommand);
             }else{
                 

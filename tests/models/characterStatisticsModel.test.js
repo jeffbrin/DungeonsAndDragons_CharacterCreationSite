@@ -25,7 +25,7 @@ beforeEach(async () => {
     await classModel.initialize(dbName, true);
     await backgroundModel.initialize(dbName, true);
     await raceModel.initialize(dbName, true);
-    await spellModel.initialize(dbName, true);
+    await spellModel.initialize(dbName, false);
     await characterModel.initialize(dbName, true);
     await characterStatsModel.initialize(dbName);   
     await characterStatsModel.dropTables();
@@ -39,7 +39,11 @@ afterEach(async () => {
     await backgroundModel.closeConnection();
     await spellModel.closeConnection();
     await characterStatsModel.closeConnection();
-    await characterModel.closeConnection();
+    try{
+        await characterModel.closeConnection();
+    }catch(error){
+
+    }
     await userModel.closeConnection();
 });
 
@@ -60,6 +64,7 @@ test('getAllSkills - Success - Returns all skills in the json file in order.', a
 test('getAllSkill - Failure - Closed database connection.', async () => {
 
     await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getAllSkills()).rejects.toThrow(DatabaseError);
 
 })
@@ -80,6 +85,7 @@ test('getAllAbilities - Success - Returns all abilities in the json file in orde
 test('getAllAbilities - Failure - Closed database connection.', async () => {
 
     await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getAllAbilities()).rejects.toThrow(DatabaseError);
 
 })
@@ -122,6 +128,7 @@ test('setAbilityScores - Failure invalid ability scores length', async () => {
 test('setAbilityScores - Failure - Closed database connection.', async () => {
 
     await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getAllAbilities()).rejects.toThrow(DatabaseError);
 
 })
@@ -170,7 +177,8 @@ test('addSkillProfiency - Failure - Invalid skill id', async () => {
     
 test('addSkillProfiency - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.addSkillProficiency(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -219,7 +227,8 @@ test('addSkillExpertise - Failure - Invalid skill id', async () => {
     
 test('addSkillExpertise - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.addSkillExpertise(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -262,7 +271,8 @@ test('addSavingThrowProficiency - Failure - Invalid skill id', async () => {
     
 test('addSavingThrowProficiency - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.addSavingThrowProficiency(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -305,7 +315,8 @@ test('setSavingThrowBonus - Failure - Invalid skill id', async () => {
     
 test('setSavingThrowBonus - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.setSavingThrowBonus(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -339,7 +350,8 @@ test('getSkillProficiencies - Failure - Invalid character id', async () => {
     
 test('getSkillProficiencies - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getSkillProficiencies(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -373,7 +385,8 @@ test('getSkillExpertise - Failure - Invalid character id', async () => {
     
 test('getSkillExpertise - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getSkillExpertise(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -407,7 +420,8 @@ test('getSavingThrowBonuses - Failure - Invalid character id', async () => {
     
 test('getSavingThrowBonuses - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getSavingThrowBonuses(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -441,7 +455,8 @@ test('getSavingThrowProficiencies - Failure - Invalid character id', async () =>
     
 test('getSavingThrowProficiencies - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.getSavingThrowProficiencies(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -476,7 +491,8 @@ test('removeSkillProficiency - Failure - Invalid character id', async () => {
     
 test('removeSkillProficiency - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.removeSkillProficiency(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -510,7 +526,8 @@ test('removeSkillExpertise - Failure - Invalid character id', async () => {
     
 test('removeSkillExpertise - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.removeSkillExpertise(1, 1)).rejects.toThrow(DatabaseError);
 
 })
@@ -544,7 +561,8 @@ test('removeSavingThrowProficiency - Failure - Invalid character id', async () =
     
 test('removeSavingThrowProficiency - Failure - Closed database connection', async () => {
 
-    characterStatsModel.closeConnection();
+    await characterStatsModel.closeConnection();
+    await characterModel.closeConnection();
     await expect(characterStatsModel.removeSavingThrowProficiency(1, 1)).rejects.toThrow(DatabaseError);
 
 })

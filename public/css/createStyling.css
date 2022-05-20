@@ -1,0 +1,89 @@
+:root {
+    --backgroundColor: #313431;
+    --textColor: white;
+    --elevationColor: #484a48;
+    --elevation2Color: #5f615f;
+    --darkGreen: #26413C;
+    --popColor: #7FB3C8;
+    --popColorHover: #3E505B;
+}
+
+.progress {
+    background-color: var(--popColorHover);
+    opacity: 0.3;
+    margin-left: 4rem;
+    margin-right: 4rem;
+    height: 2rem;
+}
+
+.progress:hover {
+    background-color: var(--popColor);
+    opacity: 0.7;
+}
+
+.mybg-dark {
+    background-color: #1a1a1a !important;
+}
+
+#progressDiv {
+    margin-top: 2rem;
+}
+
+.elevated {
+    text-align: left !important;
+}
+
+#mainCardDiv {
+    margin: 2rem 4rem 2rem 4rem;
+    border-radius: 2rem;
+}
+
+.btn-primary:disabled {
+    cursor: not-allowed;
+}
+
+.card-title {
+    font-size: 3rem;
+}
+
+.btn-secondary2 {
+    background: transparent !important;
+    border: none;
+}
+
+.helpPng {
+    max-width: 25px;
+    height: auto;
+}
+
+.numberInput {
+    background-color: var(--elevation2Color);
+    color: var(--textColor);
+}
+
+.numberedUl {
+    list-style-type: decimal;
+}
+
+.inline {
+    display: inline;
+}
+
+.abilityLabels {
+    width: 100px;
+}
+
+.progress-bar {
+    background-color: var(--popColor);
+}
+
+@media (min-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 auto;
+        width: 45%;
+    }
+
+    .col-md-8 {
+        width: 55%;
+    }
+}

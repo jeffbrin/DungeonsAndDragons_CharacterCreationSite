@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const routeRoot = '/';
+const userModel = require('../models/userModel');
 
 /**
  * Handles invalid http requests in the domain.
@@ -9,7 +10,18 @@ const routeRoot = '/';
  */
 async function handleInvalidEndpoint(request, response){
     response.status(404);
-    response.render('404Error.hbs');
+
+    try{
+        let username, recentCharacters;
+        if(request.cookies){
+            username = await userModel.getUsernameFromSessionId(request.cookies.sessionId);
+            recentCharacters = request.cookies.recentCharacters;
+        }
+    response.render('404Error.hbs', {username: username, recentCharacters: recentCharacters});
+    }
+    catch(error){
+        response.render('404Error.hbs');
+    }
 }
 router.all("*", handleInvalidEndpoint)
 

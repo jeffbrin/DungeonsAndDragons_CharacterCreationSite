@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/raceModel.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/raceModel.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
+* Model written by Jeffrey
+*/
+
+const mysql = require('mysql2/promise')
+const validationModel = require('./validateRaceUtils')
+const logger = require('../logger');
+const fs = require('fs/promises');
+const { InvalidInputError, DatabaseError } = require('./errorModel');
+
+let connection;
+/**
+ * Initializes the passed database with the Spell and SpellSchool tables.
+ * @param {String} databaseName the name of the database to write to.
+ * @param {Boolean} reset indicates whether the new table should be reset.
+ */
+async function initialize(databaseName, reset) {
+
+    try {
+        connection = await mysql.createConnection({
+            host: 'localhost',
+            user: 'root',
+            port: '10000',
+            password: 'pass',
+            database: databaseName
+        });
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'initialize', `Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
+    }
+
+    // Create the tables and populate them
+    await createRaceTable(reset);
+    await createRacialTraitTable();
+    await populateRaceAndRacialTraitTables();
+}
+
+/**
+ * Drops the tables that needs to be dropped in order to reset the class table.
+ */
+ async function dropTables(){
+    
+    // Drop the OwnedItem table first
+    dropCommand = `DROP TABLE IF EXISTS OwnedItem;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`OwnedItem table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the OwnedItem table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the KnownSpell table first
+    dropCommand = `DROP TABLE IF EXISTS KnownSpell;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`KnownSpell table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the KnownSpell table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the AbilityScore table first
+    dropCommand = `DROP TABLE IF EXISTS AbilityScore;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`AbilityScore table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the AbilityScore table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SavingThrowProficiency table first
+    dropCommand = `DROP TABLE IF EXISTS SavingThrowProficiency;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SavingThrowProficiency table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SavingThrowProficiency table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SavingThrowBonus table first
+    dropCommand = `DROP TABLE IF EXISTS SavingThrowBonus;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SavingThrowBonus table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SavingThrowBonus table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SkillProficiency table first
+    dropCommand = `DROP TABLE IF EXISTS SkillProficiency;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SkillProficiency table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SkillProficiency table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the SkillExpertise table first
+    dropCommand = `DROP TABLE IF EXISTS SkillExpertise;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`SkillExpertise table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the SkillExpertise table in the database... check your connection to the database: ${error.message}`)
+    }
+
+    // Drop the PlayerCharacter table since it contains foreign keys in the Class table
+    dropCommand = `DROP TABLE IF EXISTS PlayerCharacter;`;
+    try {
+        await connection.execute(dropCommand);
+        logger.info(`PlayerCharacter table dropped.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'dropTables', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
+    }
+
+}
+
+/**
+ * Creates the race table. If the reset flag is set to true, the RacialTrait table will be dropped but not recreated.
+ * This functionality is required because the RacialTrait table contains foreign keys from the Race table.
+ * @param {boolean} reset Indicates whether the tables should be if they already exist.
+ * @throws {DatabaseError} Thrown when a table either failed to be dropped or failed to be created.
+ */
+async function createRaceTable(reset) {
+
+    // Reset if the reset flag is true
+    if (reset) {
+        await dropTables();
+        let dropCommand = `DROP TABLE IF EXISTS RacialTrait;`;
+
+        // Drop the RacialTrait table first
+        try {
+            await connection.execute(dropCommand);
+            logger.info(`RacialTrait table dropped.`);
+        }
+        catch (error) {
+            throw new DatabaseError('raceModel', 'createRaceTable', `Failed to drop the RacialTrait table in the database... check your connection to the database: ${error.message}`)
+        }
+
+        // Drop the PlayerCharacter table since it contains foreign keys in the Race table
+        try {
+            await connection.execute(dropCommand);
+            logger.info(`PlayerCharacter table dropped.`);
+        }
+        catch (error) {
+            throw new DatabaseError('raceModel', 'createRaceTable', `Failed to drop the PlayerCharacter table in the database... check your connection to the database: ${error.message}`)
+        }
+
+        // Drop the Race table
+        dropCommand = 'DROP TABLE IF EXISTS Race;'
+        try {
+            await connection.execute(dropCommand);
+            logger.info(`Race table dropped.`);
+        }
+        catch (error) {
+            throw new DatabaseError('raceModel', 'createRaceTable', `Failed to drop the Race table in the database... check your connection to the database: ${error.message}`)
+        }
+    }
+
+    // Create the Race table
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS Race(Id INT, Name TEXT, Description TEXT, PRIMARY KEY(Id));`;
+    try {
+        await connection.execute(createTableCommand);
+        logger.info(`Race table created / already exists.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'createRaceTable', `Failed to create the Race table... check your connection to the database: ${error.message}`)
+    }
+
+
+}
+
+/**
+ * Creates the RacialTrait table in the database. This should only be called if the Race table already exists.
+ * @throws {DatabaseError} Thrown when there is an issue creating the table in the database.
+ */
+async function createRacialTraitTable() {
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS RacialTrait(RaceId INT, Name VARCHAR(200), Description TEXT, PRIMARY KEY(RaceId, Name), FOREIGN KEY (RaceId) REFERENCES Race(Id));`;
+    try {
+        await connection.execute(createTableCommand);
+        logger.info(`RacialTrait table created / already exists.`);
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'createRacialTraitTable', `Failed to create the RacialTrait table... check your connection to the database: ${error.message}`)
+    }
+}
+
+/**
+ * Populates the Race and RacialTrait tables with the data from the JSON file.
+ * @throws {DatabaseError} Thrown when there is an IO issue with the database.
+ */
+async function populateRaceAndRacialTraitTables() {
+    const dataFile = 'database-content-json/races.json';
+
+    // Read the json file
+    let racialTraitData;
+    try {
+        racialTraitData = JSON.parse(await fs.readFile(dataFile));
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `There was an issue reading the RacialTrait json file: ${error}`)
+    }
+
+    // Check if the table already has data in it
+    let raceTableHasData = false;
+    try {
+        [rows, columnData] = await connection.query('SELECT * from Race;');
+        raceTableHasData = rows.length > 0
+    }
+    catch (error) {
+        throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to read from the Race table: ${error}`);
+    }
+
+    // Only add the data if the race table doesn't already have data in it
+    if (!raceTableHasData) {
+        try {
+
+            // Loop through each race in the file
+            let raceId = 1;
+            for (race in racialTraitData.Races) {
+
+                // Get the list of racial traits for this race
+                const racialTraits = racialTraitData.Races[race][`${race} Traits`].content;
+
+                // Add the race to the race table
+                const addRaceCommand = `INSERT INTO Race (Id, Name, Description) values(${raceId}, '${race}', '${racialTraits[0].replace(/'/g, "''")}');`;
+                await connection.execute(addRaceCommand);
+                logger.info(`Added ${race} to the Race table.`);
+
+                // Add all the racial traits
+                for (let i = 1; i &lt; racialTraits.length; i++){
+
+                    // traits are formatted as '***NAME*** DESCRIPTION', so split on *** to get 'NAME*** DESCRIPTION', then on '*** ' to split the two
+                    const [name, description] = racialTraits[i].split(/^\*\*\*/)[1].split(/\*\*\* /);
+                    
+                    // Add the racial trait for the specific race
+                    addTraitCommand = `INSERT INTO RacialTrait (RaceId, Name, Description) values(${raceId}, '${name}', '${description.replace(/'/g, "''")}');`;
+                    await connection.execute(addTraitCommand);
+                    logger.info(`Added the racial trait ${name} for ${race}`);
+                }
+                raceId++;
+            }
+        } catch (error) {
+            throw new DatabaseError('raceModel', 'populateRaceAndRacialTraitTables', `Failed to add a race to the Race table or a racial trait to the RacialTrait table in the database... Check the database connection: ${error}`)
+        }
+
+        logger.info('Successfully populated the Race and RacialTrait tables.')
+    }
+
+}
+
+/**
+ * Gets an array of all the races in the database. This will not include the racial traits of any of the races.
+ * @returns Fullfils with an array of all the races in the database in with the following format {Id: #, Name: "", Description: ""}
+ * @throws {DatabaseError} Thrown when there is an issue getting the races from the database due to a connection issue.
+ */
+async function getAllRaces(){
+    const getRacesQuery = "SELECT Id, Name, Description FROM Race;"
+    let races;
+    try{
+        [races, columnData] = await connection.query(getRacesQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getAllRaces', `Failed to get all the races in the database: ${error}`);
+    }
+
+    return races;
+}
+
+/**
+ * Gets all the details about a specific race. 
+ * If the id is not a valid id, or if no race is found with the given id, an exception will be thrown.
+ * A valid id is an integer which is greater than 0.
+ * @param {Number} id The id of the race to get.
+ * @returns Fullfils with the race with the provided id. The object contains the race id, name, description and all the racial traits. It is returned in the following structure: {Id: #, Name: "", Description: "", Traits: [{Name: "", Description: ""}, ...]}
+ * @throws {InvalidInputError} Thrown if the id is invalid or if it was not found.
+ * @throws {DatabaseError} Thrown is there is an issue getting the race from the database due to a connection issue.
+ */
+async function getRace(id){
+
+    try{
+        validationModel.validateRaceId(id);
+    }
+    catch(error){
+        throw new InvalidInputError('raceModel', 'getRace', `Invalid input: ${error.message}`);
+    }
+
+    // Get the race details
+    const getRaceQuery = `SELECT Id, Name, Description FROM Race WHERE Id = ${id};`;
+    let race;
+    try{
+        [race, columnData] = await connection.query(getRaceQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getRace', `Failed to get the race with id ${id} from the database: ${error}`);
+    }
+    
+    // Check to make sure a race was found
+    if (race.length == 0)
+        throw new InvalidInputError('raceModel', 'getRace', 'A race with the provided id could not be found.')
+    
+    // Get the racial traits
+    const getRacialTraitsQuery = `SELECT Name, Description FROM RacialTrait WHERE RaceId = ${id}`;
+    let traits;
+    try{
+        [traits, columnData] = await connection.query(getRacialTraitsQuery);
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'getRace', `Failed to get the racial traits of the race with id ${id} from the database: ${error}`)
+    }
+
+    // Add the traits to the race object
+    race = race[0]
+    race.Traits = traits;
+
+    return race;
+}
+
+/**
+ * Closes the connection to the database.
+ */
+async function closeConnection(){
+    try{
+        connection.end()
+    }
+    catch(error){
+        throw new DatabaseError('raceModel', 'closeConnection',`Failed to close the connection: ${error}`);
+    }
+}
+
+module.exports = { initialize, getAllRaces, getRace, closeConnection}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DatabaseError.html">DatabaseError</a></li><li><a href="IncorrectPasswordError.html">IncorrectPasswordError</a></li><li><a href="InvalidInputError.html">InvalidInputError</a></li><li><a href="InvalidPasswordError.html">InvalidPasswordError</a></li><li><a href="InvalidSessionError.html">InvalidSessionError</a></li><li><a href="InvalidUsernameError.html">InvalidUsernameError</a></li><li><a href="UserAlreadyExistsError.html">UserAlreadyExistsError</a></li><li><a href="UserNotFoundError.html">UserNotFoundError</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addCharacter">addCharacter</a></li><li><a href="global.html#addCharacterObject">addCharacterObject</a></li><li><a href="global.html#addExperiencePoints">addExperiencePoints</a></li><li><a href="global.html#addExpertiseController">addExpertiseController</a></li><li><a href="global.html#addItem">addItem</a></li><li><a href="global.html#addKnownSpell">addKnownSpell</a></li><li><a href="global.html#addProficiencyController">addProficiencyController</a></li><li><a href="global.html#addRemoveHp">addRemoveHp</a></li><li><a href="global.html#addSavingThrowProficiency">addSavingThrowProficiency</a></li><li><a href="global.html#addSkillExpertise">addSkillExpertise</a></li><li><a href="global.html#addSkillProficiency">addSkillProficiency</a></li><li><a href="global.html#addSpell">addSpell</a></li><li><a href="global.html#addSpellFromValues">addSpellFromValues</a></li><li><a href="global.html#addSpellToCharacter">addSpellToCharacter</a></li><li><a href="global.html#addUser">addUser</a></li><li><a href="global.html#authenticateSession">authenticateSession</a></li><li><a href="global.html#authenticateUser">authenticateUser</a></li><li><a href="global.html#buildSheet">buildSheet</a></li><li><a href="global.html#capitalizeSpells">capitalizeSpells</a></li><li><a href="global.html#changeQuantityItem">changeQuantityItem</a></li><li><a href="global.html#checkAbility">checkAbility</a></li><li><a href="global.html#checkAbilityScores">checkAbilityScores</a></li><li><a href="global.html#checkBackground">checkBackground</a></li><li><a href="global.html#checkCharacterId">checkCharacterId</a></li><li><a href="global.html#checkClass">checkClass</a></li><li><a href="global.html#checkEthics">checkEthics</a></li><li><a href="global.html#checkLevel">checkLevel</a></li><li><a href="global.html#checkMaxHitPoints">checkMaxHitPoints</a></li><li><a href="global.html#checkMorality">checkMorality</a></li><li><a href="global.html#checkName">checkName</a></li><li><a href="global.html#checkRace">checkRace</a></li><li><a href="global.html#checkSavingThrowProficiencies">checkSavingThrowProficiencies</a></li><li><a href="global.html#checkSkillId">checkSkillId</a></li><li><a href="global.html#checkUserID">checkUserID</a></li><li><a href="global.html#closeConnection">closeConnection</a></li><li><a href="global.html#connection">connection</a></li><li><a href="global.html#createAbilityScoreTable">createAbilityScoreTable</a></li><li><a href="global.html#createAbilityTable">createAbilityTable</a></li><li><a href="global.html#createBackgroundFeatureTable">createBackgroundFeatureTable</a></li><li><a href="global.html#createBackgroundTable">createBackgroundTable</a></li><li><a href="global.html#createClassFeatureTable">createClassFeatureTable</a></li><li><a href="global.html#createClassTable">createClassTable</a></li><li><a href="global.html#createEthicsTable">createEthicsTable</a></li><li><a href="global.html#createKnownSpellTable">createKnownSpellTable</a></li><li><a href="global.html#createMoralityTable">createMoralityTable</a></li><li><a href="global.html#createOwnedItemTable">createOwnedItemTable</a></li><li><a href="global.html#createPlayerCharacterTable">createPlayerCharacterTable</a></li><li><a href="global.html#createRaceTable">createRaceTable</a></li><li><a href="global.html#createRacialTraitTable">createRacialTraitTable</a></li><li><a href="global.html#createRecentCharactersCookie">createRecentCharactersCookie</a></li><li><a href="global.html#createSavingThrowBonusTable">createSavingThrowBonusTable</a></li><li><a href="global.html#createSavingThrowProficiencyTable">createSavingThrowProficiencyTable</a></li><li><a href="global.html#createSession">createSession</a></li><li><a href="global.html#createSkillExpertiseTable">createSkillExpertiseTable</a></li><li><a href="global.html#createSkillProficiencyTable">createSkillProficiencyTable</a></li><li><a href="global.html#createSkillTable">createSkillTable</a></li><li><a href="global.html#createTables">createTables</a></li><li><a href="global.html#dateTimeToMySqlFormat">dateTimeToMySqlFormat</a></li><li><a href="global.html#deleteCharacter">deleteCharacter</a></li><li><a href="global.html#deleteExpiredSessions">deleteExpiredSessions</a></li><li><a href="global.html#deleteSpellFromCharacter">deleteSpellFromCharacter</a></li><li><a href="global.html#doesTableHaveContent">doesTableHaveContent</a></li><li><a href="global.html#dropReliantTables">dropReliantTables</a></li><li><a href="global.html#dropTables">dropTables</a></li><li><a href="global.html#editSpellWithId">editSpellWithId</a></li><li><a href="global.html#gateAccess">gateAccess</a></li><li><a href="global.html#getAbilityIdFromName">getAbilityIdFromName</a></li><li><a href="global.html#getAbilityScores">getAbilityScores</a></li><li><a href="global.html#getAddSpellForm">getAddSpellForm</a></li><li><a href="global.html#getAllAbilities">getAllAbilities</a></li><li><a href="global.html#getAllBackgrounds">getAllBackgrounds</a></li><li><a href="global.html#getAllClasses">getAllClasses</a></li><li><a href="global.html#getAllEthics">getAllEthics</a></li><li><a href="global.html#getAllMoralities">getAllMoralities</a></li><li><a href="global.html#getAllRaces">getAllRaces</a></li><li><a href="global.html#getAllSchoolIds">getAllSchoolIds</a></li><li><a href="global.html#getAllSchools">getAllSchools</a></li><li><a href="global.html#getAllSkills">getAllSkills</a></li><li><a href="global.html#getAllSpells">getAllSpells</a></li><li><a href="global.html#getAllUserCharacters">getAllUserCharacters</a></li><li><a href="global.html#getBackground">getBackground</a></li><li><a href="global.html#getCharacter">getCharacter</a></li><li><a href="global.html#getClass">getClass</a></li><li><a href="global.html#getClassesObjectListFromSpellId">getClassesObjectListFromSpellId</a></li><li><a href="global.html#getClassIdFromName">getClassIdFromName</a></li><li><a href="global.html#getConnection">getConnection</a></li><li><a href="global.html#getCookieObjectFromRequestAndUserId">getCookieObjectFromRequestAndUserId</a></li><li><a href="global.html#getNameInternal">getNameInternal</a></li><li><a href="global.html#getRace">getRace</a></li><li><a href="global.html#getRenderObject">getRenderObject</a></li><li><a href="global.html#getSavingThrowBonuses">getSavingThrowBonuses</a></li><li><a href="global.html#getSavingThrowProficiencies">getSavingThrowProficiencies</a></li><li><a href="global.html#getSchoolsFromJSON">getSchoolsFromJSON</a></li><li><a href="global.html#getSkillExpertise">getSkillExpertise</a></li><li><a href="global.html#getSkillProficiencies">getSkillProficiencies</a></li><li><a href="global.html#getSpellById">getSpellById</a></li><li><a href="global.html#getSpellsWithSpecifications">getSpellsWithSpecifications</a></li><li><a href="global.html#getUrlFormat">getUrlFormat</a></li><li><a href="global.html#getUrlFormatHelper">getUrlFormatHelper</a></li><li><a href="global.html#getUserCharacters">getUserCharacters</a></li><li><a href="global.html#getUserIdFromSessionId">getUserIdFromSessionId</a></li><li><a href="global.html#getUsernameFromSessionId">getUsernameFromSessionId</a></li><li><a href="global.html#handleInvalidEndpoint">handleInvalidEndpoint</a></li><li><a href="global.html#hashPassword">hashPassword</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#isCharValid">isCharValid</a></li><li><a href="global.html#levelUp">levelUp</a></li><li><a href="global.html#lightSwitch">lightSwitch</a></li><li><a href="global.html#loadDifferentPagePerLoginStatus">loadDifferentPagePerLoginStatus</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#mysql">mysql</a></li><li><a href="global.html#populateBackgroundAndFeaturesTable">populateBackgroundAndFeaturesTable</a></li><li><a href="global.html#populateClassAndClassFeatureTables">populateClassAndClassFeatureTables</a></li><li><a href="global.html#populateRaceAndRacialTraitTables">populateRaceAndRacialTraitTables</a></li><li><a href="global.html#populateSpellTable">populateSpellTable</a></li><li><a href="global.html#reduceArrayToString">reduceArrayToString</a></li><li><a href="global.html#refreshSession">refreshSession</a></li><li><a href="global.html#removeAllExpertiseAndProficiencies">removeAllExpertiseAndProficiencies</a></li><li><a href="global.html#removeCharacter">removeCharacter</a></li><li><a href="global.html#removeItem">removeItem</a></li><li><a href="global.html#removeKnownSpell">removeKnownSpell</a></li><li><a href="global.html#removeSavingThrowProficiency">removeSavingThrowProficiency</a></li><li><a href="global.html#removeSession">removeSession</a></li><li><a href="global.html#removeSkillExpertise">removeSkillExpertise</a></li><li><a href="global.html#removeSkillProficiency">removeSkillProficiency</a></li><li><a href="global.html#removeSpellById">removeSpellById</a></li><li><a href="global.html#sendCharacter">sendCharacter</a></li><li><a href="global.html#sendToAddSpellPage">sendToAddSpellPage</a></li><li><a href="global.html#sendToCreatePage">sendToCreatePage</a></li><li><a href="global.html#sendToUpdateController">sendToUpdateController</a></li><li><a href="global.html#setAbilityScores">setAbilityScores</a></li><li><a href="global.html#setSavingThrowBonus">setSavingThrowBonus</a></li><li><a href="global.html#showAllSpellsLoggedIn">showAllSpellsLoggedIn</a></li><li><a href="global.html#showAllSpellsLoggedOut">showAllSpellsLoggedOut</a></li><li><a href="global.html#showEditSpellPage">showEditSpellPage</a></li><li><a href="global.html#showFilteredSpells">showFilteredSpells</a></li><li><a href="global.html#showSpecificBackground">showSpecificBackground</a></li><li><a href="global.html#showSpecificClass">showSpecificClass</a></li><li><a href="global.html#showSpellWithId">showSpellWithId</a></li><li><a href="global.html#uniqueList">uniqueList</a></li><li><a href="global.html#updateAC">updateAC</a></li><li><a href="global.html#updateCharacter">updateCharacter</a></li><li><a href="global.html#updateExp">updateExp</a></li><li><a href="global.html#updateHitpoints">updateHitpoints</a></li><li><a href="global.html#updateInitiative">updateInitiative</a></li><li><a href="global.html#updateLevel">updateLevel</a></li><li><a href="global.html#updateSpeed">updateSpeed</a></li><li><a href="global.html#updateSpellById">updateSpellById</a></li><li><a href="global.html#validateBackgroundId">validateBackgroundId</a></li><li><a href="global.html#validateClassId">validateClassId</a></li><li><a href="global.html#validateClassIds">validateClassIds</a></li><li><a href="global.html#validateMaterials">validateMaterials</a></li><li><a href="global.html#validatePassword">validatePassword</a></li><li><a href="global.html#validateRaceId">validateRaceId</a></li><li><a href="global.html#validateSpell">validateSpell</a></li><li><a href="global.html#validateSpellComponentBool">validateSpellComponentBool</a></li><li><a href="global.html#validateSpellDamage">validateSpellDamage</a></li><li><a href="global.html#validateSpellGenericString">validateSpellGenericString</a></li><li><a href="global.html#validateSpellId">validateSpellId</a></li><li><a href="global.html#validateSpellLevel">validateSpellLevel</a></li><li><a href="global.html#validateSpellName">validateSpellName</a></li><li><a href="global.html#validateSpellSchool">validateSpellSchool</a></li><li><a href="global.html#validateUser">validateUser</a></li><li><a href="global.html#validateUsername">validateUsername</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu May 19 2022 22:20:10 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
