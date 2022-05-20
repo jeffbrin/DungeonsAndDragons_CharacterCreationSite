@@ -16,3 +16,9 @@ The best you can find as far as character sheets go are some spiced up editable 
 ## Edit them in real time while you play.
 ![character sheet top](./readme-files/cs_top.png)
 ![character sheet bottom](./readme-files/cs_bottom.png)
+
+## Learn the rules and character options.
+![classes list](./readme-files/class_list.png)
+
+## Homebrew your very own spells
+![spell creation](./readme-files/create_spell.png)
