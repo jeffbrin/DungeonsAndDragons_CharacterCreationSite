@@ -77,7 +77,7 @@ async function closeConnection()
 {
     try
     {
-        await connection.end();
+        connection.end();
         logger.info(`Connection closed from closeConnection() in characterModel`);
     } catch (error)
     {

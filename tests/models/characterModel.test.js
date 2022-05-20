@@ -1085,10 +1085,8 @@ test('getUserCharacters - Fail', async () =>
     expect(Array.isArray(db)).toBe(true);
     expect(db.length).toBe(1);
 
-
-    await expect(characterModel.getUserCharacters(randomCharacter.UserId + 1)).rejects.toThrow(InvalidInputError);
-
-    await expect(characterModel.getUserCharacters(randomCharacter.UserId + 1)).rejects.toThrow(`User does not exists or has no characters`);
+    const returnedCharacters = await characterModel.getUserCharacters(randomCharacter.UserId + 1)
+    expect(returnedCharacters).toBe(null);
 });
 test('removeCharacter - Success', async () =>
 {
