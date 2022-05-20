@@ -109,9 +109,9 @@ function getEthicsStringFromId(ethicsId)
 {
     switch (ethicsId)
     {
-        case 1: return 'lawful';
+        case 1: return 'neutral';
         case 2: return 'chaotic';
-        case 3: return 'neutral';
+        case 3: return 'lawful';
         default: return undefined;
     }
 }
@@ -121,9 +121,9 @@ function getMoralityStringFromId(moralityId)
 {
     switch (moralityId)
     {
-        case 1: return 'good';
+        case 1: return 'neutral';
         case 2: return 'evil';
-        case 3: return 'neutral';
+        case 3: return 'good';
         default: return undefined;
     }
 }
