@@ -104,6 +104,10 @@ async function getCookieObjectFromRequestAndUserId(request, userId)
     }
     //make sure all the characters belong to the user ID
     let userCharacters = await model.getUserCharacters(userId);
+    if (userCharacters === null)
+    {
+        return null;
+    }
     let result = userCharacters.map(a => a.Id);
 
     for (let i = 0; i < recentCharacters.length; i++)
@@ -296,8 +300,20 @@ async function getAllUserCharacters(request, response, sessionId)
     {
         const userId = await userModel.getUserIdFromSessionId(sessionId);
         let userCharacters = await model.getUserCharacters(userId);
+        if (userCharacters === null)
+        {
+            var warning = "You have no Characters! Make sure to create one.";
+        }
         // Get all the characters
-        response.status(201).render('characters.hbs', { characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId), charactersActive: true, recentCharacters: await getCookieObjectFromRequestAndUserId(request, userId) });
+        if (warning)
+        {
+            response.status(201).render('characters.hbs', { characters: userCharacters, warning: warning, username: await userModel.getUsernameFromSessionId(sessionId), charactersActive: true, recentCharacters: await getCookieObjectFromRequestAndUserId(request, userId) });
+        }
+        else
+        {
+            response.status(201).render('characters.hbs', { characters: userCharacters, username: await userModel.getUsernameFromSessionId(sessionId), charactersActive: true, recentCharacters: await getCookieObjectFromRequestAndUserId(request, userId) });
+        }
+
     }
     catch (error)
     {
@@ -310,6 +326,7 @@ async function getAllUserCharacters(request, response, sessionId)
         {
             response.status(400).render('characters.hbs', { error: "Input Error, Couldn't get all Characters", charactersActive: true });
             logger.error('input error - from getAllCharacters in characterController');
+
         }
         else if (error instanceof errors.InvalidSessionError)
         {

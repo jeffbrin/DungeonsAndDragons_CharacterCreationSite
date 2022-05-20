@@ -802,20 +802,21 @@ async function getUserCharacters(userId)
     {
         var [rows, colum_definitions] = await connection.query(query);
         logger.info(`Select Query Success in getUserCharacter with userId: ${ userId }`);
-        if (rows.length === 0)
-        {
-            throw new errors.InvalidInputError();
-        }
+
     } catch (error)
     {
         if (error instanceof errors.InvalidInputError)
         {
-            throw new errors.InvalidInputError('characterModel', 'getUserCharacters', `User does not exists or has no characters`);
+            throw new errors.InvalidInputError('characterModel', 'getUserCharacters', `User does not exist`);
         }
         else
         {
             throw new errors.DatabaseError('characterModel', 'getUserCharacters', `Database connection or query error, couldn't get the Users Characters`);
         }
+    }
+    if (rows.length === 0)
+    {
+        return null;
     }
 
     characters = [];

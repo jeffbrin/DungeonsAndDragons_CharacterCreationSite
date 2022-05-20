@@ -38,6 +38,20 @@
 </div>
 {{/if}}
 
+{{#if warning}}
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Warn:">
+    <use xlink:href="#info-fill" />
+  </svg>
+  <div class="text-center container">
+    <em class="bolded">{{warning}}</em>
+  </div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
+
 <div class="container mtop-2rem">
   <form class="text-center" action="/characters/new" method="get">
     <input class="btn btn-primary" type="submit" value="Create New Character" />
