@@ -282,8 +282,14 @@
         <form id="deleteForm_Spell_{{Id}}" action="/characters/spells/{{../Id}}" method="post" hidden><input hidden
             name="choice" value='{"method":"Delete"}'><input hidden name="spellId" value="{{Id}}"></form>
         <tr class="mh-35px spellRow">
-          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
-              data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
+
+          <td scope="row"><button type="button" class="btn btn-secondary2 btn-no-padding" data-bs-toggle="tooltip"
+              data-bs-placement="right" title="{{Damage}}">
+              <img class="d20Skill" src="/images/icons/dice/{{Damage}}.png">
+            </button>
+          </td>
+
+
           <td class="capitalize cellClass">{{Name}}</td>
           <td class="checkCantrip cellClass">{{Level}}</td>
           <td class="capitalize cellClass hiddenDeleteSpell">
