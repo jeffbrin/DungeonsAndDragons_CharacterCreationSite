@@ -35,3 +35,22 @@
     float: left;
     text-transform: capitalize;
 }
+
+.mtop-2rem {
+    margin-top: 2rem;
+}
+
+#imgHitDie {
+    height: 100px;
+    width: auto;
+}
+
+.mleft-1rem {
+    margin-left: 1rem;
+}
+
+.mlr-4rem {
+    margin-left: 4rem;
+    margin-right: 4rem;
+    height: 2px;
+}

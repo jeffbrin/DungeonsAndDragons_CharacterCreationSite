@@ -1,13 +1,14 @@
-<h1 class="text-center mt-0">Races</h1>
+<h1 class="text-center mt-0">Classes</h1>
 <div class="d-flex flex-wrap  justify-content-center">
-{{#each classes}}
-<form action="/classes/{{Id}}" class="d-flex bg-card card-btn m-4 characterForm" style="width: 300px;">
-    <img class="card-img-top h-85 cardImage" src="/images/other/{{randomRace}}_{{Name}}.png" alt="Card image" style="width:100%;">
+  {{#each classes}}
+  <form action="/classes/{{Id}}" class="d-flex bg-card card-btn m-4 characterForm" style="width: 300px;">
+    <img class="card-img-top h-85 cardImage" src="/images/other/{{randomRace}}_{{Name}}.png" alt="Card image"
+      style="width:100%;">
     <div class="card-body h-15">
       <h4 class="card-title capitalize">{{Name}}</h4>
     </div>
-</form>
-{{/each}}
+  </form>
+  {{/each}}
 </div>
 
 <script src="/scripts/cardPicker.js"></script>
