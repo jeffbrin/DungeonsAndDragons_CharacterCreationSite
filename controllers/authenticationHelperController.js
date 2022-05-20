@@ -28,6 +28,7 @@ async function gateAccess(request, response, callback) {
 
     // If there's no cookie
     if (!request.cookies || !request.cookies.sessionId) {
+        response.clearCookie('sessionId')
         response.redirect(getUrlFormat('/home', { error: "You don't have access to the page you were just trying to reach, please log in and try again.", status: 401 }));
     }
     else {

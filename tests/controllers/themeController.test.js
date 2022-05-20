@@ -1,6 +1,7 @@
 const app = require("../../app"); 
 const supertest = require("supertest");
 let testRequest;
+const userModel = require('../../models/userModel');
 const dbName = "dnd_db_testing"; 
 
 beforeEach(async () => {
