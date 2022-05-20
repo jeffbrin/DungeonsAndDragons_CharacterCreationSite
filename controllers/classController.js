@@ -8,12 +8,19 @@ const {DatabaseError, InvalidInputError} = require('../models/errorModel');
 const userModel = require('../models/userModel');
 const raceModel = require('../models/raceModel');
 const hbs = require('express-handlebars').create();
+const logger = require('../logger')
 let allRaces;
 
+/**
+ * helper method for hbs to get a random race and iterate through the images
+ */
 hbs.handlebars.registerHelper('randomRace', () => {
     return allRaces[Math.floor(Math.random() * allRaces.length)].Name;
 });
 
+/**
+ * helper method for hbs page for if statements
+ */
 hbs.handlebars.registerHelper('equals', (arg1, arg2) =>
 {
     if (!arg1 && !arg2)
@@ -21,7 +28,11 @@ hbs.handlebars.registerHelper('equals', (arg1, arg2) =>
     return arg1 == arg2;
 });
 
-
+/**
+ * adding to a list in a specific order 
+ * @param {*} list 
+ * @returns 
+ */
 function uniqueList(list){
     const newList = [];
     for (let i = 0; i < list.length; i++){
@@ -45,21 +56,16 @@ function uniqueList(list){
          allRaces = await raceModel.getAllRaces();
         
         let found = await model.getAllClasses();
-        console.log(found);
-        // console.log(found[0])
         response.status(201).render('classes.hbs', { classesActive: true, classes: found, username: username });
     }
     catch (error) {
         if (error instanceof errors.DatabaseError) {
-            response.status(500).render('classes.hbs', { error: true, message: "Database error, Couldn't get Classes" });
-            console.log("Database Error - From getAllClasses in classController");
-        }
-        else if (error instanceof errors.InvalidInputError) {
-            response.status(400).render('classes.hbs', { error: true, message: "Input Error, Couldn't get all Classes" });
-            console.log('input error - from getAllClasses in classController');
+            response.status(500).render('home.hbs', { status: 500, homeActive: true, error: "Database error, Couldn't get Classes" });
+            logger.error("Database Error - From getAllClasses in classController");
         }
         else{
-            console.log(error.message);
+            response.status(500).render('home.hbs', { status: 500, homeActive: true, error: "Database error, Couldn't get Classes" });
+            logger.error(error.message);
         }
     }
 }
@@ -68,13 +74,18 @@ function uniqueList(list){
 router.get('/', (request, response) => {authenticator.loadDifferentPagePerLoginStatus(request, response, getAllClasses, getAllClasses)});
 
 
-// Focus on a specific Class
+/**
+ * retrieves a single class based on the id in the request
+ * @param {HTTPRequest} request 
+ * @param {HTTPResponse} response 
+ * @param {authenticated user} username 
+ */
 async function showSpecificClass(request, response, username){
-    console.log("Inside showSpecificClass");
+    logger.error("Inside showSpecificClass");
     try{
-        console.log("about to get specific Class")
+        logger.error("about to get specific Class")
         const Class = await model.getClass(request.params.id);
-        console.log(Class);
+        logger.error(Class);
         response.status(200).render('classFocus.hbs', {Class: Class, username: username, classesActive: true, Levels: uniqueList(Class.Features.map(feature => Number(feature.Level)))})
     }
     catch(error){
@@ -82,11 +93,11 @@ async function showSpecificClass(request, response, username){
             response.status(500).render('home.hbs', {homeActive: true, error: 'An error occured getting the list of classes. Please wait a moment and try again.', status: 500});
         }
         else if (error instanceof InvalidInputError){
-            console.log(error)
+            logger.error(error)
             response.status(400).render('home.hbs', {homeActive: true, error: 'You tried to access an invalid Class.', status: 400});
         }
         else{
-            console.log(error)
+            logger.error(error)
             response.status(500).render('home.hbs', {homeActive: true, error: 'Something went wrong', status: 500});
         }
     }
