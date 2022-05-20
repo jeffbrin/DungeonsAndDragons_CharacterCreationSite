@@ -1,0 +1,31 @@
+<div class="m-2rem">
+    <h1 class="text-center mtop-0">{{Class.Name}}</h1>
+    <div class="text-center mtop-2rem">
+        <h3 class="text-center"><img id="imgHitDie" src="/images/icons/{{Class.HitDie}}.png"> </h3>
+    </div>
+</div>
+
+
+
+
+{{#each Levels}}
+<hr class="mlr-4rem">
+{{#if (equals this 0)}}
+<h2 class="mleft-1rem">Upon Character Creation:</h2>
+{{else}}
+<h2 class="mleft-1rem">Level {{this}}</h2>
+{{/if}}
+{{#each ../Class.Features}}
+{{#if (equals Level ../this)}}
+<div class="d-flex bg-card m-4" style="border-radius: 20px">
+    <div class="card-body elevated">
+        <h4 class="card-title">{{Name}}</h4>
+        <p class="card-title">{{Description}}</p>
+    </div>
+</div>
+
+{{/if}}
+{{/each}}
+{{/each}}
+
+<link rel="stylesheet" href="/css/nonClickableLists.css">

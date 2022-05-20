@@ -1,13 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+  </symbol>
+  <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+  </symbol>
+  <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+  </symbol>
+</svg>
+
 {{#if error}}
-<div class="d-flex justify-content-center mt-4">
-  <div id="alert" class="alert alert-danger w-50 " role="alert">
-    <div class="d-flex">
-      <h4 class="alert-heading">{{status}} Error</h4>
-      <button style="margin-left: auto" type="button" class="btn-close" data-bs-dismiss="alert"
-        aria-label="Close"></button>
-    </div>
-    <p>{{error}}</p>
-  </div>
+<div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+  <h4>{{status}} Error</h4>
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+    <use xlink:href="#exclamation-triangle-fill" />
+  </svg>{{error}}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {{/if}}
 {{#if warning}}
@@ -15,6 +27,8 @@
   <div id="alert" class="alert alert-warning w-50 " role="alert">
     <div class="d-flex">
       <h4 class="alert-heading">Warning</h4>
+      <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+      <use xlink:href="#info-fill" />
       <button style="margin-left: auto" type="button" class="btn-close" data-bs-dismiss="alert"
         aria-label="Close"></button>
     </div>
@@ -22,224 +36,375 @@
   </div>
 </div>
 {{/if}}
-{{!-- Addition Form --}}
-<h2 id="addSpellsHeader" class="text-center pt-5 pb-4">Add Your Own Spells</h2>
-<form id="addForm" class="w-75 container align-items-center d-flex flex-column pb-5 " action="/spells" method="post">
-
-  <div class="w-100 container d-flex">
-
-    <!-- level select -->
-    <div class="align-middle form-outline w-20 min-w-50 mx-1">
-      <label class="form-label text-center w-100" for="levelSelectAdd">Level</label>
-
-      <select value="0" min="0" max="9" type="number" name="level" id="levelSelectAdd" class="form-control">
-        <option value="0" selected>0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-      </select>
-    </div>
-
-    <!-- Name input -->
-    <div class="align-middle form-outline w-100 mx-1">
-      <label class="w-100 text-center form-label" for="nameInputAdd">Name</label>
-      <input type="text" id="nameInputAdd" name="name" class="form-control" required />
-    </div>
-
-    <!-- School select -->
-    <div class="align-middle form-outline w-50 mx-1">
-      <label class="w-100 text-center form-label" for="schoolSelectAdd">School</label>
-      <select name="schoolId" id="schoolSelectAdd" class="form-control">
-        {{#each schools}}
-        <option value="{{id}}">{{name}}</option>
-        {{/each}}
-      </select>
-    </div>
-
-    <!-- Description input -->
-    <div class="align-middle form-outline w-100 mx-1">
-      <label class="w-100 text-center form-label" for="descriptionInputAdd">Description</label>
-      <input type="text" name="description" id="descriptionInputAdd" class="form-control" required />
-    </div>
-
+{{#if confirmation}}
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+    <use xlink:href="#check-circle-fill" />
+  </svg>
+  <div class="text-center container">
+    <em class="bolded">{{confirmation}}</em>
   </div>
-  <div>
-    <button id="addSpellButton" class="btn btn-primary mt-4" type="submit">Add</button>
-  </div>
-
-</form>
-
-
-{{!-- Filter Form --}}
-<form id="filterForm" class="w-100 pb-3 bg-dark d-flex justify-content-center" action="/spells/filter" method="get">
-
-  <div class="w-75 d-flex justify-content-around">
-    <div class="w-100 d-flex flex-column justify-content-end">
-      <h2 class="pb-0 text-center">Filter</h2>
-    </div>
-
-    <div class="w-25 container d-flex flex-column">
-      <!-- Level select -->
-      <label class="form-label text-center w-100" for="levelSelectFilter">Level</label>
-      <select value="0" min="0" max="9" type="number" name="level" id="levelSelectFilter" class="form-control">
-        <option value="" {{#if (equals null filter.level)}}selected{{/if}}>Any</option>
-        <option value="0" {{#if (equals 0 filter.level)}}selected{{/if}}>0</option>
-        <option value="1" {{#if (equals 1 filter.level)}}selected{{/if}}>1</option>
-        <option value="2" {{#if (equals 2 filter.level)}}selected{{/if}}>2</option>
-        <option value="3" {{#if (equals 3 filter.level)}}selected{{/if}}>3</option>
-        <option value="4" {{#if (equals 4 filter.level)}}selected{{/if}}>4</option>
-        <option value="5" {{#if (equals 5 filter.level)}}selected{{/if}}>5</option>
-        <option value="6" {{#if (equals 6 filter.level)}}selected{{/if}}>6</option>
-        <option value="7" {{#if (equals 7 filter.level)}}selected{{/if}}>7</option>
-        <option value="8" {{#if (equals 8 filter.level)}}selected{{/if}}>8</option>
-        <option value="9" {{#if (equals 9 filter.level)}}selected{{/if}}>9</option>
-      </select>
-    </div>
-
-    <!-- Name input -->
-    <div class="w-100 align-middle form-outline mr-2">
-      <label class="w-100 text-center form-label" for="nameInputFilter">Name</label>
-      <input type="text" id="nameInputFilter" name="name" class="form-control" value="{{filter.name}}" />
-    </div>
-
-    <!-- School select -->
-    <div class="w-100 align-middle form-outline mx-2">
-      <label class="w-100 text-center form-label" for="schoolSelectFilter">School</label>
-
-      <select name="schoolId" id="schoolSelectFilter" class="form-control">
-        <option value="" {{#if (equals null ../filter.schoolId)}}selected{{/if}}>Any</option>
-        {{#each schools}}
-        <option value="{{id}}" {{#if (equals id ../filter.schoolId)}}selected{{/if}}>{{name}}</option>
-        {{/each}}
-      </select>
-    </div>
-
-    <div class="d-flex flex-column justify-content-end">
-      <button id="filterSubmit" class="btn btn-primary mt-3" type="submit">Filter</button>
-    </div>
-
-  </div>
-</form>
-{{!-- Spell display table --}}
-<table id="spellDisplayTable" class="table table-dark w-100">
-  <thead>
-    <tr>
-      <th scope="col">Level</th>
-      <th scope="col">Name</th>
-      <th scope="col">School</th>
-      <th scope="col">Description</th>
-      <th class="w-25" scope="colgroup">Options</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each spells}}
-
-    {{!-- If the user requested an edit on a spell, make the selected row an edit row --}}
-    {{#if (equals ../spellToEditId id)}}
-    <form action="/spells/editform" method="post">
-      <tr class="spell">
-        <td><select value="0" min="0" max="9" type="number" id="updateFormLevel" name="level" class="form-control"
-            required>
-            <option value="0" {{#if (equals level 0)}}selected{{/if}}>0</option>
-            <option value="1" {{#if (equals level 1)}}selected{{/if}}>1</option>
-            <option value="2" {{#if (equals level 2)}}selected{{/if}}>2</option>
-            <option value="3" {{#if (equals level 3)}}selected{{/if}}>3</option>
-            <option value="4" {{#if (equals level 4)}}selected{{/if}}>4</option>
-            <option value="5" {{#if (equals level 5)}}selected{{/if}}>5</option>
-            <option value="6" {{#if (equals level 6)}}selected{{/if}}>6</option>
-            <option value="7" {{#if (equals level 7)}}selected{{/if}}>7</option>
-            <option value="8" {{#if (equals level 8)}}selected{{/if}}>8</option>
-            <option value="9" {{#if (equals level 9)}}selected{{/if}}>9</option>
-          </select>
-          <label class="form-label text-center w-100" for="updateFormLevel">Level</label>
-        </td>
-        <td><input type="text" id="updateFormName" name="name" class="form-control" value="{{name}}" required /><label
-            for="updateFormName">Name</label></td>
-        <td>
-          <select id="updateFormSchool" name="schoolId" class="form-control" required>
-            {{#each ../schools}}
-            <option value="{{id}}" {{#if (equals ../school name)}}selected{{/if}}>{{name}}</option>
-            {{/each}}
-          </select>
-          <label class="w-100 text-center form-label" for="schoolSelect">School</label>
-        </td>
-        <td>
-          <input type="text" id="updateFormDescription" name="description" class="form-control" value="{{description}}"
-            required /><label for="updateFormDescription">Description</label>
-        </td>
-        <td>
-          <button id="confirmEditSpell{{id}}" class="btn btn-primary" name="choice" formaction="/spells" type="submit" value='{"method": "put"}'><i
-              class="far fa-check-circle"></i></button>
-          <button id="uneditSpell{{id}}" class="btn btn-primary" name="choice" formaction="/spells" type="submit" value='{"method": "get"}'
-            formnovalidate><i class="fas fa-ban"></i></button>
-          <button id="deleteSpell{{id}}" class="btn btn-primary" name="choice" formaction="/spells" type="submit" value='{"method": "delete"}'
-            formnovalidate><i class="fa fa-trash"></i></button>
-        </td>
-        <input name="spellChoiceId" value="{{id}}" style="position:absolute; visibility: hidden;">
-      </tr>
-    </form>
-    {{else}}
-    {{!-- These are the regular rows with the option buttons --}}
-
-    <form action="/spells/editform" method="post">
-      <tr class="spell">
-        <td>{{level}}</td>
-        <td>{{name}}</td>
-        <td>{{school}}</td>
-        <td>{{description}}</td>
-        <td>
-          <button id="editSpell{{id}}" class="btn btn-primary" name="choice" type="submit" value="editForm"><i
-              class="fa fa-edit"></i></button>
-          <button id="deleteSpell{{id}}" class="btn btn-primary deleteSpell" name="choice" formaction="/spells" type="submit"
-            value='{"method": "delete"}'><i class="fa fa-trash"></i></button>
-          <button id="focusSpell{{id}}" class="btn btn-primary" name="choice" formaction="/spells/{{id}}" type="submit"
-            value='{"method": "get"}'><i class="fa fa-magnifying-glass"></i></button>
-        </td>
-        <input name="spellChoiceId" value="{{id}}" style="position:absolute; visibility: hidden;">
-      </tr>
-    </form>
-    {{/if}}
-    {{/each}}
-  </tbody>
-</table>
-
-<div class="container mt-5">
-  <h2 class="text-center">Advanced</h2>
-  <div class="container d-flex">
-    {{!-- Remove all with name --}}
-    <form class="container d-flex flex-column align-items-center" id="removeWithNameForm" action="/spells/name"
-      method="post">
-      <h4 class="center-text">Remove all spells with a specific name.</h4>
-      <div class="py-3">
-        <label for="removeByNameInput">Name</label>
-        <input type="text" name="name" id="removeByNameInput" required>
-      </div>
-      <button id="removeByNameSubmit" class="btn btn-primary mb-3" name="choice" type="submit" value='{"method": "delete"}'>Remove
-        Spells</button>
-    </form>
-
-    {{!-- Update all occurances of a name --}}
-    <form id="updatenamesForm" class="container d-flex flex-column align-items-center" action="/spells/name" method="post">
-      <h4 class="center-text">Change all occurances of a spell name.</h4>
-      <div class="py-3">
-        <label for="fromName">From Name</label>
-        <input type="text" name="fromName" id="fromName" required>
-      </div>
-      <div class="py-3">
-        <label for="toName">To Name</label>
-        <input type="text" name="toName" id="toName" required>
-      </div>
-      <button id="changeNamesSubmit" class="btn btn-primary mb-3" name="choice" type="submit" value='{"method": "put"}'>Change Names</button>
-
-    </form>
-
-
-  </div>
-
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
+{{/if}}
+
+
+{{!-- Filtering section --}}
+<form id="additionForm" class="bg-dark my-5 d-flex container" style="border:2px solid black; flex: 2;  border-radius: 30px; position: relative;" action="/spells/filter" method="GET">
+  <h2 style="position: absolute; top: -40px">Filter</h2>
+  <div id="left" class="d-flex flex-column " style="border-right:2px solid black; flex: 3;">
+
+    <div id="classesDiv" class="d-flex align-items-center justify-content-center flex-wrap align-items-around pt-3" style="flex: 5;">
+      {{!-- Classes that can cast this spell --}}
+            {{#each Classes}}
+            <div class="px-4">
+              <input hidden id="{{Name}}checkbox" type="checkbox" class="classCheckbox" value="{{Id}}"
+                {{#if (stringIn Id ../filter.Classes)}}checked{{/if}}>
+                <label for="{{Name}}checkbox"><img class="classImage" src="/images/icons/class/{{Name}}.png" alt="{{Name}}"></label>
+                <p class="text-center">{{Name}}</p>
+            </div>
+            {{/each}}
+            <input type="text" hidden id="castableClasses" name="ClassIds">
+    </div>
+
+    <div id="basicsDiv" class="d-flex justify-content-evenly align-items-end pb-5" style="flex: 1;">
+
+      {{!-- Schools picker --}}
+      <div id="schoolsDiv" class="d-flex flex-column align-items-center">
+        <label for="schoolIdPicker">School</label>
+        <select name="SchoolId" id="schoolIdPicker" class="px-2 py-1" style="border-radius: 5px;">
+          <option value="" selected>Any</option>
+          {{#each schools}}
+          <option {{#if (numEquals ../filter.SchoolId Id)}} selected {{/if}} value="{{Id}}">{{Name}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      {{!-- Levels --}}
+      <div id="levelsDiv" class="d-flex flex-column align-items-center">
+        <label for="levelPicker">Level</label>
+        <select name="Level" id="levelPicker" class="px-2 py-1" style="border-radius: 5px;">
+          <option value="" selected>Any</option>
+          <option {{#if (numEquals filter.Level 0)}} selected {{/if}} value="0">Cantrip</option>
+          <option {{#if (numEquals filter.Level 1)}} selected {{/if}} value="1">1</option>
+          <option {{#if (numEquals filter.Level 2)}} selected {{/if}} value="2">2</option>
+          <option {{#if (numEquals filter.Level 3)}} selected {{/if}} value="3">3</option>
+          <option {{#if (numEquals filter.Level 4)}} selected {{/if}} value="4">4</option>
+          <option {{#if (numEquals filter.Level 5)}} selected {{/if}} value="5">5</option>
+          <option {{#if (numEquals filter.Level 6)}} selected {{/if}} value="6">6</option>
+          <option {{#if (numEquals filter.Level 7)}} selected {{/if}} value="7">7</option>
+          <option {{#if (numEquals filter.Level 8)}} selected {{/if}} value="8">8</option>
+          <option {{#if (numEquals filter.Level 9)}} selected {{/if}} value="9">9</option>
+        </select>
+      </div>
+
+      {{!-- Name --}}
+      <div class="d-flex flex-column align-items-center">
+        <label for="spellName">Name</label>
+        <input type="text" name="Name" id="spellName" {{#if filter.Name}}value="{{filter.Name}}" {{/if}}>
+      </div>
+
+    </div>
+  </div>
+  <div id="right" style="flex: 3;" class="d-flex flex-column">
+    <div id="castingDetailsDiv" style="border-bottom: 2px solid black; flex:1;" class="p-2 d-flex flex-column justify-content-evenly align-items-center">
+      
+      {{!-- Casting Time --}}
+      <div id="castingTimeDiv" class="d-flex m-2 align-items-end flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="castingTime">Casting Time</label>
+        <select name="CastingTime" id="castingTime">
+          <option value="" selected>Any</option>
+          <option {{#if (equals filter.CastingTime "1 action")}}selected{{/if}} value="1 action">1 action</option>
+          <option {{#if (equals filter.CastingTime "1 bonus action")}}selected{{/if}} value="1 bonus action">1 bonus
+            action</option>
+          <option {{#if (equals filter.CastingTime "1 reaction")}}selected{{/if}} value="1 reaction">1 reaction</option>
+          <option {{#if (equals filter.CastingTime "1 minute")}}selected{{/if}} value="1 minute">1 minute</option>
+          <option {{#if (equals filter.CastingTime "10 minutes")}}selected{{/if}} value="10 minutes">10 minutes</option>
+          <option {{#if (equals filter.CastingTime "1 hour")}}selected{{/if}} value="1 hour">1 hour</option>
+          <option
+            {{#if (isNoneOf filter.CastingTime '["1 action","1 bonus action","1 reaction","1 minute","10 minutes","1 hour",null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf filter.CastingTime '["1 action","1 bonus action","1 reaction","1 minute","10 minutes","1 hour",null]')}}value="{{filter.CastingTime}}"
+          {{else}}style="visibility: hidden;"{{/if}} type="text" id="customCastingTime" name="customCastingTime">
+          </div>
+      </div>
+
+      {{!-- Duration --}}
+      <div id="durationDiv" class="d-flex m-2 align-items-end flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="durationSelect">Duration</label>
+        <select name="Duration" id="durationSelect">
+          <option value="" selected>Any</option>
+          <option {{#if (equals filter.Duration "Instantaneous")}}selected{{/if}} value="Instantaneous">Instantaneous
+          </option>
+          <option {{#if (equals filter.Duration "1 Round")}}selected{{/if}} value="1 Round">1 Round</option>
+          <option {{#if (equals filter.Duration "1 Minute")}}selected{{/if}} value="1 Minute">1 Minute</option>
+          <option {{#if (equals filter.Duration "10 Minutes")}}selected{{/if}} value="10 Minutes">10 Minutes</option>
+          <option {{#if (equals filter.Duration "30 Minutes")}}selected{{/if}} value="30 Minutes">30 Minutes</option>
+          <option {{#if (equals filter.Duration "1 Hour")}}selected{{/if}} value="1 Hour">1 Hour</option>
+          <option {{#if (equals filter.Duration "8 Hours")}}selected{{/if}} value="8 Hours">8 Hours</option>
+          <option
+            {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf filter.Duration '["Instantaneous","1 Round","1 reaction","1 Minute","10 Minutes","30 Minutes","1 Hour","8 Hours",null]')}}value="{{filter.Duration}}"
+          {{else}}style="visibility: hidden;" {{/if}} type="text" id="customDuration" name="customDuration">
+          </div>
+      </div>
+
+      {{!-- Range --}}
+      <div id="rangeDiv" class="d-flex m-2 align-items-end flex-wrap">
+        <div class="d-flex flex-column">
+        <label for="rangeInput">Range</label>
+        <select name="EffectRange" id="rangeInput">
+          <option value="" selected>Any</option>
+          <option {{#if (equals filter.EffectRange "Self")}}selected{{/if}} value="Self">Self</option>
+          <option {{#if (equals filter.EffectRange "5 Feet")}}selected{{/if}} value="5 Feet">5 Feet</option>
+          <option {{#if (equals filter.EffectRange "30 Feet")}}selected{{/if}} value="30 Feet">30 Feet</option>
+          <option {{#if (equals filter.EffectRange "60 Feet")}}selected{{/if}} value="60 Feet">60 Feet</option>
+          <option {{#if (equals filter.EffectRange "120 Feet")}}selected{{/if}} value="120 Feet">120 Feet</option>
+          <option
+            {{#if (isNoneOf filter.EffectRange '["Self","5 Feet","30 Feet","60 Feet","120 Feet", null]')}}selected{{/if}}
+            value="Custom">Custom</option>
+        </select>
+        </div>
+        <div class="px-1">
+        <input
+          {{#if (isNoneOf filter.EffectRange '["Self","5 Feet","30 Feet","60 Feet","120 Feet", null]')}}value="{{filter.EffectRange}}"
+          {{else}}style="visibility: hidden;" {{/if}} type="text" id="customRange" name="customRange">
+          </div>
+      </div>
+
+    </div>
+    <div id="booleansDiv" style="flex: 1;" class="d-flex flex-column align-items-between">
+
+      {{!-- Components --}}
+      <div id="componentsDiv" class="d-flex align-items-start flex-column" style="flex: 3;">
+        {{!-- Verbal --}}
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeVerbal">Filter by Verbal?</label>
+          <input type="checkbox" name="includeVerbal" id="includeVerbal" {{#if filter.includeVerbal}}checked{{/if}}>
+          </div>
+          <div>
+          <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">Only Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} class="verbalLabel"
+            for="verbalButton">No Verbal</label>
+          <input {{#if filter.includeVerbal}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Verbal"
+            class="verbalButton" {{#if filter.Verbal}}{{else}}checked{{/if}} value="off">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeSomatic">Filter by Somatic?</label>
+          <input type="checkbox" name="includeSomatic" id="includeSomatic" {{#if filter.includeSomatic}}checked{{/if}}>
+          </div>
+          <div>
+          <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">Only Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} class="somaticLabel"
+            for="somaticButton">No Somatic</label>
+          <input {{#if filter.includeSomatic}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Somatic"
+            class="somaticButton" {{#if filter.Somatic}}{{else}}checked{{/if}} value="off">
+            
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-start w-100" style="flex: 1;">
+          <div class="px-2">
+          <label for="includeMaterial">Filter by Material?</label>
+          <input type="checkbox" name="includeMaterial" id="includeMaterial"
+            {{#if filter.includeMaterial}}checked{{/if}}>
+            </div>
+            <div>
+          <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">Only Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} class="materialLabel"
+            for="materialButton">No Material</label>
+          <input {{#if filter.includeMaterial}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Material"
+            class="materialButton" {{#if filter.Material}}{{else}}checked{{/if}} value="off">
+            </div>
+        </div>
+      </div>
+ 
+      {{!-- Concentration --}}
+      <div id="concentrationDiv" class="d-flex justify-content-start w-100 flex-wrap" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeConcentration">Filter by Concentration?</label>
+        <input class="roundCheckbox" type="checkbox" id="includeConcentration" name="includeConcentration"
+          {{#if filter.includeConcentration}}checked{{/if}}>
+          </div>
+          <div>
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">Only Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} class="concentrationLabel"
+            for="Concentration">No Concentration</label>
+          <input {{#if filter.includeConcentration}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Concentration"
+            class="Concentration" {{#if filter.Concentration}}{{else}}checked{{/if}} value="off">
+          </div>
+      </div>
+
+      {{!-- Ritual --}}
+      <div id="ritualDiv" class="d-flex justify-content-start w-100" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeRitual">Filter by Ritual?</label>
+        <input type="checkbox" id="includeRitual" name="includeRitual" {{#if filter.includeRitual}}checked{{/if}}>
+        </div>
+        <div>
+        <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">Only Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}checked{{/if}} checked value="on">
+
+            <label {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} class="ritualLabel"
+            for="Ritual">No Ritual</label>
+          <input {{#if filter.includeRitual}}{{else}}style="visibility:hidden;" {{/if}} type="radio" name="Ritual"
+            class="Ritual" {{#if filter.Ritual}}{{else}}checked{{/if}} value="off">
+          </div>
+      </div>
+
+      {{#if username}}
+      {{!-- Homebrew --}}
+      <div class="d-flex justify-content-start w-100" style="flex: 1;">
+        <div class="px-2">
+        <label for="includeHomebrew">Filter by Homebrew?</label>
+        <input type="checkbox" id="includeHomebrew" name="includeHomebrew" {{#if filter.includeHomebrew}}checked{{/if}}>
+        </div>
+        <div id="homebrewDiv" {{#if filter.includeHomebrew}}{{else}}style="visibility:hidden;" {{/if}}>
+          <label class="homebrewLabel"
+            for="Homebrew">Only Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}checked{{/if}} checked value="on">
+
+            <label  class="homebrewLabel"
+            for="Homebrew">No Homebrew</label>
+          <input type="radio" name="Homebrew"
+            class="Homebrew" {{#if filter.Homebrew}}{{else}}checked{{/if}} value="off">
+        </div>
+      </div>
+      {{/if}}
+
+      <div class="d-flex justify-content-center" style="flex: 1;">
+      <button class="btn btn-primary px-5 mb-2" style="margin: auto;">Filter</button>
+      </div>
+
+    </div>
+  </div>
+
+</form>
+<script src="/scripts/spellsPage.js"></script>
+<script>
+  const somaticIncluded = document.getElementById('includeSomatic');
+  const materialIncluded = document.getElementById('includeMaterial');
+  const verbalIncluded = document.getElementById('includeVerbal');
+  const concentrationIncluded = document.getElementById('includeConcentration');
+  const ritualIncluded = document.getElementById('includeRitual');
+  const homebrewIncluded = document.getElementById('includeHomebrew');
+  const somaticChoice = document.getElementsByClassName('somaticButton');
+  const materialChoice = document.getElementsByClassName('materialButton');
+  const verbalChoice = document.getElementsByClassName('verbalButton');
+  const concentrationChoice = document.getElementsByClassName('Concentration');
+  const ritualChoice = document.getElementsByClassName('Ritual');
+  const homebrewDiv = document.getElementById('homebrewDiv')
+
+  if (homebrewIncluded){
+  homebrewIncluded.addEventListener('change', e => {
+    homebrewDiv.style.visibility = homebrewIncluded.checked ? 'visible' : 'hidden';
+  })
+  }
+
+  ritualIncluded.addEventListener('change', e => {
+    [...ritualChoice].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('ritualLabel')].forEach(elem => {elem.style.visibility = ritualIncluded.checked ? 'visible' : 'hidden'});
+  })
+
+  concentrationIncluded.addEventListener('change', e => {
+    [...concentrationChoice].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('concentrationLabel')].forEach(elem => {elem.style.visibility = concentrationIncluded.checked ? 'visible' : 'hidden'});
+  })
+
+  somaticIncluded.addEventListener('change', e => {
+    [...somaticChoice].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('somaticLabel')].forEach(elem => {elem.style.visibility = somaticIncluded.checked ? 'visible' : 'hidden'});
+  })
+
+  materialIncluded.addEventListener('change', e => {
+    [...materialChoice].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('materialLabel')].forEach(elem => {elem.style.visibility = materialIncluded.checked ? 'visible' : 'hidden'});
+  })
+
+  verbalIncluded.addEventListener('change', e => {
+    [...verbalChoice].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
+    [...document.getElementsByClassName('verbalLabel')].forEach(elem => {elem.style.visibility = verbalIncluded.checked ? 'visible' : 'hidden'});
+  })
+
+</script>
+{{#if (isEmpty spells)}}{{else}}{{#if username}}
+  <div class=" mb-3 d-flex flex-column align-items-center">
+        <h2>Add a Spell!</h2>
+        <a href="/spells/spelladdition" id="spellsFeaturesLink" class="btn btn-primary">
+          Add Spell
+        </a>
+      </div>
+      {{/if}}
+  {{/if}}
+<h1 class="text-center mt-0">Spells</h1>
+<div class="d-flex flex-wrap  justify-content-center">
+  
+  {{#each spells}}
+  <form action="/spells/id/{{Id}}" class="d-flex flex-row bg-card card-btn m-4 characterForm spellForm w-25" style="width: 50;">
+  <div class="card-header d-flex justify-content-between">
+    <h5 style="flex: 1;">{{Name}}{{#if Ritual}} (rit){{/if}}{{#if Concentration}} (concentration){{/if}}</h5>
+    {{#if (equals UserId 0)}}{{else}}
+      <div class="d-flex justify-content-between">
+      <button type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="deleteBtn btn btn-primary"><img src="/images/icons/trash.png" width="50px" alt="delete"></button>
+      <button data-src="{{Id}}" type="button" width="75px" height="75px" style="background: transparent; border: 0px solid transparent; margin-left: auto;" class="editBtn ml-5 btn btn-primary"><img src="/images/icons/edit.png" width="50px" alt="edit"></button>
+      </div>
+    {{/if}}
+  </div>
+    <div class="card-body">
+      <img class="card-img h-15 cardImage" src="/images/icons/spells/{{school}}.png" alt="Card image"
+        style="height:60px;">
+      <h5 class="card-title">{{school}} {{#if (numEquals Level 0)}}Cantrip{{else}}Level {{Level}}{{/if}}</h5>
+      <p class="card-text">{{#trim}}{{../Description}}{{/trim}}</p>
+    </div>
+    <input type="text" hidden name="choice">
+  </form>
+  {{/each}}
+</div>
+<div class="d-flex flex-column align-items-center mt-2 mb-5">
+  {{#if (isEmpty spells)}}
+    <h2>No spells meet the criteria you've filtered for. </h2><br/><p>Why don't you add a spell!</p>
+    {{#if username}}<a class="btn btn-primary" href="/spells/spellAddition">Add a spell.</a>{{else}}
+              <button type="button" class="btn btn-warning btn-primary" data-bs-toggle="modal"
+              data-bs-target="#modalSignup" id="signupButton">Sign-up to add a spell.</button>{{/if}}
+  {{/if}}
+</div>
+
+<script src="/scripts/spellDeleter.js"></script>
+<script src="/scripts/cardPicker.js"></script>
+<link rel="stylesheet" href="/css/spells.css">

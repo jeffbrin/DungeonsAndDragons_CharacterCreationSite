@@ -33,7 +33,7 @@ async function loggedIn(request, response){
 
 async function loggedOut(request, response){
     loggedOutMethodCalled = true;
-    response.status(400);
+    response.status(200);
 } 
 
 /**
@@ -82,6 +82,11 @@ class MockResponse{
         return this.cookies[name];
     }
 
+    redirect(){
+        this.status = 302;
+        return this;
+    }
+
 }
 
 // Gate access
@@ -105,7 +110,7 @@ test('gateAccess - Unauthorized request', async () => {
     const mockResponse = new MockResponse();
     mockResponse.cookie('sessionId', sessionId);
     await helperController.gateAccess(mockRequestWithSessionId(null), mockResponse, gatedCall);
-    expect(mockResponse.status).toBe(400);
+    expect(mockResponse.status).toBe(302);
     expect(mockResponse.getCookie('sessionId') == null).toBe(true) // Cookie was deleted
     expect(gateAccessMethodCalled).toBe(false);
 })
@@ -113,7 +118,7 @@ test('gateAccess - Unauthorized request', async () => {
 test('gateAccess - No cookies', async () => {
     const mockResponse = new MockResponse();
     await helperController.gateAccess({}, mockResponse, gatedCall);
-    expect(mockResponse.status).toBe(400);
+    expect(mockResponse.status).toBe(302);
     expect(mockResponse.getCookie('sessionId') == null).toBe(true) // No session
     expect(gateAccessMethodCalled).toBe(false);
 })
@@ -127,7 +132,7 @@ test('gateAccess - Closed database connection', async () => {
 
     await userModel.closeConnection();
     await helperController.gateAccess(mockRequestWithSessionId(sessionId), mockResponse, gatedCall);
-    expect(mockResponse.status).toBe(500);
+    expect(mockResponse.status).toBe(302);
     expect(mockResponse.getCookie('sessionId')).toBe(sessionId) // Same session
     expect(gateAccessMethodCalled).toBe(false);
 })
@@ -154,7 +159,7 @@ test('loadDifferentPagePerLoginStatus - Logged out', async () => {
     const mockResponse = new MockResponse();
 
     await helperController.loadDifferentPagePerLoginStatus({}, mockResponse, loggedIn, loggedOut);
-    expect(mockResponse.status).toBe(400);
+    expect(mockResponse.status).toBe(200);
     expect(mockResponse.getCookie('sessionId') == null).toBe(true) // No session
     expect(loggedInMethodCalled).toBe(false);
     expect(loggedOutMethodCalled).toBe(true);
@@ -168,7 +173,7 @@ test('loadDifferentPagePerLoginStatus - Expired Session', async () => {
     mockResponse.cookie('sessionId', sessionId);
 
     await helperController.loadDifferentPagePerLoginStatus(mockRequestWithSessionId(sessionId), mockResponse, loggedIn, loggedOut);
-    expect(mockResponse.status).toBe(400);
+    expect(mockResponse.status).toBe(200);
     expect(mockResponse.getCookie('sessionId') == null).toBe(true) // No session
     expect(loggedInMethodCalled).toBe(false);
     expect(loggedOutMethodCalled).toBe(true);
@@ -185,7 +190,7 @@ test('loadDifferentPagePerLoginStatus - Closed database connection', async () =>
     await userModel.closeConnection();
 
     await helperController.loadDifferentPagePerLoginStatus(mockRequestWithSessionId(sessionId), mockResponse, loggedIn, loggedOut);
-    expect(mockResponse.status).toBe(500);
+    expect(mockResponse.status).toBe(302);
     expect(mockResponse.getCookie('sessionId')).toBe(sessionId) // Same Session
     expect(loggedInMethodCalled).toBe(false);
     expect(loggedOutMethodCalled).toBe(false);

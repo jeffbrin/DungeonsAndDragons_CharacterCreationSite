@@ -1,194 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+  </symbol>
+  <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+  </symbol>
+  <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path
+      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+  </symbol>
+</svg>
+
+{{#if error}}
+<div class="alert alert-danger text-center container w-50 alert-dismissible fade show myAlert" role="alert">
+  <h4>{{status}} Error</h4>
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+    <use xlink:href="#exclamation-triangle-fill"></use>
+  </svg>{{error}}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
+
+{{#if success}}
+<div
+  class="alert alert-success d-flex align-items-center container text-center w-50 alert-dismissible fade show myAlert"
+  role="alert">
+  <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+    <use xlink:href="#check-circle-fill" />
+  </svg>
+  <div class="text-center container">
+    <em class="bolded">{{success}}</em>
+  </div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{{/if}}
+
 {{#with character}}
+
+
+<div class="miniGridContainer">
+  <div class="profBonus text-center">
+    <h5>Proficiency Bonus:</h5>
+    <h2 class="h2PB"><br>+{{ProficiencyBonus}}</h2>
+  </div>
+  <h1 class="text-center capitalize characterName" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
+  <div class="editBtn text-center"><button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button"
+      name="edit">Edit</button></div>
+
+  <input hidden name="characterId" id="characterIdHidden" value="{{Id}}">
+</div>
+
+
+
 <div class="containerGrid">
-  <div class="charName iconDiv">
-    <h5 class="text-center">Kate the Great</h5>
+  <div class="alignment iconDiv">
+    <img class="iconImg" src="/images/icons/{{Ethics}}_{{Morality}}.png">
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">{{Ethics}} {{Morality}}</h5>
   </div>
   <div class="level iconDiv">
     <img class="iconImg" src="/images/icons/swords.png">
-    <h5 class="text-center">Level: 5</h5>
+    <h5 class="text-center">Level: {{Level}}</h5>
+    <form method="post" action="/characters/{{Id}}/levels" id="levelupForm">
+      <input name="choice" hidden value='{"method":"PUT"}'>
+      <button class="iconImg btn-elevated2 no-border" type="button" id="levelupBtn">
+        <img src="/images/icons/levelup.png" id="levelupImg">
+      </button>
+    </form>
+
   </div>
   <div class="class iconDiv">
-    <img class="iconImg" src="/images/icons/class/barbarian.png">
-    <h5 class="text-center">Class: Barbarian</h5>
+    <img class="iconImg" src="/images/icons/class/{{Class.Name}}.png">
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Class: {{Class.Name}}</h5>
   </div>
   <div class="race iconDiv">
-    <img class="iconImg" src="/images/icons/race/elf.png">
-    <h5 class="text-center">Race: Elf</h5>
+    <img class="iconImg" src="/images/icons/race/{{Race.Name}}.png">
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Race: {{Race.Name}}</h5>
   </div>
   <div class="AC iconDiv">
     <img class="iconImg" src="/images/icons/shield.png">
-    <h5 class="text-center">AC: 20</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">AC: {{ArmorClass}}</h5>
   </div>
   <div class="initiative iconDiv">
     <img class="iconImg" src="/images/icons/initiative.png">
-    <h5 class="text-center">Initiative: 2</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Initiative: {{Initiative}}</h5>
   </div>
   <div class="speed iconDiv">
     <img class="iconImg" src="/images/icons/speed.png">
-    <h5 class="text-center">Speed: 25</h5>
+    <h5 class="capitalize text-center mtop-1rem fs-2rem">Speed: {{Speed}}</h5>
   </div>
   <div class="Abilities">
 
   </div>
-  <div class="strength">
-    <h6>Strength</h6>
-    <h5 class="text-center abilityScore">14</h5>
-    <h6 class="text-center abilityBonus green w-33">+2</h6>
+  {{#each AbilityScores}}
+  <div class="{{AbilityName}} ability">
+    <h6 class="abilityScoreName">{{AbilityName}}</h6>
+    <h5 class="text-center abilityBonus">FE</h5>
+    <h6 class="text-center abilityScore w-50">{{Score}}</h6>
   </div>
-  <div class="dexterity">
-    <h6>Dexterity</h6>
-    <h5 class="text-center abilityScore">10</h5>
-    <h6 class="text-center abilityBonus w-33">0</h6>
-  </div>
-  <div class="constitution">
-    <h6>Constitution</h6>
-    <h5 class="text-center abilityScore">8</h5>
-    <h6 class="text-center abilityBonus w-33 red">-1</h6>
-  </div>
-  <div class="intelligence">
-    <h6>Intelligence</h6>
-    <h5 class="text-center abilityScore">12</h5>
-    <h6 class="text-center abilityBonus w-33 green">+1</h6>
-  </div>
-  <div class="wisdom">
-    <h6>Wisdom</h6>
-    <h5 class="text-center abilityScore">9</h5>
-    <h6 class="text-center abilityBonus w-33">0</h6>
-  </div>
-  <div class="charisma">
-    <h6>Charisma</h6>
-    <h5 class="text-center abilityScore">14</h5>
-    <h6 class="text-center abilityBonus w-33 green">+2</h6>
-  </div>
+  {{/each}}
+
+
   <div class="proficiency iconDiv">
     <img class="iconImg" src="/images/icons/proficiency.png">
-    <h5 class="text-center">Proficiency Bonus: +3</h5>
+    <h5 class="text-center">Proficiency Bonus: {{ProficiencyBonus}}</h5>
   </div>
+  <form id="experienceFrom" method="post" action="/characters/{{Id}}/experiencepoints" hidden><input hidden
+      name="choice" value='{"method":"Put"}'></form>
   <div class="experience">
     <img class="iconImg" src="/images/icons/xp.png">
-    <h5 class="text-center">EXP: 300</h5>
+    <h5 class="text-center">EXP: {{Experience}}</h5>
+    <button class="btn btn-secondary2 btn-no-padding modifyBtn" type="button" id="openExperienceInput"><img
+        class="profOrExpertise modifyImg" src="/images/icons/modify.png">
+    </button>
+    <input required type="number" form="experienceFrom" class="numberInput" min="0" placeholder="Enter New EXP"
+      name="experiencePoints" id="expInput" hidden>
+    <button class="btn btn-primary" type="submit" hidden id="submitExp" form="experienceFrom">Submit</button>
   </div>
   <div class="health">
-
   </div>
+  {{/with}}
 
   <div class="skills">
+    <form id="removeAllForm" method="post" action="/characters/{{character.Id}}/proficiencies" hidden><input
+        name="choice" value='{"method":"Delete"}'>
+    </form>
+    <form id="addProficiencyForm" hidden method="post" action="/characters/{{character.Id}}/proficiencies"><input
+        name="choice" value='{"method":"Put"}'></form>
+    <form id="addExpertiseForm" hidden method="post" action="/characters/{{character.Id}}/expertise"><input
+        name="choice" value='{"method":"Put"}'></form>
     <table class="table">
       <thead>
         <tr>
-          <th scope="col">&#10003;</th>
-          <th scope="col">Name</th>
-          <th scope="col">Ability</th>
+          <th class="w-20" scope="col"><button type="button" class="btn btn-secondary2 btn-no-padding"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="+ Means Not Proficient (Click to Add). 'P' Means Proficient (Click to add Expertise). 'E' Means Expertise (Click to remove Expertise and Proficiency)">
+              <img class="profOrExpertise" src="/images/icons/help.png">
+            </button></th>
+          <th class="w-40" scope="col">Name</th>
+          <th class="w-40" scope="col">Ability</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Acrobatics</td>
-          <td>DEX</td>
+        {{#each skills}}
+        <tr class="w-100">
+          <td class="w-20 cellClass">
+            <div style="display: inline-block; vertical-align:middle">
+              {{#ifIn Id ../skillProficiencies}}
+
+              <button type="button" form="addExpertiseForm" onclick="addExpertise({{../character.Id}},{{Id}})"
+                class="btn btn-secondary2 btn-no-padding"><img class="profOrExpertise"
+                  src="/images/icons/p.png"></button>
+              {{else}}
+              {{#ifIn Id ../skillExpertise}}<button type="button" form="removeAllForm"
+                onclick="removeAll({{../character.Id}},{{Id}})" class="btn btn-secondary2 btn-no-padding"><img
+                  class="profOrExpertise" src="/images/icons/e.png"></button>
+              {{else}}
+              <button type="button" form="addProficiencyForm" onclick="addProficiency({{../character.Id}},{{Id}})"
+                class="btn btn-secondary2 btn-no-padding"><img src="/images/icons/profPlus.png"
+                  class="profOrExpertise"></button>
+              {{/ifIn}}
+              {{/ifIn}}
+            </div>
+
+          </td>
+          <td class="w-40 cellClass">{{Name}}</td>
+          <td class="w-40 cellClass">{{Ability.Name}}</td>
         </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Animal Handling</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Arcana</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Athletics</td>
-          <td>STR</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Deception</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>History</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Insight</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Intimidation</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Investigation</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Medicine</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Nature</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Perception</td>
-          <td>WIS</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Performance</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Persuasion</td>
-          <td>CHA</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Religion</td>
-          <td>INT</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Sleight of Hand</td>
-          <td>DEX</td>
-        </tr>
-        <tr>
-          <th scope="row">&#10003;</th>
-          <td>Stealth</td>
-          <td>DEX</td>
-        </tr>
-        <tr>
-          <th scope="row"></th>
-          <td>Survival</td>
-          <td>WIS</td>
-        </tr>
+        {{/each}}
       </tbody>
     </table>
   </div>
+  <form hidden id="addItemForm" method="post" action="/characters/{{character.Id}}/items">
+    <input hidden name="choice" value='{"method":"PUT"}'> <input id="hiddenItemQuantity" hidden name="itemQuantity">
+    <input id="hiddenItemName" hidden name="itemName">
+  </form>
   <div class="items">
-    <ul class="itemUl">
-      <li class="item">Great-Axe</li>
-      <li class="item">Healing Potion</li>
-      <li class="item">Amulet</li>
-      <li class="item">Club</li>
-      <li class="item">Goggles of Night</li>
-      <li class="item">Ladder</li>
-      <li class="item">Jug</li>
-      <li class="item">Net</li>
-      <li class="item">Orb of Dragonkind</li>
-      <li class="item">Paper</li>
-    </ul>
+    <div class="text-center pos-relative" style="margin-top: .5rem;">
+      <h5 style="display:inline-block;" class="text-center">Items</h5><button id="deleteItemBtn"
+        style="position:absolute;right:-1rem;top:-.25rem;" class="no-border btn-elevated2 roll20 cellClass mr-25px"><img
+          class="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
+    </div>
+    <table class="table" id="itemTable">
+      <thead class="">
+        <tr class="">
+          <th class="w-40" scope="col">Name</th>
+          <th class="w-40" scope="col">Quantity</th>
+          <th class="w-20" scope="col">
+            <form method="post" action="/characters/items" id="itemForm">
+              <input name="choice" hidden value='{"method":"PUT"}'>
+              <input name="characterId" hidden value="{{character.Id}}">
+              <button class="btn-elevated2 no-border" type="button" id="itemBtn" data-bs-toggle="tooltip"
+                data-bs-placement="right" title="Click on the Image To Add an Item to your Character!">
+                <img id="itemImg" src="/images/icons/itemplus.png">
+              </button>
+            </form>
+          </th>
+        </tr>
+      </thead>
+
+      {{#with character}}
+      <tbody id="itemTBody" class="">
+        {{#each OwnedItems}}
+        <form id="deleteForm_Item_{{Name}}_{{Count}}" action="/characters/{{../Id}}/items" method="post" hidden>
+          <input hidden name="choice" value='{"method":"Delete"}'><input hidden name="itemName" value="{{Name}}">
+          <input hidden name="itemQuantity" value="-{{Count}}">
+        </form>
+        <tr class="">
+          <td class="capitalize cellClass w-40">{{Name}}</td>
+          <td class="cellClass colspanChange w-40" colspan="2">{{Count}}</td>
+          <td class="capitalize cellClass hiddenDeleteItem w-20">
+            <button class="no-border btn-elevated2 roll20 cellClass" type="submit"
+              form="deleteForm_Item_{{Name}}_{{Count}}" hidden>
+              <img class="d20Skill" src="/images/icons/trash.png" hidden>
+            </button>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
+
+
   <div class="savingthrows">
     <h5 class="text-center">Saving Throws</h5>
     <table class="table" id="savingThrowTable">
@@ -200,70 +233,173 @@
         </tr>
       </thead>
       <tbody>
+        {{#each AbilityScores}}
         <tr>
-          <th scope="row">Dice</th>
-          <td>Strength</td>
-          <td>+2</td>
+          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
+              data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
+          <td class="cellClass">{{AbilityName}}</td>
+          <td class="abilityScoreModifierTd cellClass">FE</td>
         </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Dexterity</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Constitution</td>
-          <td>-1</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Intelligence</td>
-          <td>+1</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Wisdom</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th scope="row">Dice</th>
-          <td>Charisma</td>
-          <td>+2</td>
-        </tr>
+        {{/each}}
       </tbody>
     </table>
   </div>
+  {{/with}}
+  {{#with character}}
+
   <div class="img">
-    <img class="characterImg" src="/images/icons/characters/elf_barbarian.png">
+    <img class="characterImg" src="/images/icons/characters/{{Race.Name}}_{{Class.Name}}.png">
   </div>
+
   <div class="spells">
-    <h5 class="text-center">Spells</h5>
+    <div class="text-center pos-relative" style="margin-top: .5rem;">
+      <h5 style="display:inline-block;" class="text-center">Spells</h5><button id="deleteSpellBtn"
+        style="position:absolute;right:-1rem;top:-.25rem;" class="no-border btn-elevated2 roll20 cellClass mr-25px"><img
+          class="hoverPlayImg" src="/images/icons/trashStatic.png"></button>
+    </div>
+
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Damage</th>
+          <th scope="col">Name</th>
+          <th scope="col">Level</th>
+          <th scope="col">
+            <form method="get" action="/spells/filter">
+              <button class="btn-elevated2 no-border" type="submit" data-bs-toggle="tooltip" data-bs-placement="right"
+                title="Click on the Image To Add a Spell to your Character!">
+                <input name="characterId" value="{{Id}}" hidden>
+                <img id="spellPlusImg" src="/images/icons/itemplus.png">
+              </button>
+            </form>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+
+        {{#each Spells}}
+        <form id="deleteForm_Spell_{{Id}}" action="/characters/spells/{{../Id}}" method="post" hidden><input hidden
+            name="choice" value='{"method":"Delete"}'><input hidden name="spellId" value="{{Id}}"></form>
+        <tr class="mh-35px spellRow">
+          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
+              data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
+          <td class="capitalize cellClass">{{Name}}</td>
+          <td class="checkCantrip cellClass">{{Level}}</td>
+          <td class="capitalize cellClass hiddenDeleteSpell">
+            <button class="no-border btn-elevated2 roll20 cellClass" type="submit" form="deleteForm_Spell_{{Id}}"
+              hidden>
+              <img class="d20Skill" src="/images/icons/trash.png" hidden>
+            </button>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
+
+
   <div class="hpValues myContainer">
     <div class="verticalCenter">
-      <h4 class="text-center textSizeBigger">19</h4>
+      <h4 class="text-center textSizeBigger">{{CurrentHp}}</h4>
       <hr id="hrhp">
-      <h4 class="text-center textSizeBigger">19</h4>
+      <h4 class="text-center textSizeBigger">{{MaxHp}}</h4>
     </div>
   </div>
-  <form class="hpform myContainer">
-    <button type="submit" id="btnAdd" class="plusIcon iconImg btnhp">
+  <form action="/characters/{{Id}}/hp" method="post" class="hpform myContainer" id="hitpointsForm">
+    <button type="button" id="btnAdd" class="plusIcon iconImg btnhp btn-elevated2">
       <img id="addHp" src="/images/icons/plus.png">
     </button>
-    <input placeholder="Custom Number" type="number" class="inputNumber">
-    <button id="btnRemove" type="submit" class="minusIcon iconImg btnhp">
+    <input name="choice" hidden value='{"method":"PUT"}'>
+    <input placeholder="Custom Number" name="hp" type="number" class="inputNumber" id="hpValueInput">
+    <button id="btnRemove" type="button" class="minusIcon iconImg btnhp btn-elevated2">
       <img id="removeHp" src="/images/icons/minus.png">
     </button>
   </form>
-  <div class="hp"></div>
 
   <div class="raceFeats">
     <h5 class="text-center">Race Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Race.Traits}}
+            <tr>
+              <td class="cellClass"><a class="lighterHoverA" href="/races/{{../Id}}">{{Name}}</a></td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
+
   <div class="classFeats">
     <h5 class="text-center">Class Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Class.Features}}
+            {{#ifCond Level '<=' ../Level}}<tr>
+              <td class="cellClass"><a class="lighterHoverA" href="/classes/{{../Id}}">{{Name}}</a></td>
+              </tr>{{/ifCond}}
+              {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
   <div class="backgroundFeats">
     <h5 class="text-center">Background Features</h5>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="table" id="savingThrowTable">
+          <thead>
+            <tr>
+              <th scope="col" class="tableHead">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each Background.Features}}
+            <tr>
+              <td class="cellClass"><a class="lighterHoverA" href="/backgrounds/{{../Id}}">{{Name}}</a></td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
+  {{/with}}
+
+  <div class="hp"></div>
+
 </div>
+<script src="/scripts/sheetButtons.js" defer></script>
+<script>
+  $(function ()
+  {
+    $(".hoverPlayImg").hover(
+      function ()
+      {
+        $(this).attr("src", "/images/icons/trash.gif");
+      },
+      function ()
+      {
+        $(this).attr("src", "/images/icons/trashStatic.png");
+      }
+    );
+  });
+</script>

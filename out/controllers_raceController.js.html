@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/raceController.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/raceController.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const express = require('express');
+const router = express.Router();
+const routeRoot = '/races';
+const raceModel = require('../models/raceModel');
+const hbs = require('express-handlebars').create();
+const logger = require('../logger');
+const {DatabaseError, InvalidInputError} = require('../models/errorModel')
+const userModel = require('../models/userModel');
+const classModel = require('../models/classModel');
+const url = require('url');
+
+let allClasses;
+
+hbs.handlebars.registerHelper('randomClass', () => {
+    return allClasses[Math.floor(Math.random() * allClasses.length)].Name;
+});
+
+/**
+ * Gets a url format to be used in a redirect.
+ * @param {String} pathname The path to redirect to
+ * @param {Object} queryObject The object to put in the query.
+ * @returns A url format to use in a redirect
+ */
+function getUrlFormat(pathname, queryObject)
+{
+    return url.format({ pathname: pathname, query: queryObject });
+}
+
+// Get all races
+async function showAllRaces(request, response){
+
+    try{
+
+        // On the first request, get all the classes
+        if(!allClasses)
+            allClasses = await classModel.getAllClasses();
+
+
+        // Check if the user is logged in
+        let username = null;
+        try{
+            const newSession = await userModel.refreshSession(request.cookies.sessionId);
+            response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
+            username = await userModel.getUsernameFromSessionId(newSession.sessionId);
+        }
+        catch(error){
+            // Not logged in
+            response.clearCookie('sessionId');
+        }
+
+        const allRaces = await raceModel.getAllRaces();
+        response.status(200).render('raceList.hbs', {races: allRaces, username: username, racesActive: true})
+    }
+    catch(error){
+        if (error instanceof DatabaseError){
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
+            logger.error(error);
+        }
+        else{
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
+            logger.error(error);
+        }
+    }
+}
+router.get('/', showAllRaces)
+
+// Focus on a specific race
+async function showSpecificRace(request, response){
+
+    try{
+
+        // Check if the user is logged in
+        let username = null;
+        try{
+            const newSession = await userModel.refreshSession(request.cookies.sessionId);
+            response.cookie("sessionId", newSession.sessionId, { expires: newSession.expiryDate });
+            username = await userModel.getUsernameFromSessionId(newSession.sessionId);
+        }
+        catch(error){
+            // Not logged in
+            response.clearCookie('sessionId');
+        }
+
+        const race = await raceModel.getRace(request.params.id);
+        response.status(200).render('raceFocus.hbs', {race: race, username: username, racesActive: true})
+    }
+    catch(error){
+        if (error instanceof DatabaseError){
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'An error occured getting the list of races. Please wait a moment and try again.', status: 500}));
+            logger.error(error);
+        }
+        else if (error instanceof InvalidInputError){
+            response.status(400);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'You tried to access an invalid race.', status: 400}));
+            logger.error(error);
+        }
+        else{
+            response.status(500);
+            response.redirect(getUrlFormat('/home', {homeActive: true, error: 'Something went wrong', status: 500}));
+            logger.error(error);
+        }
+    }
+}
+router.get('/:id', showSpecificRace)
+
+
+module.exports = {
+    router,
+    routeRoot
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DatabaseError.html">DatabaseError</a></li><li><a href="IncorrectPasswordError.html">IncorrectPasswordError</a></li><li><a href="InvalidInputError.html">InvalidInputError</a></li><li><a href="InvalidPasswordError.html">InvalidPasswordError</a></li><li><a href="InvalidSessionError.html">InvalidSessionError</a></li><li><a href="InvalidUsernameError.html">InvalidUsernameError</a></li><li><a href="UserAlreadyExistsError.html">UserAlreadyExistsError</a></li><li><a href="UserNotFoundError.html">UserNotFoundError</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addCharacter">addCharacter</a></li><li><a href="global.html#addCharacterObject">addCharacterObject</a></li><li><a href="global.html#addExperiencePoints">addExperiencePoints</a></li><li><a href="global.html#addExpertiseController">addExpertiseController</a></li><li><a href="global.html#addItem">addItem</a></li><li><a href="global.html#addKnownSpell">addKnownSpell</a></li><li><a href="global.html#addProficiencyController">addProficiencyController</a></li><li><a href="global.html#addRemoveHp">addRemoveHp</a></li><li><a href="global.html#addSavingThrowProficiency">addSavingThrowProficiency</a></li><li><a href="global.html#addSkillExpertise">addSkillExpertise</a></li><li><a href="global.html#addSkillProficiency">addSkillProficiency</a></li><li><a href="global.html#addSpell">addSpell</a></li><li><a href="global.html#addSpellFromValues">addSpellFromValues</a></li><li><a href="global.html#addSpellToCharacter">addSpellToCharacter</a></li><li><a href="global.html#addUser">addUser</a></li><li><a href="global.html#authenticateSession">authenticateSession</a></li><li><a href="global.html#authenticateUser">authenticateUser</a></li><li><a href="global.html#buildSheet">buildSheet</a></li><li><a href="global.html#capitalizeSpells">capitalizeSpells</a></li><li><a href="global.html#changeQuantityItem">changeQuantityItem</a></li><li><a href="global.html#checkAbility">checkAbility</a></li><li><a href="global.html#checkAbilityScores">checkAbilityScores</a></li><li><a href="global.html#checkBackground">checkBackground</a></li><li><a href="global.html#checkCharacterId">checkCharacterId</a></li><li><a href="global.html#checkClass">checkClass</a></li><li><a href="global.html#checkEthics">checkEthics</a></li><li><a href="global.html#checkLevel">checkLevel</a></li><li><a href="global.html#checkMaxHitPoints">checkMaxHitPoints</a></li><li><a href="global.html#checkMorality">checkMorality</a></li><li><a href="global.html#checkName">checkName</a></li><li><a href="global.html#checkRace">checkRace</a></li><li><a href="global.html#checkSavingThrowProficiencies">checkSavingThrowProficiencies</a></li><li><a href="global.html#checkSkillId">checkSkillId</a></li><li><a href="global.html#checkUserID">checkUserID</a></li><li><a href="global.html#closeConnection">closeConnection</a></li><li><a href="global.html#connection">connection</a></li><li><a href="global.html#createAbilityScoreTable">createAbilityScoreTable</a></li><li><a href="global.html#createAbilityTable">createAbilityTable</a></li><li><a href="global.html#createBackgroundFeatureTable">createBackgroundFeatureTable</a></li><li><a href="global.html#createBackgroundTable">createBackgroundTable</a></li><li><a href="global.html#createClassFeatureTable">createClassFeatureTable</a></li><li><a href="global.html#createClassTable">createClassTable</a></li><li><a href="global.html#createEthicsTable">createEthicsTable</a></li><li><a href="global.html#createKnownSpellTable">createKnownSpellTable</a></li><li><a href="global.html#createMoralityTable">createMoralityTable</a></li><li><a href="global.html#createOwnedItemTable">createOwnedItemTable</a></li><li><a href="global.html#createPlayerCharacterTable">createPlayerCharacterTable</a></li><li><a href="global.html#createRaceTable">createRaceTable</a></li><li><a href="global.html#createRacialTraitTable">createRacialTraitTable</a></li><li><a href="global.html#createRecentCharactersCookie">createRecentCharactersCookie</a></li><li><a href="global.html#createSavingThrowBonusTable">createSavingThrowBonusTable</a></li><li><a href="global.html#createSavingThrowProficiencyTable">createSavingThrowProficiencyTable</a></li><li><a href="global.html#createSession">createSession</a></li><li><a href="global.html#createSkillExpertiseTable">createSkillExpertiseTable</a></li><li><a href="global.html#createSkillProficiencyTable">createSkillProficiencyTable</a></li><li><a href="global.html#createSkillTable">createSkillTable</a></li><li><a href="global.html#createTables">createTables</a></li><li><a href="global.html#dateTimeToMySqlFormat">dateTimeToMySqlFormat</a></li><li><a href="global.html#deleteCharacter">deleteCharacter</a></li><li><a href="global.html#deleteExpiredSessions">deleteExpiredSessions</a></li><li><a href="global.html#deleteSpellFromCharacter">deleteSpellFromCharacter</a></li><li><a href="global.html#doesTableHaveContent">doesTableHaveContent</a></li><li><a href="global.html#dropReliantTables">dropReliantTables</a></li><li><a href="global.html#dropTables">dropTables</a></li><li><a href="global.html#editSpellWithId">editSpellWithId</a></li><li><a href="global.html#gateAccess">gateAccess</a></li><li><a href="global.html#getAbilityIdFromName">getAbilityIdFromName</a></li><li><a href="global.html#getAbilityScores">getAbilityScores</a></li><li><a href="global.html#getAddSpellForm">getAddSpellForm</a></li><li><a href="global.html#getAllAbilities">getAllAbilities</a></li><li><a href="global.html#getAllBackgrounds">getAllBackgrounds</a></li><li><a href="global.html#getAllClasses">getAllClasses</a></li><li><a href="global.html#getAllEthics">getAllEthics</a></li><li><a href="global.html#getAllMoralities">getAllMoralities</a></li><li><a href="global.html#getAllRaces">getAllRaces</a></li><li><a href="global.html#getAllSchoolIds">getAllSchoolIds</a></li><li><a href="global.html#getAllSchools">getAllSchools</a></li><li><a href="global.html#getAllSkills">getAllSkills</a></li><li><a href="global.html#getAllSpells">getAllSpells</a></li><li><a href="global.html#getAllUserCharacters">getAllUserCharacters</a></li><li><a href="global.html#getBackground">getBackground</a></li><li><a href="global.html#getCharacter">getCharacter</a></li><li><a href="global.html#getClass">getClass</a></li><li><a href="global.html#getClassesObjectListFromSpellId">getClassesObjectListFromSpellId</a></li><li><a href="global.html#getClassIdFromName">getClassIdFromName</a></li><li><a href="global.html#getConnection">getConnection</a></li><li><a href="global.html#getCookieObjectFromRequestAndUserId">getCookieObjectFromRequestAndUserId</a></li><li><a href="global.html#getNameInternal">getNameInternal</a></li><li><a href="global.html#getRace">getRace</a></li><li><a href="global.html#getRenderObject">getRenderObject</a></li><li><a href="global.html#getSavingThrowBonuses">getSavingThrowBonuses</a></li><li><a href="global.html#getSavingThrowProficiencies">getSavingThrowProficiencies</a></li><li><a href="global.html#getSchoolsFromJSON">getSchoolsFromJSON</a></li><li><a href="global.html#getSkillExpertise">getSkillExpertise</a></li><li><a href="global.html#getSkillProficiencies">getSkillProficiencies</a></li><li><a href="global.html#getSpellById">getSpellById</a></li><li><a href="global.html#getSpellsWithSpecifications">getSpellsWithSpecifications</a></li><li><a href="global.html#getUrlFormat">getUrlFormat</a></li><li><a href="global.html#getUrlFormatHelper">getUrlFormatHelper</a></li><li><a href="global.html#getUserCharacters">getUserCharacters</a></li><li><a href="global.html#getUserIdFromSessionId">getUserIdFromSessionId</a></li><li><a href="global.html#getUsernameFromSessionId">getUsernameFromSessionId</a></li><li><a href="global.html#handleInvalidEndpoint">handleInvalidEndpoint</a></li><li><a href="global.html#hashPassword">hashPassword</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#isCharValid">isCharValid</a></li><li><a href="global.html#levelUp">levelUp</a></li><li><a href="global.html#lightSwitch">lightSwitch</a></li><li><a href="global.html#loadDifferentPagePerLoginStatus">loadDifferentPagePerLoginStatus</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#mysql">mysql</a></li><li><a href="global.html#populateBackgroundAndFeaturesTable">populateBackgroundAndFeaturesTable</a></li><li><a href="global.html#populateClassAndClassFeatureTables">populateClassAndClassFeatureTables</a></li><li><a href="global.html#populateRaceAndRacialTraitTables">populateRaceAndRacialTraitTables</a></li><li><a href="global.html#populateSpellTable">populateSpellTable</a></li><li><a href="global.html#reduceArrayToString">reduceArrayToString</a></li><li><a href="global.html#refreshSession">refreshSession</a></li><li><a href="global.html#removeAllExpertiseAndProficiencies">removeAllExpertiseAndProficiencies</a></li><li><a href="global.html#removeCharacter">removeCharacter</a></li><li><a href="global.html#removeItem">removeItem</a></li><li><a href="global.html#removeKnownSpell">removeKnownSpell</a></li><li><a href="global.html#removeSavingThrowProficiency">removeSavingThrowProficiency</a></li><li><a href="global.html#removeSession">removeSession</a></li><li><a href="global.html#removeSkillExpertise">removeSkillExpertise</a></li><li><a href="global.html#removeSkillProficiency">removeSkillProficiency</a></li><li><a href="global.html#removeSpellById">removeSpellById</a></li><li><a href="global.html#sendCharacter">sendCharacter</a></li><li><a href="global.html#sendToAddSpellPage">sendToAddSpellPage</a></li><li><a href="global.html#sendToCreatePage">sendToCreatePage</a></li><li><a href="global.html#sendToUpdateController">sendToUpdateController</a></li><li><a href="global.html#setAbilityScores">setAbilityScores</a></li><li><a href="global.html#setSavingThrowBonus">setSavingThrowBonus</a></li><li><a href="global.html#showAllSpellsLoggedIn">showAllSpellsLoggedIn</a></li><li><a href="global.html#showAllSpellsLoggedOut">showAllSpellsLoggedOut</a></li><li><a href="global.html#showEditSpellPage">showEditSpellPage</a></li><li><a href="global.html#showFilteredSpells">showFilteredSpells</a></li><li><a href="global.html#showSpecificBackground">showSpecificBackground</a></li><li><a href="global.html#showSpecificClass">showSpecificClass</a></li><li><a href="global.html#showSpellWithId">showSpellWithId</a></li><li><a href="global.html#uniqueList">uniqueList</a></li><li><a href="global.html#updateAC">updateAC</a></li><li><a href="global.html#updateCharacter">updateCharacter</a></li><li><a href="global.html#updateExp">updateExp</a></li><li><a href="global.html#updateHitpoints">updateHitpoints</a></li><li><a href="global.html#updateInitiative">updateInitiative</a></li><li><a href="global.html#updateLevel">updateLevel</a></li><li><a href="global.html#updateSpeed">updateSpeed</a></li><li><a href="global.html#updateSpellById">updateSpellById</a></li><li><a href="global.html#validateBackgroundId">validateBackgroundId</a></li><li><a href="global.html#validateClassId">validateClassId</a></li><li><a href="global.html#validateClassIds">validateClassIds</a></li><li><a href="global.html#validateMaterials">validateMaterials</a></li><li><a href="global.html#validatePassword">validatePassword</a></li><li><a href="global.html#validateRaceId">validateRaceId</a></li><li><a href="global.html#validateSpell">validateSpell</a></li><li><a href="global.html#validateSpellComponentBool">validateSpellComponentBool</a></li><li><a href="global.html#validateSpellDamage">validateSpellDamage</a></li><li><a href="global.html#validateSpellGenericString">validateSpellGenericString</a></li><li><a href="global.html#validateSpellId">validateSpellId</a></li><li><a href="global.html#validateSpellLevel">validateSpellLevel</a></li><li><a href="global.html#validateSpellName">validateSpellName</a></li><li><a href="global.html#validateSpellSchool">validateSpellSchool</a></li><li><a href="global.html#validateUser">validateUser</a></li><li><a href="global.html#validateUsername">validateUsername</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu May 19 2022 22:20:10 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

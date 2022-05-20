@@ -4,10 +4,13 @@ const {engine} = require('express-handlebars');
 const bodyParser = require('body-parser');
 const expressListRoutes = require('express-list-routes');
 const cookieParser = require('cookie-parser');
+const characterController = require('./controllers/characterController')
 
 // Logger
 const logger = require('./logger');
 const pinohttp = require('pino-http');
+const userModel = require('./models/userModel');
+const { request } = require('express');
 const httpLogger = pinohttp({
     logger: logger
 });
@@ -16,7 +19,7 @@ app.use(cookieParser());
 
 
 app.use(express.json())
-const controllers = ['backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
+const controllers = ['themeController', 'classController', 'backgroundController', 'spellController', 'raceController', 'characterController', 'userController', 'sessionController', 'homeController', 'sourcesController', 'errorController'];
 
 
 // Tell the app to use handlebars templating engine.  
@@ -37,6 +40,32 @@ app.use((request, response, next) => {
     alterMethodWhenIndicatedByChoice(request, response, next);
 })
 
+app.use((request, response, next) => {addRecentCharactersCookie(request, response, next);} );
+
+async function addRecentCharactersCookie(request, response, next) {
+    try{
+        response.locals.recentCharacters = await characterController.getCookieObjectFromRequestAndUserId(request, 
+            await userModel.getUserIdFromSessionId(request.cookies.sessionId));
+    }
+    catch(error){
+        logger.info(`Unable to get recent characters for a user: ${error}`)
+    }
+    next();
+}
+
+app.use((request, response, next) => {lightTheme(request, response, next);} );
+
+async function lightTheme(request, response, next) {
+    try{
+        response.locals.lightTheme = JSON.parse(request.cookies.lightTheme);
+    }
+    catch(error){
+        logger.info(`Unable to get Theme: ${error}`)
+    }
+    next();
+}
+
+
 /**
  * Changes the method of an http request if the body contains a property called choice
  * with the following format. choice: '{"method": "METHOD_VALUE"}'
@@ -52,6 +81,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.action = choice.action;
         }
         catch(error){
             // Choice was not JSON
@@ -65,6 +96,8 @@ function alterMethodWhenIndicatedByChoice (request, response, next){
             
             if(choice.method)
                 request.method = choice.method;
+            if(choice.action)
+                request.url = choice.action;
         }
         catch(error){
             // Choice was not JSON
