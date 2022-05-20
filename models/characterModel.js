@@ -59,6 +59,8 @@ async function initialize(databaseNameTmp, reset)
     await createPlayerCharacterTable();
     await createKnownSpellTable();
     await createOwnedItemTable();
+    valUtils.setConnection(connection);
+    
 
 
     await characterStatsModel.createTables();

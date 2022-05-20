@@ -18,6 +18,13 @@ class ValidationError extends errors.InvalidInputError
     }
 }
 
+/**
+ * Sets the connection of this model.
+ * @param {Object} foreignConnection The connection to be assigned to this model's connection.
+ */
+async function setConnection(foreignConnection){
+    connection = foreignConnection;
+}
 
 /**
  * Validates a Character against a set of restrictions that are set in place.
@@ -500,5 +507,6 @@ module.exports = {
     checkCharacterId,
     checkSkillId,
     checkAbility,
-    checkAbilityScores
+    checkAbilityScores,
+    setConnection
 };

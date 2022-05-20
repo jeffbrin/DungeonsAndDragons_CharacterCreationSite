@@ -21,7 +21,7 @@ startup()
     {
         console.error(error.message);
         logger.error(error);
-    });
+});
 
 
 async function startup()
