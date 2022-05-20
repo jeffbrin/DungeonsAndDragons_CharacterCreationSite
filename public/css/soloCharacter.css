@@ -747,6 +747,16 @@ html {
     padding-bottom: 1rem;
 }
 
+.btn-elevated2 {
+    padding: 10px;
+    border: none;
+    box-shadow: 2px 3px 3px #000;
+}
+
+.mr-25px {
+    margin-right: 25px !important;
+}
+
 @media only screen and (max-width: 1300px) {
     .fs-2rem {
         font-size: 1rem;
