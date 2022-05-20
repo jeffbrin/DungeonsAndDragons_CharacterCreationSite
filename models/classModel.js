@@ -10,6 +10,7 @@ let connection;
  * Initializes the passed database with the Spell and SpellSchool tables.
  * @param {String} databaseName the name of the database to write to.
  * @param {Boolean} reset indicates whether the new table should be reset.
+ * @throws {DatabaseError} Thrown is there is an issue initializing.
  */
 async function initialize(databaseName, reset) {
 
