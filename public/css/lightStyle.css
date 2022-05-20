@@ -14,6 +14,14 @@
     --popColorHover: #3E505B;
 }
 
+.classImage{
+  background-color: white !important;
+}
+
+form.bg-dark{
+  background-color: transparent !important;
+}
+
 body {
 
     background-color: var(--backgroundColor);
