@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/characterStatisticsModel.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/characterStatisticsModel.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/*
+* Model written by Jeffrey
+*/
+
+const mysql = require('mysql2/promise')
+const validationModel = require('./validateCharacterAndStatistics')
+const logger = require('../logger');
+const fs = require('fs/promises');
+const { InvalidInputError, DatabaseError } = require('./errorModel');
+
+
+let connection;
+/**
+ * Initializes the passed database by creating a connection. 
+ * Doesn't create the tables since there are foreign keys that rely on the characterModel.
+ * @param {String} databaseName the name of the database to write to.
+ * @throws {DatabaseError} Thrown when the connection fails to be made.
+ */
+async function initialize(databaseName) {
+
+    try {
+        connection = await mysql.createConnection({
+            host: 'localhost',
+            user: 'root',
+            port: '10000',
+            password: 'pass',
+            database: databaseName
+        });
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'initialize', `Failed to connect to the dnd database in the docker container. Make sure the docker container is running: ${error.message}`);
+    }
+
+}
+
+/**
+ * Checks whether a table contains any content.
+ * @param {String} tableName The name of the table to check.
+ * @returns True if the table contains any records, false if it's empty.
+ * @throws {DatabaseError} Thrown if the connection is invalid or if the table name does not exist.
+ */
+async function doesTableHaveContent(tableName) {
+    try {
+        [rows, columnData] = await connection.query(`SELECT * FROM ${tableName}`);
+        return rows.length > 0;
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'doesTableHaveContent', `Failed to query rows from the ${tableName} table: ${error}`);
+    }
+}
+
+/**
+ * Gets the id of a given ability from the database. 
+ * The name should have a capitalized first letter.
+ * @param {String} name The name of the ability to get the id of.
+ * @returns The id of the given race.
+ * @throws {DatabaseError} Thrown when the query failed. Common cause is an ability name not in the table or an undefined connection.
+ */
+async function getAbilityIdFromName(name) {
+    try {
+        [rows, columns] = await connection.query(`SELECT Id FROM Ability WHERE Name = '${name}'`);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the requested ability from the database. Likely caused by an undefined connection: ${error}`)
+    }
+
+    // If the name wasn't found
+    if (rows.length == 0) {
+        throw new InvalidInputError('characterStatisticsModel', 'getAbilityIdFromName', `Failed to get the id of the ${name} ability because it was not found in the database.`);
+    }
+
+    return rows[0].Id;
+}
+
+/**
+ * Creates and populates the ability table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createAbilityTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS Ability(Id INT, Name TEXT, PRIMARY KEY(Id));";
+
+    try {
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createAbilityTable', `Failed to create the ability table, likely due to an undefined connection: ${error}`)
+    }
+
+    // Add the values if none are present
+    if (!await (doesTableHaveContent('Ability'))) {
+
+        // Read the abilities from the json
+        let abilities;
+        try {
+            abilities = JSON.parse(await fs.readFile('database-content-json/abilities.json'));
+        }
+        catch (error) {
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to read from the abilities json file: ${error}`);
+        }
+
+        try {
+            // Add each ability to the table
+            for (let i = 1; i &lt;= abilities.length; i++) {
+                await connection.execute(`INSERT INTO Ability (Id, Name) values (${i}, '${abilities[i - 1]}');`);
+            }
+        } catch (error) {
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
+        }
+    }
+}
+
+/**
+ * Creates and populates the skill table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createSkillTable() {
+    const createTableCommand = `CREATE TABLE IF NOT EXISTS Skill(Id INT, AbilityId INT, Name TEXT, PRIMARY KEY(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id));`;
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", "createSkillTable", `Failed to create the ability table, likely due to an undefined connection: ${error}`)
+    }
+
+    // Add the values if none are present
+    if (!await (doesTableHaveContent('Skill'))) {
+
+        // Read the abilities from the json
+        let skills;
+        try {
+            skills = JSON.parse(await fs.readFile('database-content-json/skills.json'));
+        }
+        catch (error) {
+            throw new DatabaseError('characterStatisticsModel', 'createSkillTable', `Failed to read from the skills json file: ${error}`);
+        }
+
+        try {
+            // Add each ability to the table
+            for (let i = 1; i &lt;= skills.length; i++) {
+                await connection.execute(`INSERT INTO Skill (Id, AbilityId, Name) values (${i}, ${await getAbilityIdFromName(skills[i - 1].Ability)}, '${skills[i - 1].Name}');`);
+            }
+        } catch (error) {
+            throw new DatabaseError('characterStatisticsModel', 'createAbilityTable', `Failed to insert the abilities into the database: ${error}`);
+        }
+    }
+}
+
+/**
+ * Creates the saving throw proficiency table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createSavingThrowProficiencyTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowProficiency(CharacterId INT, AbilityId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY (CharacterId, AbilityId));";
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createSavingThrowProficiencyTable', `Failed to create the saving throw proficiency table, likely due to an undefined connection: ${error}`)
+    }
+}
+
+/**
+ * Creates the skill proficiency table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createSkillProficiencyTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillProficiency(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createSkillProficiencyTable', `Failed to create the skill proficiency table, likely due to an undefined connection: ${error}`)
+    }
+}
+
+/**
+ * Creates the skill expertise table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createSkillExpertiseTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SkillExpertise(CharacterId INT, SkillId INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (SkillId) REFERENCES Skill(Id), PRIMARY KEY (CharacterId, SkillId));";
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createSkillExpertiseTable', `Failed to create the skill expertise table, likely due to an undefined connection: ${error}`)
+    }
+}
+
+/**
+ * Creates the saving throw bonus table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createSavingThrowBonusTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS SavingThrowBonus(CharacterId INT, AbilityId INT, Bonus INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createSavingThrowBonusTable', `Failed to create the saving throw bonus table, likely due to an undefined connection: ${error}`)
+    }
+}
+
+/**
+ * Creates the ability score table.
+ * @throws {DatabaseError} Thrown when the table failed to be made usually due to an undefined connection.
+ */
+async function createAbilityScoreTable() {
+    const createTableCommand = "CREATE TABLE IF NOT EXISTS AbilityScore(CharacterId INT, AbilityId INT, Score INT, FOREIGN KEY (CharacterId) REFERENCES PlayerCharacter(Id), FOREIGN KEY (AbilityId) REFERENCES Ability(Id), PRIMARY KEY(AbilityId, CharacterId));";
+
+    try {
+        // Create the table
+        await connection.execute(createTableCommand);
+    }
+    catch (error) {
+        throw new DatabaseError("characterStatisticsModel", 'createAbilityScoreTable', `Failed to create the ability score table, likely due to an undefined connection: ${error}`)
+    }
+
+}
+
+/**
+ * Drops the tables that need to be dropped before the character model's tables are dropped.
+ * @param {Object} connection A connection to the dnd database.
+ * @throws {DatabaseError} Thrown usually when the connection is closed or invalid.
+ */
+async function dropTables() {
+    const dropAS = "DROP TABLE IF EXISTS AbilityScore;";
+    const dropSkill = "DROP TABLE IF EXISTS Skill;";
+    const dropSTP = "DROP TABLE IF EXISTS SavingThrowProficiency;";
+    const dropSkillP = "DROP TABLE IF EXISTS SkillProficiency;";
+    const dropSE = "DROP TABLE IF EXISTS SkillExpertise;";
+    const dropSTB = "DROP TABLE IF EXISTS SavingThrowBonus;";
+    const dropA = "DROP TABLE IF EXISTS Ability;";
+
+    try {
+        await connection.execute(dropAS);
+        await connection.execute(dropSTB);
+        await connection.execute(dropSE);
+        await connection.execute(dropSkillP);
+        await connection.execute(dropSTP);
+        await connection.execute(dropSkill);
+        await connection.execute(dropA);
+
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'dropTables', `Failed to drop the statistics table from the database: ${error}`);
+    }
+
+}
+
+/**
+ * Creates all the tables that have to do with player statistics and abilities.
+ * @throws {DatabaseError} Thrown when a table failed to be made usually due to an undefined connection.
+ */
+async function createTables() {
+    await createAbilityTable();
+    await createSkillTable();
+    await createSavingThrowProficiencyTable();
+    await createSkillProficiencyTable();
+    await createSkillExpertiseTable();
+    await createSavingThrowBonusTable();
+    await createAbilityScoreTable();
+}
+
+/**
+ * Sets the ability scores for a character.
+ * CharacterId must be an integer which exists in the PlayerCharacter table.
+ * Ability Scores must be an array with 6 integers.
+ * @param {Number} characterId The id of the character to set the ability scores for.
+ * @param {Array} abilityScores The ability scores of the character.
+ * @throws {DatabaseError} Thrown when the connection is undefined.
+ * @throws {InvalidInputError} Thrown when the ability scores array doesn't contain 6 integers or when the character id is invalid.
+ */
+async function setAbilityScores(characterId, abilityScores) {
+
+
+    // Validate the ability scores
+    await validationModel.checkAbilityScores(abilityScores);
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    // Delete existing ability scores
+    try {
+        await connection.execute(`DELETE FROM AbilityScore WHERE CharacterId = ${characterId};`);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to delete the existing ability scores from the database for the character with id ${characterId}: ${error}`);
+    }
+
+    // Add each ability score
+    try {
+        for (let i = 1; i &lt;= abilityScores.length; i++) {
+            await connection.execute(`INSERT INTO AbilityScore (CharacterId, AbilityId, Score) values (${characterId}, ${i}, ${abilityScores[i - 1]});`);
+        }
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'setAbilityScores', `Failed to add the ability scores for character ${characterId}: ${error}`);
+    }
+
+}
+
+/**
+ * Adds a skill proficiency for a specific character. If the character already has expertise in said skill, the expertise should be deleted.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Skill id must be an integer which exists as an id in the Skill table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} skillId The id of the skill which the character is an expert in.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database. 
+ */
+async function addSkillProficiency(characterId, skillId) {
+
+    // Validate the skill id
+    await validationModel.checkSkillId(skillId);
+
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+    // Drop existing expertise and proficiency in this skill
+    try {
+        await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
+        await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
+    } catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'addSkillProficiency', `Failed to delete existing expertise and proficiency for the character with id ${characterId} in the skill with id ${skillId}: ${error}}`);
+    }
+
+    // Add the new proficiency in this skill.
+    try {
+        await connection.execute(`INSERT INTO SkillProficiency (CharacterId, SkillId) values (${characterId}, ${skillId});`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'addSkillProficiency', `Failed to add make the character with id ${characterId} proficient in the skill with id ${skillId}: ${error}`);
+    }
+
+}
+
+/**
+ * Adds a skill expertise for a specific character. If the character is already proficient in said skill, the proficiency should be deleted.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Skill id must be an integer which exists as an id in the Skill table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} skillId The id of the skill which the character is proficient in.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
+ */
+async function addSkillExpertise(characterId, skillId) {
+
+    // Validate the skill id
+    await validationModel.checkSkillId(skillId);
+
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    // Drop existing expertise and proficiency in this skill
+    try {
+        await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
+        await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId};`);
+    } catch (error) {
+        throw new InvalidInputError('characterStatisticsModel', 'addSkillExpertise', `Failed to delete existing expertise and proficiency for the character with id ${characterId} in the skill with id ${skillId}: ${error}}`);
+    }
+
+    // Add the new proficiency in this skill.
+    try {
+        await connection.execute(`INSERT INTO SkillExpertise (CharacterId, SkillId) values (${characterId}, ${skillId});`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'addSkillExpertise', `Failed to add make the character with id ${characterId} proficient in the skill with id ${skillId}: ${error}`);
+    }
+}
+
+/**
+ * Adds a saving throw bonus for a specific character on a saving throw.
+ * Character Id must be an integer which exists as an id in the PlayerCharacter table.
+ * Ability id must be an integer which exists as an id in the Ability table.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} abilityId  The abilityId linked to the saving throw.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database.
+ */
+async function addSavingThrowProficiency(characterId, abilityId) {
+
+    // Validate the ability id
+    await validationModel.checkAbility(abilityId);
+
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    // Drop existing proficiency in this saving throw
+    try {
+        await connection.execute(`DELETE FROM SavingThrowProficiency WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId};`);
+    } catch (error) {
+        throw new InvalidInputError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to delete existing proficiency for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}}`);
+    }
+
+    // Add the new proficiency in this ability.
+    try {
+        await connection.execute(`INSERT INTO SavingThrowProficiency (CharacterId, AbilityId) values (${characterId}, ${abilityId});`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to add make the character with id ${characterId} proficient in the saving throw with ability id ${abilityId}: ${error}`);
+    }
+}
+
+/**
+ * Sets a bonus for a character in a specific saving throw.
+ * Character id must be an integer which exists as an id in the PlayerCharacter table.
+ * Ability id must be an integer which exists in the Ability table.
+ * Bonus must be an integer.
+ * If Bonus is 0, this character's saving throw bonus is deleted since that is functionally the same as setting it to 0.
+ * @param {Number} characterId The id of a character.
+ * @param {Number} abilityId The ability id linked to the saving throw.
+ * @param {Number} bonus The bonus for this saving throw.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ * @throws {InvalidInputError} Thrown when the characterId or skillId was invalid or not found in the database, or when the bonus is not an integer. 
+ */
+async function setSavingThrowBonus(characterId, abilityId, bonus) {
+
+    // Validate the ability id
+    await validationModel.checkAbility(abilityId);
+
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    // Remove the existing bonus from the character in this saving throw
+    try {
+        await connection.execute(`DELETE FROM SavingThrowBonus WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId};`);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to delete the existing bonus for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}`);
+    }
+
+    // Add the new bonus if bonus isn't 0
+    if (bonus != 0) {
+        try {
+            await connection.execute(`INSERT INTO SavingThrowBonus (CharacterId, AbilityId, Bonus) values (${characterId}, ${abilityId}, ${bonus});`);
+        }
+        catch (error) {
+            throw new DatabaseError('characterStatisticsModel', 'addSavingThrowProficiency', `Failed to add the bonus for the character with id ${characterId} in the saving throw with ability id ${abilityId}: ${error}`);
+        }
+    }
+}
+
+/**
+ * Gets a list of all the abilities in the database.
+ * Abilities are returned in the following format - {Name: "", Id: #}
+ * @returns An array of containing all the abilities in the database.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ */
+async function getAllAbilities() {
+    try {
+        [abilities, columns] = await connection.query('SELECT Name, Id FROM Ability;');
+        return abilities;
+    } catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getAllAbilities', `Failed to get the list of abilities from the database: ${error}`);
+    }
+}
+
+/**
+ * Gets a list of all the skills in the database.
+ * Skills are returned in the following format - {Name: "", Id: #, Ability: {Id: #, Name: ""}} 
+ * where AbilityId is the id linked with the skill
+ * @returns An array containing all the skills in the database with their corresponding ability.
+ * @throws {DatabaseError} Thrown when the database connection is undefined.
+ */
+async function getAllSkills() {
+    try {
+        [skills, columns] = await connection.query('SELECT S.Name, S.Id, A.Name as AbilityName, A.Id as AbilityId FROM Ability A, Skill S WHERE A.Id = S.AbilityId ORDER BY Name ASC;');
+        skills = skills.map(skill => {
+            skill.Ability = { Id: skill.AbilityId, Name: skill.AbilityName };
+            delete skill.AbilityId;
+            delete skill.AbilityName;
+            return skill;
+        });
+
+        return skills;
+    } catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getAllSkills', `Failed to get the list of skills from the database: ${error}`);
+    }
+}
+
+/**
+ * Closes the connection to the database.
+ */
+async function closeConnection() {
+    try {
+        if (connection)
+            connection.end();
+    }
+    catch (error) {
+        logger.error(error);
+    }
+}
+
+/**
+ * Gets the skill proficiencies for a specific character.
+ * @param {Integer} characterId The id of the character to get the skill proficiencies of.
+ * @returns A list of skill ids representing the skills the character is proficient in.
+ * @throws {InvalidInputError} Thrown when the characterId is invalid.
+ * @throws {DatabaseError} Thrown when the function failed to query from the database.
+ */
+async function getSkillProficiencies(characterId) {
+
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    let skillIdObjects;
+    try {
+        [skillIdObjects, columns] = await connection.query(`SELECT SkillId FROM SkillProficiency WHERE CharacterId = ${characterId}`);
+        return skillIdObjects.map(x => x.SkillId);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getSkillProficiencies', `Failed to get the skill proficiency ids from the database: ${error}`);
+    }
+
+}
+
+/**
+ * Gets the skill expertise for a specific character.
+ * @param {Integer} characterId The id of the character to get the skill expertise of.
+ * @returns A list of skill ids representing the skills the character has expertise in.
+ * @throws {InvalidInputError} Thrown when the characterId is invalid.
+ * @throws {DatabaseError} Thrown when the function failed to query from the database.
+ */
+async function getSkillExpertise(characterId) {
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    let skillIdObjects;
+    try {
+        [skillIdObjects, columns] = await connection.query(`SELECT SkillId FROM SkillExpertise WHERE CharacterId = ${characterId}`);
+        return skillIdObjects.map(x => x.SkillId);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getSkillExpertise', `Failed to get the skill expertise ids from the database: ${error}`);
+    }
+}
+
+/**
+ * Gets the saving throw proficiencies for a specific character.
+ * @param {Integer} characterId The id of a character to get the proficiencies of.
+ * @returns A list of integers representing the ids of the abilities linked with the saving throws the character is proficient in.
+ * @throws {InvalidInputError} Thrown when the characterId is invalid.
+ * @throws {DatabaseError} Thrown when the function failed to query from the database.
+ */
+async function getSavingThrowProficiencies(characterId) {
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    let savingThrowIdObjects;
+    try {
+        [savingThrowIdObjects, columns] = await connection.query(`SELECT AbilityId FROM SavingThrowProficiency WHERE CharacterId = ${characterId}`);
+        return savingThrowIdObjects.map(x => x.AbilityId);
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getSavingThrowProficiencies', `Failed to get the saving throw proficiency ids from the database: ${error}`);
+    }
+}
+
+/**
+ * Gets the saving throw bonuses for a specific character.
+ * @param {Integer} characterId The id of a character to get the bonuses of.
+ * @returns A list of objects, each containing a saving throw id and the player's bonus in that saving throw - {Id: #AbilityId, Bonus: #}
+ * @throws {InvalidInputError} Thrown when the characterId is invalid.
+ * @throws {DatabaseError} Thrown when the function failed to query from the database.
+ */
+async function getSavingThrowBonuses(characterId) {
+    // Validate the character id
+    await validationModel.checkCharacterId(characterId);
+
+
+    let savingThrowBonusObjects;
+    try {
+        [savingThrowBonusObjects, columns] = await connection.query(`SELECT AbilityId, Bonus FROM SavingThrowBonus WHERE CharacterId = ${characterId}`);
+        return savingThrowBonusObjects;
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getSavingThrowBonuses', `Failed to get the saving throw bonuses from the database: ${error}`);
+    }
+
+}
+
+/**
+ * Gets all the ability scores of a character.
+ * @param {Integer} characterId The id of a character.
+ * @returns An object containing tha character's ability scores {Score: #, AbilityId: #, AbilityName: "..."}
+ * @throws {InvalidInputError} Thrown when the characterId is invalid.
+ * @throws {DatabaseError} Thrown when the function failed to query from the database.
+ */
+async function getAbilityScores(characterId) {
+    // Validate the character id
+    try {
+        await validationModel.checkCharacterId(characterId);
+    }
+    catch (error) {
+        throw new InvalidInputError('characterStatisticsModel', 'getSavingThrowBonuses', error.message);
+    }
+
+    let abilityScores;
+    try {
+        [abilityScores, columns] = await connection.query(`SELECT Score, AbilityId, Name as AbilityName FROM AbilityScore, Ability A WHERE AbilityId = Id AND CharacterId = ${characterId};`);
+        return abilityScores;
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'getAbilityScores', `Failed to get the ability scores from the database: ${error}`);
+    }
+}
+
+/**
+ * Removes a skill proficiency from a character
+ * @param {Integer} characterId The id of a character.
+ * @param {Integer} skillId The id of a skill. 
+ * @throws {InvalidInputError} Thrown when the character or skill id is invalid.
+ * @throws {DatabaseError} Thrown when the function fails to execute on the database.
+ */
+async function removeSkillProficiency(characterId, skillId) {
+
+    // Validate character id
+    await validationModel.checkCharacterId(characterId);
+
+    // Validate skill id
+    await validationModel.checkSkillId(skillId);
+
+    try {
+        await connection.execute(`DELETE FROM SkillProficiency WHERE CharacterId = ${characterId} AND SkillId = ${skillId}`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'removeSkillProficiency', `Failed to delete a skill proficiency in the skill ${skillId} for character ${characterId}: ${error}`);
+    }
+}
+
+/**
+ * Removes a skill expertise from a character
+ * @param {Integer} characterId The id of a character.
+ * @param {Integer} skillId The id of a skill. 
+ * @throws {InvalidInputError} Thrown when the character or skill id is invalid.
+ * @throws {DatabaseError} Thrown when the function fails to execute on the database.
+ */
+async function removeSkillExpertise(characterId, skillId) {
+
+    // Validate character id
+    await validationModel.checkCharacterId(characterId);
+
+    // Validate skill id
+    await validationModel.checkSkillId(skillId);
+
+    try {
+        await connection.execute(`DELETE FROM SkillExpertise WHERE CharacterId = ${characterId} AND SkillId = ${skillId}`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'removeSkillExpertise', `Failed to delete a skill expertise in the skill ${skillId} for character ${characterId}: ${error}`);
+    }
+}
+
+/**
+ * Removes a saving throw proficiency from a character
+ * @param {Integer} characterId The id of a character.
+ * @param {Integer} skillId The id of a skill. 
+ * @throws {InvalidInputError} Thrown when the character or ability id is invalid.
+ * @throws {DatabaseError} Thrown when the function fails to execute on the database.
+ */
+async function removeSavingThrowProficiency(characterId, abilityId) {
+
+    // Validate character id
+    await validationModel.checkCharacterId(characterId);
+
+    // Validate skill id
+    await validationModel.checkAbility(abilityId);
+
+    try {
+        await connection.execute(`DELETE FROM SavingThrowProficiency WHERE CharacterId = ${characterId} AND AbilityId = ${abilityId}`)
+    }
+    catch (error) {
+        throw new DatabaseError('characterStatisticsModel', 'removeSavingThrowProficiency', `Failed to delete a saving throw proficiency in the skill ${skillId} for character ${characterId}: ${error}`);
+    }
+}
+
+
+module.exports = {
+    initialize,
+    closeConnection,
+    dropTables,
+    createTables,
+    setAbilityScores,
+    addSkillProficiency,
+    addSkillExpertise,
+    addSavingThrowProficiency,
+    setSavingThrowBonus,
+    getAllAbilities,
+    getAllSkills,
+    getSkillProficiencies,
+    getSavingThrowBonuses,
+    getSavingThrowProficiencies,
+    getSkillExpertise,
+    getAbilityScores,
+    removeSkillProficiency,
+    removeSkillExpertise,
+    removeSavingThrowProficiency
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DatabaseError.html">DatabaseError</a></li><li><a href="IncorrectPasswordError.html">IncorrectPasswordError</a></li><li><a href="InvalidInputError.html">InvalidInputError</a></li><li><a href="InvalidPasswordError.html">InvalidPasswordError</a></li><li><a href="InvalidSessionError.html">InvalidSessionError</a></li><li><a href="InvalidUsernameError.html">InvalidUsernameError</a></li><li><a href="UserAlreadyExistsError.html">UserAlreadyExistsError</a></li><li><a href="UserNotFoundError.html">UserNotFoundError</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addCharacter">addCharacter</a></li><li><a href="global.html#addCharacterObject">addCharacterObject</a></li><li><a href="global.html#addExperiencePoints">addExperiencePoints</a></li><li><a href="global.html#addExpertiseController">addExpertiseController</a></li><li><a href="global.html#addItem">addItem</a></li><li><a href="global.html#addKnownSpell">addKnownSpell</a></li><li><a href="global.html#addProficiencyController">addProficiencyController</a></li><li><a href="global.html#addRemoveHp">addRemoveHp</a></li><li><a href="global.html#addSavingThrowProficiency">addSavingThrowProficiency</a></li><li><a href="global.html#addSkillExpertise">addSkillExpertise</a></li><li><a href="global.html#addSkillProficiency">addSkillProficiency</a></li><li><a href="global.html#addSpell">addSpell</a></li><li><a href="global.html#addSpellFromValues">addSpellFromValues</a></li><li><a href="global.html#addSpellToCharacter">addSpellToCharacter</a></li><li><a href="global.html#addUser">addUser</a></li><li><a href="global.html#authenticateSession">authenticateSession</a></li><li><a href="global.html#authenticateUser">authenticateUser</a></li><li><a href="global.html#buildSheet">buildSheet</a></li><li><a href="global.html#capitalizeSpells">capitalizeSpells</a></li><li><a href="global.html#changeQuantityItem">changeQuantityItem</a></li><li><a href="global.html#checkAbility">checkAbility</a></li><li><a href="global.html#checkAbilityScores">checkAbilityScores</a></li><li><a href="global.html#checkBackground">checkBackground</a></li><li><a href="global.html#checkCharacterId">checkCharacterId</a></li><li><a href="global.html#checkClass">checkClass</a></li><li><a href="global.html#checkEthics">checkEthics</a></li><li><a href="global.html#checkLevel">checkLevel</a></li><li><a href="global.html#checkMaxHitPoints">checkMaxHitPoints</a></li><li><a href="global.html#checkMorality">checkMorality</a></li><li><a href="global.html#checkName">checkName</a></li><li><a href="global.html#checkRace">checkRace</a></li><li><a href="global.html#checkSavingThrowProficiencies">checkSavingThrowProficiencies</a></li><li><a href="global.html#checkSkillId">checkSkillId</a></li><li><a href="global.html#checkUserID">checkUserID</a></li><li><a href="global.html#closeConnection">closeConnection</a></li><li><a href="global.html#connection">connection</a></li><li><a href="global.html#createAbilityScoreTable">createAbilityScoreTable</a></li><li><a href="global.html#createAbilityTable">createAbilityTable</a></li><li><a href="global.html#createBackgroundFeatureTable">createBackgroundFeatureTable</a></li><li><a href="global.html#createBackgroundTable">createBackgroundTable</a></li><li><a href="global.html#createClassFeatureTable">createClassFeatureTable</a></li><li><a href="global.html#createClassTable">createClassTable</a></li><li><a href="global.html#createEthicsTable">createEthicsTable</a></li><li><a href="global.html#createKnownSpellTable">createKnownSpellTable</a></li><li><a href="global.html#createMoralityTable">createMoralityTable</a></li><li><a href="global.html#createOwnedItemTable">createOwnedItemTable</a></li><li><a href="global.html#createPlayerCharacterTable">createPlayerCharacterTable</a></li><li><a href="global.html#createRaceTable">createRaceTable</a></li><li><a href="global.html#createRacialTraitTable">createRacialTraitTable</a></li><li><a href="global.html#createRecentCharactersCookie">createRecentCharactersCookie</a></li><li><a href="global.html#createSavingThrowBonusTable">createSavingThrowBonusTable</a></li><li><a href="global.html#createSavingThrowProficiencyTable">createSavingThrowProficiencyTable</a></li><li><a href="global.html#createSession">createSession</a></li><li><a href="global.html#createSkillExpertiseTable">createSkillExpertiseTable</a></li><li><a href="global.html#createSkillProficiencyTable">createSkillProficiencyTable</a></li><li><a href="global.html#createSkillTable">createSkillTable</a></li><li><a href="global.html#createTables">createTables</a></li><li><a href="global.html#dateTimeToMySqlFormat">dateTimeToMySqlFormat</a></li><li><a href="global.html#deleteCharacter">deleteCharacter</a></li><li><a href="global.html#deleteExpiredSessions">deleteExpiredSessions</a></li><li><a href="global.html#deleteSpellFromCharacter">deleteSpellFromCharacter</a></li><li><a href="global.html#doesTableHaveContent">doesTableHaveContent</a></li><li><a href="global.html#dropReliantTables">dropReliantTables</a></li><li><a href="global.html#dropTables">dropTables</a></li><li><a href="global.html#editSpellWithId">editSpellWithId</a></li><li><a href="global.html#gateAccess">gateAccess</a></li><li><a href="global.html#getAbilityIdFromName">getAbilityIdFromName</a></li><li><a href="global.html#getAbilityScores">getAbilityScores</a></li><li><a href="global.html#getAddSpellForm">getAddSpellForm</a></li><li><a href="global.html#getAllAbilities">getAllAbilities</a></li><li><a href="global.html#getAllBackgrounds">getAllBackgrounds</a></li><li><a href="global.html#getAllClasses">getAllClasses</a></li><li><a href="global.html#getAllEthics">getAllEthics</a></li><li><a href="global.html#getAllMoralities">getAllMoralities</a></li><li><a href="global.html#getAllRaces">getAllRaces</a></li><li><a href="global.html#getAllSchoolIds">getAllSchoolIds</a></li><li><a href="global.html#getAllSchools">getAllSchools</a></li><li><a href="global.html#getAllSkills">getAllSkills</a></li><li><a href="global.html#getAllSpells">getAllSpells</a></li><li><a href="global.html#getAllUserCharacters">getAllUserCharacters</a></li><li><a href="global.html#getBackground">getBackground</a></li><li><a href="global.html#getCharacter">getCharacter</a></li><li><a href="global.html#getClass">getClass</a></li><li><a href="global.html#getClassesObjectListFromSpellId">getClassesObjectListFromSpellId</a></li><li><a href="global.html#getClassIdFromName">getClassIdFromName</a></li><li><a href="global.html#getConnection">getConnection</a></li><li><a href="global.html#getCookieObjectFromRequestAndUserId">getCookieObjectFromRequestAndUserId</a></li><li><a href="global.html#getNameInternal">getNameInternal</a></li><li><a href="global.html#getRace">getRace</a></li><li><a href="global.html#getRenderObject">getRenderObject</a></li><li><a href="global.html#getSavingThrowBonuses">getSavingThrowBonuses</a></li><li><a href="global.html#getSavingThrowProficiencies">getSavingThrowProficiencies</a></li><li><a href="global.html#getSchoolsFromJSON">getSchoolsFromJSON</a></li><li><a href="global.html#getSkillExpertise">getSkillExpertise</a></li><li><a href="global.html#getSkillProficiencies">getSkillProficiencies</a></li><li><a href="global.html#getSpellById">getSpellById</a></li><li><a href="global.html#getSpellsWithSpecifications">getSpellsWithSpecifications</a></li><li><a href="global.html#getUrlFormat">getUrlFormat</a></li><li><a href="global.html#getUrlFormatHelper">getUrlFormatHelper</a></li><li><a href="global.html#getUserCharacters">getUserCharacters</a></li><li><a href="global.html#getUserIdFromSessionId">getUserIdFromSessionId</a></li><li><a href="global.html#getUsernameFromSessionId">getUsernameFromSessionId</a></li><li><a href="global.html#handleInvalidEndpoint">handleInvalidEndpoint</a></li><li><a href="global.html#hashPassword">hashPassword</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#isCharValid">isCharValid</a></li><li><a href="global.html#levelUp">levelUp</a></li><li><a href="global.html#lightSwitch">lightSwitch</a></li><li><a href="global.html#loadDifferentPagePerLoginStatus">loadDifferentPagePerLoginStatus</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#mysql">mysql</a></li><li><a href="global.html#populateBackgroundAndFeaturesTable">populateBackgroundAndFeaturesTable</a></li><li><a href="global.html#populateClassAndClassFeatureTables">populateClassAndClassFeatureTables</a></li><li><a href="global.html#populateRaceAndRacialTraitTables">populateRaceAndRacialTraitTables</a></li><li><a href="global.html#populateSpellTable">populateSpellTable</a></li><li><a href="global.html#reduceArrayToString">reduceArrayToString</a></li><li><a href="global.html#refreshSession">refreshSession</a></li><li><a href="global.html#removeAllExpertiseAndProficiencies">removeAllExpertiseAndProficiencies</a></li><li><a href="global.html#removeCharacter">removeCharacter</a></li><li><a href="global.html#removeItem">removeItem</a></li><li><a href="global.html#removeKnownSpell">removeKnownSpell</a></li><li><a href="global.html#removeSavingThrowProficiency">removeSavingThrowProficiency</a></li><li><a href="global.html#removeSession">removeSession</a></li><li><a href="global.html#removeSkillExpertise">removeSkillExpertise</a></li><li><a href="global.html#removeSkillProficiency">removeSkillProficiency</a></li><li><a href="global.html#removeSpellById">removeSpellById</a></li><li><a href="global.html#sendCharacter">sendCharacter</a></li><li><a href="global.html#sendToAddSpellPage">sendToAddSpellPage</a></li><li><a href="global.html#sendToCreatePage">sendToCreatePage</a></li><li><a href="global.html#sendToUpdateController">sendToUpdateController</a></li><li><a href="global.html#setAbilityScores">setAbilityScores</a></li><li><a href="global.html#setSavingThrowBonus">setSavingThrowBonus</a></li><li><a href="global.html#showAllSpellsLoggedIn">showAllSpellsLoggedIn</a></li><li><a href="global.html#showAllSpellsLoggedOut">showAllSpellsLoggedOut</a></li><li><a href="global.html#showEditSpellPage">showEditSpellPage</a></li><li><a href="global.html#showFilteredSpells">showFilteredSpells</a></li><li><a href="global.html#showSpecificBackground">showSpecificBackground</a></li><li><a href="global.html#showSpecificClass">showSpecificClass</a></li><li><a href="global.html#showSpellWithId">showSpellWithId</a></li><li><a href="global.html#uniqueList">uniqueList</a></li><li><a href="global.html#updateAC">updateAC</a></li><li><a href="global.html#updateCharacter">updateCharacter</a></li><li><a href="global.html#updateExp">updateExp</a></li><li><a href="global.html#updateHitpoints">updateHitpoints</a></li><li><a href="global.html#updateInitiative">updateInitiative</a></li><li><a href="global.html#updateLevel">updateLevel</a></li><li><a href="global.html#updateSpeed">updateSpeed</a></li><li><a href="global.html#updateSpellById">updateSpellById</a></li><li><a href="global.html#validateBackgroundId">validateBackgroundId</a></li><li><a href="global.html#validateClassId">validateClassId</a></li><li><a href="global.html#validateClassIds">validateClassIds</a></li><li><a href="global.html#validateMaterials">validateMaterials</a></li><li><a href="global.html#validatePassword">validatePassword</a></li><li><a href="global.html#validateRaceId">validateRaceId</a></li><li><a href="global.html#validateSpell">validateSpell</a></li><li><a href="global.html#validateSpellComponentBool">validateSpellComponentBool</a></li><li><a href="global.html#validateSpellDamage">validateSpellDamage</a></li><li><a href="global.html#validateSpellGenericString">validateSpellGenericString</a></li><li><a href="global.html#validateSpellId">validateSpellId</a></li><li><a href="global.html#validateSpellLevel">validateSpellLevel</a></li><li><a href="global.html#validateSpellName">validateSpellName</a></li><li><a href="global.html#validateSpellSchool">validateSpellSchool</a></li><li><a href="global.html#validateUser">validateUser</a></li><li><a href="global.html#validateUsername">validateUsername</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu May 19 2022 22:20:10 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
