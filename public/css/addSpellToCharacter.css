@@ -1,16 +1,3 @@
-:root {
-    --backgroundColor: #313431;
-    --textColor: white;
-    --elevationColor: #484a48;
-    --elevation2Color: #5f615f;
-    --darkGreen: #26413C;
-    --popColor: #7FB3C8;
-    --popColorHover: #3E505B;
-    --brightGreen: #80EAAF;
-    --midGreen: #4BC087;
-    --midRed: #E96049;
-}
-
 
 #filterClassImageSolo {
     border-radius: 1rem;
@@ -20,16 +7,6 @@
 
 .mtop-1rem {
     margin-top: 1rem;
-}
-
-select {
-    background-color: var(--elevation2Color);
-    color: var(--textColor);
-}
-
-input {
-    background-color: var(--elevation2Color);
-    color: var(--textColor);
 }
 
 input[type="checkbox"] {
