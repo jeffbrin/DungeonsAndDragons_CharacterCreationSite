@@ -110,11 +110,13 @@ async function getCookieObjectFromRequestAndUserId(request, userId)
     {
         if (!result.includes(recentCharacters[i].id))
         {
-            return false;
+            recentCharacters.splice(i,1);
         }
 
     }
 
+    if(recentCharacters.length == 0)
+        return false;
     return recentCharacters;
 }
 

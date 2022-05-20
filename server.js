@@ -31,9 +31,9 @@ async function startup()
         await userModel.initialize(dbName, false);
         await backgroundModel.initialize(dbName, false);
         await raceModel.initialize(dbName, false);
-        await classModel.initialize(dbName, true);
+        await classModel.initialize(dbName, false);
         await spellModel.initialize(dbName, false);
-        await characterModel.initialize(dbName, true);
+        await characterModel.initialize(dbName, false);
     } catch (error)
     {
         throw error;
