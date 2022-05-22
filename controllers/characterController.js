@@ -114,12 +114,12 @@ async function getCookieObjectFromRequestAndUserId(request, userId)
     {
         if (!result.includes(recentCharacters[i].id))
         {
-            recentCharacters.splice(i,1);
+            recentCharacters.splice(i, 1);
         }
 
     }
 
-    if(recentCharacters.length == 0)
+    if (recentCharacters.length == 0)
         return false;
     return recentCharacters;
 }
@@ -951,6 +951,47 @@ async function deleteSpellFromCharacter(request, response, sessionId)
 
 
 }
+
+async function updateAbilityScores(request, response, sessionId)
+{
+    let theJson = request.body;
+    try
+    {
+        let abilityScores = [];
+        abilityScores.push(theJson.strength);
+        abilityScores.push(theJson.dexterity);
+        abilityScores.push(theJson.constitution);
+        abilityScores.push(theJson.intelligence);
+        abilityScores.push(theJson.wisdom);
+        abilityScores.push(theJson.charisma);
+
+        model.updateAbilityScores(request.params.id, abilityScores);
+
+        response.redirect(getUrlFormatHelper(`/characters/${ request.params.id }`, { success: "Updated Ability Scores!" }));
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+        {
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Database error couldn't update ability scores!" }));
+            logger.error(`Database Error - From updateAbilityScores in characterController: ${ error.message }`);
+        }
+        else if (error instanceof errors.InvalidInputError)
+        {
+            response.status(400).redirect(url.format({
+                pathname: `/characters/${ request.params.id }`,
+                query: {
+                    "error": "Input error, Couldn't update ability scores."
+                }
+            }));
+            logger.error(`input error - from updateAbilityScores in characterController: ${ error.message }`);
+        }
+        else
+        {
+            logger.error(error.message + 'From updateAbilityScores.');
+            response.status(500).redirect(getUrlFormatHelper("/home", { error: "Something went wrong... Try again" }));
+        }
+    }
+}
 /**
  * Helper method that returns a built url formatted object in order to redirect
  * @param {String} path - The string representation of the path that needs building
@@ -976,6 +1017,7 @@ router.get('/', (request, response) => authenticator.gateAccess(request, respons
 router.put('/:id(\\d+)/hp', (request, response) => authenticator.gateAccess(request, response, updateHitpoints));
 router.put('/:id(\\d+)/levels', (request, response) => authenticator.gateAccess(request, response, updateLevel));
 router.put("/:id(\\d+)/items", (request, response) => authenticator.gateAccess(request, response, addItem));
+router.put("/:id(\\d+)/abilityscores", (request, response) => authenticator.gateAccess(request, response, updateAbilityScores));
 router.delete("/:id(\\d+)/items", (request, response) => authenticator.gateAccess(request, response, removeItem));
 router.get("/forms/:id(\\d+)", (request, response) => authenticator.gateAccess(request, response, sendToUpdateController));
 router.get("/new", (request, response) => authenticator.gateAccess(request, response, sendToCreatePage));

@@ -22,7 +22,8 @@ class ValidationError extends errors.InvalidInputError
  * Sets the connection of this model.
  * @param {Object} foreignConnection The connection to be assigned to this model's connection.
  */
-async function setConnection(foreignConnection){
+async function setConnection(foreignConnection)
+{
     connection = foreignConnection;
 }
 
@@ -508,5 +509,6 @@ module.exports = {
     checkSkillId,
     checkAbility,
     checkAbilityScores,
-    setConnection
+    setConnection,
+    ValidationError
 };

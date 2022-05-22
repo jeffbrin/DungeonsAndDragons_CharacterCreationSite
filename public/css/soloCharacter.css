@@ -356,9 +356,6 @@ body {
 }
 
 .abilityScore {
-    border: 1px solid black;
-    border-radius: 1rem;
-    padding: .5rem;
     font-size: 2rem;
     margin: auto;
 }
@@ -543,6 +540,13 @@ input[type=number]::-webkit-outer-spin-button {
     margin-top: 1rem !important;
 }
 
+.abilityScoreValue {
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: .5rem;
+    font-size: 2rem;
+    margin: auto;
+}
 
 .fs-2rem {
     font-size: 2rem;
@@ -719,6 +723,7 @@ html {
 .numberInput {
     background-color: var(--elevation2Color);
     color: var(--textColor);
+    max-width: 50%;
 }
 
 .numberInput::placeholder {

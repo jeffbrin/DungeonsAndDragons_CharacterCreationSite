@@ -9,6 +9,7 @@ const raceModel = require('./raceModel');
 const backgroundModel = require('./backgroundModel');
 const classModel = require('./classModel');
 const spellModel = require('./spellModel');
+const { ValidationError } = require('./validateCharacterAndStatistics');
 
 
 /**
@@ -60,7 +61,7 @@ async function initialize(databaseNameTmp, reset)
     await createKnownSpellTable();
     await createOwnedItemTable();
     valUtils.setConnection(connection);
-    
+
 
 
     await characterStatsModel.createTables();
@@ -1071,6 +1072,53 @@ async function updateInitiative(characterId, initiative)
     }
 }
 
+/**
+ * Updates the AbilityScores using the method in the characterStatisticsModel.
+ * @param {Integer} characterId The Id of the Character who's ability scores need to be updated.
+ * @param {Int32Array} abilityScores An array of integers containing the ability score values for each of the 6 abilities.
+ * @throws {DatabaseError} If there is an error with the SQL connection or statement.
+ * @throws {InvalidInputError} If the CharacterId or the AbiityScores array could NOT be validated.
+ */
+async function updateAbilityScores(characterId, abilityScores)
+{
+    try
+    {
+        if (!isCharacterIdValid(characterId))
+            throw new errors.InvalidInputError('characterModel', 'updateAbilityScores', `Character Id does not match any in the database.`);
+        valUtils.checkAbilityScores(abilityScores);
+        await characterStatsModel.setAbilityScores(characterId, abilityScores);
+        logger.info('Ability Scores Updated Successfully');
+    } catch (error)
+    {
+        if (error instanceof errors.DatabaseError)
+            throw error;
+        if (error instanceof ValidationError)
+            throw new errors.InvalidInputError('characterModel', 'updateAbilityScores', `Ability Scores couldn't get validated.`);
+        throw error;
+    }
+}
+
+
+/**
+ * Helper method that validates a character Id by querying the database.
+ * @param {Integer} characterId 
+ * @returns true if there is a matching characterId, false if not
+ * @throws {DatabaseError} If there is a problem with the SQL connection
+ */
+async function isCharacterIdValid(characterId)
+{
+    try
+    {
+        let q = `SELECT Id from ${ tableName } WHERE Id = ${ characterId };`;
+        let [rows, cols] = await connection.query(q);
+    } catch (error)
+    {
+        throw new errors.DatabaseError('charactermodel', 'isCharacterIdValid', `Database connection error: ${ error.message }`);
+    }
+    if (rows.length < 1 || rows.length > 1)
+        return false;
+    return true;
+}
 
 /**
  * Generates a new Object based off of the current object and the current Id of the character being visited
@@ -1368,5 +1416,6 @@ module.exports = {
     createRecentCharactersCookie,
     addKnownSpell,
     removeKnownSpell,
-    updateCharacterObject
+    updateCharacterObject,
+    updateAbilityScores
 };

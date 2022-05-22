@@ -67,8 +67,106 @@ let abilityScores = document.getElementsByClassName('abilityScore');
 let abilityScoreModifiers = document.getElementsByClassName('abilityBonus');
 let savingThrowModifiers = document.getElementsByClassName('abilityScoreModifierTd');
 
+let abilityScoreUpdateFormBtn = document.getElementById('abilityScoreUpdateFormBtn');
+let btnUpdateSheet = document.getElementById('btnUpdateSheet');
+let clicked = false;
+let scores = [];
+btnUpdateSheet.addEventListener('click', e =>
+{
+    let abilityScoreValues = [...document.getElementsByClassName('abilityScoreValue')];
+    let abilityScoreInputHidden = [...document.getElementsByClassName('abilityScoreInputHidden')];
+    if (!clicked)
+    {
+        scores = [];
+        abilityScoreValues.forEach(score =>
+        {
+            score.hidden = true;
+            scores.push(score.innerHTML);
+        });
+        abilityScoreInputHidden.reverse();
+        abilityScoreInputHidden.forEach(input =>
+        {
+            input.hidden = false;
+            input.value = scores.pop();
+        });
+        clicked = true;
+        btnUpdateSheet.innerHTML = 'Stop Edit';
+        abilityScoreUpdateFormBtn.hidden = false;
+        abilityScoreUpdateFormBtn.disabled = false;
+    }
+    else
+    {
+        abilityScoreValues.forEach(score =>
+        {
+            score.hidden = false;
+        });
+
+        abilityScoreInputHidden.forEach(input =>
+        {
+            input.hidden = true;
+            input.value = '';
+        });
+        clicked = false;
+        btnUpdateSheet.innerHTML = 'Edit Sheet';
+        abilityScoreUpdateFormBtn.hidden = true;
+        abilityScoreUpdateFormBtn.disabled = true;
+    }
+});
 
 
+abilityScoreUpdateFormBtn.addEventListener('click', e =>
+{
+    let abilityScoreUpdateForm = document.getElementById('abilityScoreUpdateForm');
+
+    //get all inputs
+    let inputs = [];
+    let abilityScoreInputHidden = [...document.getElementsByClassName('abilityScoreInputHidden')];
+    abilityScoreInputHidden.forEach(input =>
+    {
+        if (isNaN(parseInt(input.value)))
+            inputs.push(0);
+        else
+            inputs.push(parseInt(input.value));
+    });
+    inputs.reverse();
+    let strength = document.createElement('input');
+    strength.setAttribute('name', 'strength');
+    strength.hidden = true;
+    strength.value = inputs.pop();
+    abilityScoreUpdateForm.append(strength);
+
+    let dexterity = document.createElement('input');
+    dexterity.setAttribute('name', 'dexterity');
+    dexterity.hidden = true;
+    dexterity.value = inputs.pop();
+    abilityScoreUpdateForm.append(dexterity);
+
+    let constitution = document.createElement('input');
+    constitution.setAttribute('name', 'constitution');
+    constitution.hidden = true;
+    constitution.value = inputs.pop();
+    abilityScoreUpdateForm.append(constitution);
+
+    let intelligence = document.createElement('input');
+    intelligence.setAttribute('name', 'intelligence');
+    intelligence.hidden = true;
+    intelligence.value = inputs.pop();
+    abilityScoreUpdateForm.append(intelligence);
+
+    let wisdom = document.createElement('input');
+    wisdom.setAttribute('name', 'wisdom');
+    wisdom.hidden = true;
+    wisdom.value = inputs.pop();
+    abilityScoreUpdateForm.append(wisdom);
+
+    let charisma = document.createElement('input');
+    charisma.setAttribute('name', 'charisma');
+    charisma.hidden = true;
+    charisma.value = inputs.pop();
+    abilityScoreUpdateForm.append(charisma);
+
+    abilityScoreUpdateForm.submit();
+});
 
 for (let i = 0; i < abilityScoreModifiers.length; i++)
 {
@@ -171,7 +269,6 @@ function removeAll(characterId, skillId)
     form.append(skillIdInput);
 
     form.submit();
-
 }
 
 addBtn.addEventListener('click', addHp);

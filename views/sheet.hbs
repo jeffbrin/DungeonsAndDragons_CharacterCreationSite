@@ -39,15 +39,25 @@
 
 {{#with character}}
 
+<form hidden id="abilityScoreUpdateForm" action="/characters/{{Id}}/abilityscores" method="post"><input hidden
+    name="choice" value='{"method":"Put"}'>
+</form>
 
 <div class="miniGridContainer">
   <div class="profBonus text-center">
     <h5>Proficiency Bonus:</h5>
     <h2 class="h2PB"><br>+{{ProficiencyBonus}}</h2>
   </div>
-  <h1 class="text-center capitalize characterName" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
-  <div class="editBtn text-center"><button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button"
-      name="edit">Edit</button></div>
+  <div class="characterName text-center">
+    <h1 class="text-center capitalize" id="characterName">{{Name}} the {{Race.Name}} {{Class.Name}}</h1>
+    <button class="btn btn-primary mtop-1rem" form="abilityScoreUpdateForm" id="abilityScoreUpdateFormBtn" type="button"
+      hidden>Submit Edits</button>
+  </div>
+  <div class="editBtn text-center"><button id="btnUpdateSheet" style="margin-right: 1rem;"
+      class="inline-block btn btn-primary" type="button">Edit
+      Sheet</button><button id="btnUpdateCharacter" class="inline-block btn btn-primary" type="button" name="edit"
+      style="margin-left: 1rem;">Update Page</button>
+  </div>
 
   <input hidden name="characterId" id="characterIdHidden" value="{{Id}}">
 </div>
@@ -97,7 +107,11 @@
   <div class="{{AbilityName}} ability">
     <h6 class="abilityScoreName">{{AbilityName}}</h6>
     <h5 class="text-center abilityBonus">FE</h5>
-    <h6 class="text-center abilityScore w-50">{{Score}}</h6>
+    <div class="text-center abilityScore">
+      <input type="number" class="numberInput abilityScoreInputHidden w-50" hidden>
+      <h6 class="text-center abilityScoreValue w-50">{{Score}}</h6>
+    </div>
+
   </div>
   {{/each}}
 
