@@ -21,46 +21,110 @@ expButtonModify.addEventListener('click', openFormExp);
 
 let submitExp = document.getElementById('submitExp');
 let deleteSpellBtn = document.getElementById('deleteSpellBtn');
+let spellDeleteClicked = false;
 deleteSpellBtn.addEventListener('click', e =>
 {
-    let tds = [...document.getElementsByClassName('hiddenDeleteSpell')];
-    tds.forEach(td =>
+    if (!spellDeleteClicked)
     {
-        td.hidden = false;
-        td.childNodes.forEach(child =>
-        {
-            child.hidden = false;
-            child.childNodes.forEach(child2 =>
-            {
-                child2.hidden = false;
-            });
-        });
+        let imgTrashSpells = document.getElementById('imgTrashSpells');
+        imgTrashSpells.setAttribute('src', '/images/icons/modify.png');
 
-    });
+        let tds = [...document.getElementsByClassName('hiddenDeleteSpell')];
+        tds.forEach(td =>
+        {
+            td.hidden = false;
+            td.childNodes.forEach(child =>
+            {
+                child.hidden = false;
+                child.childNodes.forEach(child2 =>
+                {
+                    child2.hidden = false;
+                });
+            });
+
+        });
+        spellDeleteClicked = true;
+    }
+    else
+    {
+        let imgTrashSpells = document.getElementById('imgTrashSpells');
+        imgTrashSpells.setAttribute('src', '/images/icons/trashStatic.png');
+
+        let tds = [...document.getElementsByClassName('hiddenDeleteSpell')];
+        tds.forEach(td =>
+        {
+            td.childNodes.forEach(child =>
+            {
+                child.hidden = true;
+                child.childNodes.forEach(child2 =>
+                {
+                    child2.hidden = true;
+                });
+            });
+
+        });
+        spellDeleteClicked = false;
+    }
+
 });
 
 let deleteItemBtn = document.getElementById('deleteItemBtn');
+let deleteSelectedItems = false;
 deleteItemBtn.addEventListener('click', e =>
 {
-    let tdChangeColspan = [...document.getElementsByClassName('colspanChange')];
-    tdChangeColspan.forEach(td =>
+    if (!deleteSelectedItems)
     {
-        td.setAttribute('colspan', '1');
-    });
-    let tds = [...document.getElementsByClassName('hiddenDeleteItem')];
-    tds.forEach(td =>
-    {
-        td.hidden = false;
-        td.childNodes.forEach(child =>
+        //change image to minus? else change it back to the trash
+        let imgTrashItems = document.getElementById('imgTrashItems');
+        imgTrashItems.setAttribute('src', '/images/icons/modify.png');
+        let tdChangeColspan = [...document.getElementsByClassName('colspanChange')];
+        tdChangeColspan.forEach(td =>
         {
-            child.hidden = false;
-            child.childNodes.forEach(child2 =>
-            {
-                child2.hidden = false;
-            });
+            td.setAttribute('colspan', '1');
         });
+        let tds = [...document.getElementsByClassName('hiddenDeleteItem')];
+        tds.forEach(td =>
+        {
+            td.hidden = false;
+            td.childNodes.forEach(child =>
+            {
+                child.hidden = false;
+                child.childNodes.forEach(child2 =>
+                {
+                    child2.hidden = false;
+                });
+            });
 
-    });
+        });
+        deleteSelectedItems = true;
+    }
+    else
+    {
+        let imgTrashItems = document.getElementById('imgTrashItems');
+        imgTrashItems.setAttribute('src', '/images/icons/trashStatic.png');
+
+        let tdChangeColspan = [...document.getElementsByClassName('colspanChange')];
+        tdChangeColspan.forEach(td =>
+        {
+            td.setAttribute('colspan', '2');
+        });
+        let tds = [...document.getElementsByClassName('hiddenDeleteItem')];
+        tds.forEach(td =>
+        {
+            td.hidden = true;
+            td.childNodes.forEach(child =>
+            {
+                child.hidden = true;
+                child.childNodes.forEach(child2 =>
+                {
+                    child2.hidden = true;
+                });
+            });
+
+        });
+        deleteSelectedItems = false;
+    }
+
 });
 
 let abilityScores = document.getElementsByClassName('abilityScore');
