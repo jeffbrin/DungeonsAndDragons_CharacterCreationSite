@@ -29,9 +29,10 @@
 }
 
 .pDesc::first-letter {
-    font-size: 5rem;
+    font-size: 4rem;
     float: left;
     text-transform: capitalize;
+    margin-bottom: 1rem;
 }
 
 .mtop-2rem {
