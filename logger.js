@@ -8,7 +8,7 @@ if (!fs.existsSync(directory))
 
 // Create the logger
 const logger = pino({
-    level: 'error',
+    level: 'info',
     destination: 'pino-pretty',
     options: {
         colorize: true

@@ -249,7 +249,7 @@
       <tbody>
         {{#each AbilityScores}}
         <tr>
-          <td scope="row"><button class="no-border btn-elevated2 roll20 cellClass" data-bs-toggle="modal"
+          <td scope="row"><button data-bonus="{{Score}}" class="no-border btn-elevated2 roll20 cellClass savingThrowButton" data-bs-toggle="modal"
               data-bs-target="#modalRoll"><img class="d20Skill" src="/images/icons/dice/d20.png"></button></td>
           <td class="cellClass">{{AbilityName}}</td>
           <td class="abilityScoreModifierTd cellClass">FE</td>

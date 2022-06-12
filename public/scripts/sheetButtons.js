@@ -381,7 +381,14 @@ function levelup(event)
 }
 
 
-
+let rollBonus = 0;
+// Add saving throw proficiency to the dice rolls
+[...document.getElementsByClassName('savingThrowButton')].forEach(btn => {
+    btn.addEventListener('click', e =>{
+        rollBonus = Math.floor((Number(btn.dataset.bonus) - 10) / 2);
+        console.log(rollBonus);
+    })
+})
 
 // Copyright (c) 2022 by Vicente Mundim (https://codepen.io/vicentemundim/pen/nXNvBw)
 var $die = $('.die'),
@@ -411,6 +418,10 @@ function randomFace()
 
 function rollTo(face)
 {
+    // Clear the dice rolls that are already present
+    let rollDiv = document.getElementById('rollBody');
+    rollDiv.innerHTML = '';
+
     clearTimeout(timeoutId);
 
     $('ul > li > a').removeClass('active');
@@ -420,8 +431,8 @@ function rollTo(face)
     //SAM
     //Now we can inject the face (int) into the DOM
     let h5 = document.createElement('h5');
-    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${ face }</b>`;
-    let rollDiv = document.getElementById('rollBody');
+    h5.innerHTML = `You Rolled a <b class="bolded fs-2rem">${ face } + ${ rollBonus } = ${ Number(face) + Number(rollBonus) }</b>`;
+    
     rollDiv.append(h5);
 }
 
