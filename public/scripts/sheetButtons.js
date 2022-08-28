@@ -450,7 +450,6 @@ let rollBonus = 0;
 [...document.getElementsByClassName('savingThrowButton')].forEach(btn => {
     btn.addEventListener('click', e =>{
         rollBonus = Math.floor((Number(btn.dataset.bonus) - 10) / 2);
-        console.log(rollBonus);
     })
 })
 
@@ -484,7 +483,12 @@ function rollTo(face)
 {
     // Clear the dice rolls that are already present
     let rollDiv = document.getElementById('rollBody');
-    rollDiv.innerHTML = '';
+    rollDiv.childNodes.forEach(node => {
+        if (node.nodeName != "DIV"){
+            node.remove();
+        }
+    })
+    // rollDiv.innerHTML = '';
 
     clearTimeout(timeoutId);
 
